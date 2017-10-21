@@ -101,5 +101,5 @@ simulation = 0											# 0 = disable; 1 = enable; this function used for testi
 sim_MS1 = 1000											# ppm addition for MS1 decoys
 sim_MS2 = 5											# Da window for randomized MS2 peaks
 cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster
-Job_Management_System = SGE									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used
+Job_Management_System = LSF									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used
 temp_file_removal = 1										# 0 = disable (keep temporary files); 1 = enable (remove temporary files)
