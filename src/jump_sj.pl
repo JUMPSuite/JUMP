@@ -9,6 +9,8 @@ use Cwd 'abs_path';
 use Storable;
 use File::Basename;
 use Parallel::ForkManager;
+use Time::Piece;
+
 
 ## Custom packages
 my $libPath;
@@ -68,6 +70,8 @@ $params -> {'tag_coeff_evalue'} = 1;
 $params -> {'pho_neutral_loss'} = 0;
 database_creation();
 
+#
+
 ## Create the path for multiple raw files
 my %rawfile_hash;
 print "  Using the following rawfiles:\n";
@@ -79,7 +83,12 @@ foreach my $arg (sort @ARGV) {
     if ($arg =~ /.[raw|RAW|mzXML]/) {
 		print "  $arg","\n";
 	}
-}
+} 
+
+print "\t\t100 ";
+print localtime->strftime('%Y%m%d %k:%M:%S');
+print "\n ";
+
 
 foreach my $arg (sort @ARGV) {
     my @suffixlist = ();
@@ -94,12 +103,16 @@ foreach my $arg (sort @ARGV) {
         my $path = new Spiders::Path($datafile);
         my $list = $path -> make_directory_list();
         my $newdir;
-        if (@$list) {
-            $newdir = $path -> choose_dir_entry($list, "  Choose a .out file directory", $newdir);
-        } else {
-			$newdir	= $filename . ".1";
-            $newdir = $path -> ask("  Choose a .out file directory", $newdir);
-        }
+        
+        $newdir	= $filename . ".1";
+
+
+#        if (@$list) {
+#            $newdir = $path -> choose_dir_entry($list, "  Choose a .out file directory (1)", $newdir);
+#        } else {
+#			$newdir	= $filename . ".1";
+#            $newdir = $path -> ask("  Choose a .out file directory (2)", $newdir);
+#        }
         print "  Using: $newdir\n";
         $path -> add_subdir($newdir);
         my $dir =  $path -> basedir() . "/$newdir";
@@ -112,9 +125,6 @@ foreach my $arg (sort @ARGV) {
 foreach my $raw_file (sort keys %rawfile_hash) {		
 	## Get working directory
 	print "  Searching data: $raw_file\n";
-	my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime(time); 
-	print "  Start: ";
-	printf "%4d-%02d-%02d %02d:%02d:%02d\n\n",$year+1900, $mon + 1, $mday, $hour, $min, $sec;	
 	my $curr_dir = getcwd;
 	my $dta_path = $rawfile_hash{$raw_file};
 	if ($raw_file =~ /\.mzXML/) {
@@ -126,27 +136,45 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	$proc_raw -> set_raw_file($raw_file);
 	print "  Converting .raw into .mzXML file\n";
 	my $mzXML = $proc_raw->raw2mzXML();
-
+	
 	## Initialize the processing of mzXML file(s)
 	print "  Extracting peaks from .mzXML\n";
 	my $proc_xml = new Spiders::ProcessingMzXML();
 	$proc_xml -> set_dta_path($dta_path);
 	$proc_xml -> set_mzXML_file($mzXML);
-
+                           
 	## Extraction of MS1 and MS2 spectra information (assignment to hashes)
 	my (%ms_hash, %msms_hash, @mz_array);
 	$proc_xml -> set_parameter($params);
+
+    printf "\n";
+	print "\t\t101 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+    printf "\n\n";
+
+    # Gathering scan information: 
+    
 	$proc_xml-> generate_hash_dta(\%ms_hash, \%msms_hash, \@mz_array, $params);
 	my $ms1N = scalar(keys %{$ms_hash{'surveyhash'}});	## Number of MS1 scans
 	my $ms2N = scalar(keys %msms_hash) - $ms1N;	## Number of MS2 scans
 	printf "\n  There are %d MS and %d MS/MS in the entire run\n", $ms1N, $ms2N;
 	
+	printf "\n\n";
+	print "\t\t102 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+    printf "\n ";
+
 	## Mass correction of MS1 and/or MS2 spectra
 	print "\n  Mass correction\n";
 	my $masscorr = new Spiders::MassCorrection();
 	my ($msms_hash_corrected, $mz_array_corrected) = $masscorr -> massCorrection(\%ms_hash, \%msms_hash, \@mz_array, $params);
 	%msms_hash = %$msms_hash_corrected;
 	@mz_array = @$mz_array_corrected;
+	
+	printf "\n";
+	print "\t\t103 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
 	
 	## Decharging/deconvolution of spectra
 	print "\n  Decharging scans\n";
@@ -165,10 +193,21 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	}
 	$pip -> set_isolation_offset($params -> {'isolation_window_offset'});
 	$pip -> set_isolation_variation($params -> {'isolation_window_variation'});
-	$pip -> set_dta_path($dta_path);	
+	$pip -> set_dta_path($dta_path);
+	
+	printf "\n";
+	print "\t\t104 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+	
 	my $PIPref = $pip -> Calculate_PIP();
 	my ($charge_dist, $ppi_dist) = $pip -> changeMH_folder($PIPref);
 
+	printf "\n";
+	print "\t\t105 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+	
 	## Database search
 	print "  Starting database searching\n";
 	## Create jobs and distribute to nodes
@@ -185,8 +224,22 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	} else {
 		print "  Please specify a right second_search parameter!!\n";
 	}
+		
+	printf "\n";
+	print "106 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+
+	
+	
 	my $temp_file_array = runjobs(\@file_array, $dta_path, "sch_${random}");
 
+	printf "\n\n";
+	print "108 ";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+
+	
 	## Re-searching part; look for accidentally unfinished jobs and re-run them
 	my $rerunN = 0;
 	while (scalar(@{$temp_file_array}) > 0 && $rerunN < 3) {
@@ -299,6 +352,10 @@ sub runjobs {
 		close(JOB);
 	}
 
+
+	exit 0;
+		
+		
 	## Run/control parallel jobs 
 	my $job_list;
 	if ($params -> {'cluster'} eq '1') {	## Cluster system
