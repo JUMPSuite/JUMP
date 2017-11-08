@@ -260,7 +260,7 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	$Rankhit -> set_parameter($params);
 	my $mainhash = $Rankhit -> parse_spOut_files_v5($dta_path);
 	my ($sum_target, $sum_decoy, $cutoff_score) = $Rankhit -> calculate_FDR($mainhash, 0.01);
-	print "\n  $sum_target targets and $sum_decoy decoys passed FDR = 1%\n";
+	print "\n  $sum_target targets and $sum_decoy decoys passed FDR = 1% w/ cutoff $cutoff_score\n";
 	print "  Generating dtas file\n";
 	system (qq(cat $dta_path/*.dtas > $dta_path.dtas));      # make one dtas
 	system (qq(rm $dta_path/*.dtas));        # delete job-specific dtas
@@ -353,8 +353,6 @@ sub runjobs {
 	}
 
 
-	exit 0;
-		
 		
 	## Run/control parallel jobs 
 	my $job_list;
@@ -363,6 +361,7 @@ sub runjobs {
 			for (my $i = 0; $i < $job_num; $i++) {
 				my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
 				my $job = qx[$command_line];
+#				print "return code is ",$?,"\n";
 				chomp $job;
 				my $job_id = 0;
 				if ($job =~ /Job \<(\d*)\> is/) {
@@ -489,6 +488,7 @@ sub Check_Job_stat {
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
 			$command_line =  "bjobs -u $username";
 			my $job_status = qx[$command_line];
+			print "bjobs said: $job_status\n";
 			my @job_status_array = split(/\n/,$job_status);
 			my $job_number = $job_num - scalar(@job_status_array);
 			if (scalar(@job_status_array) == 0) {

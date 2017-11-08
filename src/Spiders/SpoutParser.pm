@@ -11,6 +11,8 @@ use warnings;
 use Storable;
 use vars qw($VERSION @ISA @EXPORT);
 use Excel::Writer::XLSX;
+use File::Temp;
+use File::Path;
 
 $VERSION     = 2.01;
 @ISA	 = qw(Exporter);
@@ -685,7 +687,8 @@ sub printXLSX
     my $workbook = Excel::Writer::XLSX->new($FileName);
 
     # set tmp path
-    $workbook->set_tempdir( '/data/XLSXtmp' );
+    my $tmpdir = File::Temp::mkdtemp("XXXXXXXXXXXXXX");
+    $workbook->set_tempdir( $tmpdir );
 
     # Add 'Summary' worksheet
     my $worksheet0 = $workbook->add_worksheet('Summary Table');
@@ -1033,6 +1036,7 @@ sub printXLSX
 	$i=$i+10;#$markRows[6]=$i;
 	$worksheet2->write($i,0,'Precursor mass',$titleFormat);$i++;$markRows[6]=$i;
 	my $number = (scalar(@precursorMass)==0) ? 1 : scalar(@precursorMass);
+    print "pcmslot is [$pcmSlot], [$#precursorMass]\n";
 	for (my $k=int($precursorMass[0]/$pcmSlot); $k<=int($precursorMass[scalar(@precursorMass)-1]/$pcmSlot); $k++,$i++)
 	{
 		$worksheet2->write($i,1,$k*$pcmSlot);
@@ -1127,7 +1131,7 @@ sub printXLSX
 
 
         $workbook->close();
-
+    File::Path::remove_tree($tmpdir);
 }
 
 sub fstr {
