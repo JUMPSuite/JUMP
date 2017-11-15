@@ -8,6 +8,7 @@ use Cwd;
 use Cwd 'abs_path';
 use Storable;
 use File::Basename;
+use File::Spec;
 use Parallel::ForkManager;
 use Time::Piece;
 
@@ -42,6 +43,10 @@ my ($help, $parameter, $raw_file);
 GetOptions('-help|h' => \$help,
 			'-p=s' => \$parameter,);
 usage() if ($help || !defined($parameter));
+
+unless( File::Spec->file_name_is_absolute($parameter) ) {
+    $parameter = File::Spec->rel2abs($parameter);
+}
 
 print <<EOF;
 ################################################################
@@ -116,7 +121,7 @@ foreach my $arg (sort @ARGV) {
         print "  Using: $newdir\n";
         $path -> add_subdir($newdir);
         my $dir =  $path -> basedir() . "/$newdir";
-		my $rawfile = "$datafile/$arg";
+		my $rawfile = "$datafile/$filename";
 		$rawfile_hash{$rawfile} = $dir;
 		system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
     }
@@ -125,7 +130,6 @@ foreach my $arg (sort @ARGV) {
 foreach my $raw_file (sort keys %rawfile_hash) {		
 	## Get working directory
 	print "  Searching data: $raw_file\n";
-	my $curr_dir = getcwd;
 	my $dta_path = $rawfile_hash{$raw_file};
 	if ($raw_file =~ /\.mzXML/) {
 		$raw_file =~ s/\.mzXML//g;
@@ -299,7 +303,6 @@ sub Create_Sort_BashFile {
 
 sub runjobs {
 	my ($file_array, $dta_path, $job_name) = @_;
-	my $curr_dir = getcwd;
 	my $MAX_PROCESSES = 32;
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
@@ -337,17 +340,17 @@ sub runjobs {
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
 			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";		
+			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";		
 		} elsif($params->{'Job_Management_System'} eq 'SGE') {
 			print JOB "#!/bin/bash\n";
 			print JOB "#\$ -N ${job_name}_${i}\n";
 			print JOB "#\$ -e $dta_path/${job_name}_${i}.e\n";
 			print JOB "#\$ -o $dta_path/${job_name}_${i}.o\n";			
 			foreach (@dta_file_arrays) {
-				print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $_\n";	
+				print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";	
 			}
 		} else {
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";	
+			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";	
 		}
 		close(JOB);
 	}
