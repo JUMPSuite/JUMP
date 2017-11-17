@@ -43,6 +43,10 @@ my ($help, $parameter, $raw_file);
 GetOptions('-help|h' => \$help,
 			'-p=s' => \$parameter,);
 usage() if ($help || !defined($parameter));
+usage("Please verify your parameter file $parameter path is correct\n") if(!(-e $parameter));
+foreach my $file (@ARGV) {
+    usage("Please verify your input $file path is correct\n") if(!(-e $file));
+}
 
 unless( File::Spec->file_name_is_absolute($parameter) ) {
     $parameter = File::Spec->rel2abs($parameter);
@@ -774,6 +778,7 @@ sub delete_run_dir {
 }
 
 sub usage {
+    my $msg = shift;
 print <<EOF;
 ################################################################
 #                                                              #
@@ -794,6 +799,7 @@ Usage: $progname -p parameterfile rawfile.raw
 	
 
 EOF
+print STDERR $msg;
 exit 1;
 }
 
