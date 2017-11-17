@@ -388,7 +388,7 @@ sub runjobs {
 			}
 		}
 		print "\n  You submitted $job_num jobs for database search\n";
-		Check_Job_stat("${job_name}_", $job_num, $dta_path);
+		Check_Job_stat("${job_name}_", $job_num, $dta_path,$job_list);
 	} elsif($params->{'cluster'} eq '0') {	## Non-cluster system, but multiple cores
 		my $pm = new Parallel::ForkManager($MAX_PROCESSES);
 		for my $i (0 .. $MAX_PROCESSES) {
@@ -458,7 +458,7 @@ sub MergeFile {
 	
 sub Check_Job_stat {
 	## Check the status of distributed jobs
-	my ($jobs_prefix, $job_num, $dta_path) = @_;
+	my ($jobs_prefix, $job_num, $dta_path, $jobs_hashref) = @_;
 	my $job_info = 1;
     my ($username) = getpwuid($<);
 	my $command_line = "";
@@ -489,22 +489,19 @@ sub Check_Job_stat {
 	
 		## Consider only the ones that we submitted
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
-			$command_line =  "bjobs -u $username";
+			$command_line =  "bjobs -u $username -noheader";
 			my $job_status = qx[$command_line];
-			print "bjobs said: $job_status\n";
-			my @job_status_array = split(/\n/,$job_status);
-			my $job_number = $job_num - scalar(@job_status_array);
-			if (scalar(@job_status_array) == 0) {
-				print "\r  $job_num jobs finished          ";
-			} else {
-				print "\r  $job_number jobs finished          ";
-				sleep(5);
+			my $running_jobs = set_intersection( $jobs_hashref, parse_bjobs_output($job_status) );
+			my $job_number = $job_num - scalar(@$running_jobs);
+			if( scalar(@$running_jobs) == 0 ) {
+			    print "\r  $job_num jobs finished          ";			    
+			    $job_info = 0;
 			}
-			if (scalar(@job_status_array) > 0) {
-				$job_info = 1;
-			} else {
-				$job_info = 0;
+			else {
+			    print "\r  $job_number jobs finished          ";			    
 			}
+			sleep(10);
+			
 		} elsif ($params -> {'Job_Management_System'} eq 'SGE') {
 			@job_status_array = grep(/$jobs_prefix/, @job_status_array);
 			if ($job_status =~ /No unfinished job found/) {
@@ -798,4 +795,23 @@ Usage: $progname -p parameterfile rawfile.raw
 
 EOF
 exit 1;
+}
+
+sub parse_bjobs_output {
+    my $output = shift;
+    my @arr = ($output =~ /^(\d+).*$/mg);
+    my %rv;
+    @rv{@arr} = @arr;
+    return \%rv;
+}
+
+sub set_intersection {
+    my ($s1,$s2) = @_;
+    my @rv;
+    foreach my $i1 (keys(%$s1)) {
+	if(defined($s2->{$i1})) {
+	    push( @rv, $i1 );
+	}
+    }
+    return \@rv;
 }

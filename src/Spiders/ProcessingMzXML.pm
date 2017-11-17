@@ -208,7 +208,11 @@ sub generate_hash_dta
 
 
 		next if ($number>$parameter->{'last_scan_extraction'});			
-		print "\r  Gathering scan information: $number of $last_scan scans          ";
+		if( ($number % 100) == 0 || $number == $last_scan ) { 
+		    $| = 1;
+		    print "\r Gathering scan information: $number of $last_scan scans          ";
+		    $| = 0;
+		}
 		my ($rt) = $xml->get_RT(*XML, $index);
 
 		($$msms_hash{$number}{'xml_mz'}, $$msms_hash{$number}{'xml_int'}, $$msms_hash{$number}{'xml_act'},$mslevel) = $xml->get_PrecursorMZINTACT(*XML, $index);

@@ -1036,7 +1036,6 @@ sub printXLSX
 	$i=$i+10;#$markRows[6]=$i;
 	$worksheet2->write($i,0,'Precursor mass',$titleFormat);$i++;$markRows[6]=$i;
 	my $number = (scalar(@precursorMass)==0) ? 1 : scalar(@precursorMass);
-    print "pcmslot is [$pcmSlot], [$#precursorMass]\n";
 	for (my $k=int($precursorMass[0]/$pcmSlot); $k<=int($precursorMass[scalar(@precursorMass)-1]/$pcmSlot); $k++,$i++)
 	{
 		$worksheet2->write($i,1,$k*$pcmSlot);
