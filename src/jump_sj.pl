@@ -268,7 +268,7 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	$Rankhit -> set_parameter($params);
 	my $mainhash = $Rankhit -> parse_spOut_files_v5($dta_path);
 	my ($sum_target, $sum_decoy, $cutoff_score) = $Rankhit -> calculate_FDR($mainhash, 0.01);
-	print "\n  $sum_target targets and $sum_decoy decoys passed FDR = 1% w/ cutoff $cutoff_score\n";
+	print "\n  $sum_target targets and $sum_decoy decoys passed FDR = 1%\n";
 	print "  Generating dtas file\n";
 	system (qq(cat $dta_path/*.dtas > $dta_path.dtas));      # make one dtas
 	system (qq(rm $dta_path/*.dtas));        # delete job-specific dtas
@@ -799,7 +799,7 @@ Usage: $progname -p parameterfile rawfile.raw
 	
 
 EOF
-print STDERR $msg;
+if( defined($msg) ) { print STDERR $msg; }
 exit 1;
 }
 
