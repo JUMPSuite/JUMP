@@ -85,7 +85,7 @@ foreach my $arg (sort @ARGV) {
 	}
 } 
 
-print "\t\t100 ";
+print "\n\t100 ";
 print localtime->strftime('%Y%m%d %k:%M:%S');
 print "\n ";
 
@@ -98,6 +98,9 @@ foreach my $arg (sort @ARGV) {
     if ($arg =~ /.[raw|RAW|mzXML]/) {	
 		my ($filename, $directory, $suffix) = fileparse($arg, @suffixlist);	
         system(qq(mkdir $directory/$filename >/dev/null 2>&1));
+        system(qq(mkdir $directory/$filename/lsf >/dev/null 2>&1));
+        system(qq(mkdir $directory/$filename/log >/dev/null 2>&1));
+        system(qq(mkdir $directory/$filename/dta >/dev/null 2>&1));
         system(qq(mv $arg $directory/$filename >/dev/null 2>&1));
         my $datafile = "$directory/$filename";
         my $path = new Spiders::Path($datafile);
