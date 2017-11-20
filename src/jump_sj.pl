@@ -298,6 +298,10 @@ sub Create_Sort_BashFile {
 }
 
 sub runjobs {
+
+	print "201 end runjobs";
+
+
 	my ($file_array, $dta_path, $job_name) = @_;
 	my $curr_dir = getcwd;
 	my $MAX_PROCESSES = 32;
@@ -352,6 +356,7 @@ sub runjobs {
 		close(JOB);
 	}
 
+	print "210 end runjobs";
 
 	exit 0;
 		

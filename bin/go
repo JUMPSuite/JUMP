@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+echo "start" $SCRIPT_DIR
+
+
+
+
+$SCRIPT_DIR/step_1.sh
+
+
+
+
+
+echo "done."
+
+
