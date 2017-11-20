@@ -9,7 +9,10 @@ pwd="$(pwd)"
 echo "start (go)" $this_scripts_dir
 echo "pwd" $pwd
 echo "submitting... "
-bsub < $this_scripts_dir/steps.sh
+bsub -cwd "${pwd}" \
+	-oo "${pwd}"/out.o \
+	-eo "${pwd}"/out.e \
+	< $this_scripts_dir/steps.sh
 echo "done (go)"
 #
 
