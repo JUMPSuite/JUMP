@@ -1,10 +1,15 @@
 #!/bin/bash
 #
-this_scripts_containing_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#dtn=`date +%Y%m%d.%N`
+pwd="$(pwd)"
 #
 
-echo "start" $this_scripts_containing_dir
-$this_scripts_containing_dir/step_1.sh
-echo "done."
-
+#
+echo "start (go)" $this_scripts_dir
+echo "pwd" $pwd
+echo "submitting... "
+bsub < $this_scripts_dir/steps.sh
+echo "done (go)"
+#
 

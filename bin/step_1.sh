@@ -1,7 +1,7 @@
 #!/bin/bash
 #
+dtn=$1
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-dtn=`date +%Y%m%d.%N`
 pwd="$(pwd)"
 
 cd $this_scripts_dir
@@ -18,7 +18,7 @@ touch 0
 rm 0
 ln -s ${dtn} 0
 
-mkdir -p ${work}/output
+#mkdir -p ${work}/output
 
 cp -R $SCRIPT_PARENT_DIR/src/Class ${work}
 cp -R $SCRIPT_PARENT_DIR/src/Set ${work}
@@ -35,7 +35,7 @@ cp ~/data/proteomics/HH_tmt10_human_jump.mzXML ${work}
 #
 cd ${work}
 pwd
-ls -al
+#ls -al
 
 #bsub \
 #  -P proteomics-jump-${USER} \
