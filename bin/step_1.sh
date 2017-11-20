@@ -1,13 +1,18 @@
 #!/bin/bash
 #
-dtn=$1
+this_work_dir=$1
+dtn=$2
+#
+
+#
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-pwd="$(pwd)"
+#
 
 cd $this_scripts_dir
 cd ..
 SCRIPT_PARENT_DIR="$(pwd)"
-cd $pwd
+cd $this_work_dir
+
 #
 WORK_ROOT_DIR=${pwd}
 #WORK_ROOT_DIR=/scratch_space/${USER}/jump

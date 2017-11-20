@@ -1,14 +1,14 @@
 #!/bin/bash
 #
-dtn=$1
+this_work_dir=$1
+dtn=$2
 #
 
 #
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-pwd="$(pwd)"
 #
 
-WORK_ROOT_DIR=${pwd}
+WORK_ROOT_DIR=${this_work_dir}
 work=${WORK_ROOT_DIR}/${dtn}
 
 

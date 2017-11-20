@@ -12,7 +12,7 @@ echo "submitting... "
 bsub -cwd "${pwd}" \
 	-oo "${pwd}"/out.o \
 	-eo "${pwd}"/out.e \
-	< $this_scripts_dir/steps.sh
+	< $this_scripts_dir/steps.sh $pwd
 echo "done (go)"
 #
 
