@@ -370,14 +370,14 @@ sub runjobs {
 	my $job_list;
 	if ($params -> {'cluster'} eq '1') {	## Cluster system
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
-			#for (my $i = 0; $i < $job_num; $i++) {
-			for (my $i = 0; $i < 10; $i++) {
+			for (my $i = 0; $i < $job_num; $i++) {
+			#for (my $i = 0; $i < 10; $i++) {
 
-				printf "ja ja ${job_name}_${i}.sh \n";
+				printf "writing ${job_name}_${i}.sh \n";
 
-				#my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
-				#my $job = qx[$command_line];
-				#chomp $job;
+				my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
+				my $job = qx[$command_line];
+				chomp $job;
 				#my $job_id = 0;
 				#if ($job =~ /Job \<(\d*)\> is/) {
 				#	$job_id = $1;
