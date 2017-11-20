@@ -5,17 +5,12 @@ dtn=$2
 #
 
 #
-this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 #
 
 
-echo "start (go)" $this_scripts_dir
+echo "start (step_1) this_work_dir =  $this_work_dir"
 
-
-# 
-# cd $this_scripts_dir
-# cd ..
-# cd $this_work_dir
 
 #
 work=${this_work_dir}/${dtn}
