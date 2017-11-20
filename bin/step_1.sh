@@ -1,21 +1,22 @@
 #!/bin/bash
 #
-PWD="$(pwd)"
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd $SCRIPT_DIR
+this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+dtn=`date +%Y%m%d.%N`
+pwd="$(pwd)"
+
+cd $this_scripts_dir
 cd ..
 SCRIPT_PARENT_DIR="$(pwd)"
-cd $PWD
+cd $pwd
 #
-WORK_ROOT_DIR=${PWD}
+WORK_ROOT_DIR=${pwd}
 #WORK_ROOT_DIR=/scratch_space/${USER}/jump
 echo "SCRIPT_PARENT_DIR=${SCRIPT_PARENT_DIR}"
 #
-dt=`date +%Y%m%d.%N`
-work=${WORK_ROOT_DIR}/${dt}
+work=${WORK_ROOT_DIR}/${dtn}
 touch 0
 rm 0
-ln -s ${dt} 0
+ln -s ${dtn} 0
 ls -al
 
 mkdir -p ${work}/output

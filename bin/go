@@ -1,16 +1,10 @@
 #!/bin/bash
 #
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+this_scripts_containing_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-echo "start" $SCRIPT_DIR
+echo "start" $this_scripts_containing_dir
 
-
-
-
-$SCRIPT_DIR/step_1.sh
-
-
-
+$this_scripts_containing_dir/step_1.sh
 
 
 echo "done."
