@@ -3,7 +3,7 @@
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 dtn=`date +%Y%m%d.%N`
 pwd="$(pwd)"
-this_work_dir=$1
+this_work_dir="/home/sespy/work/proteomics/jump-search"
 
 echo "start (steps) $this_scripts_dir"
 echo "pwd $pwd"
