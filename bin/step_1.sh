@@ -26,10 +26,10 @@ cp -R $SCRIPT_PARENT_DIR/src/Set ${work}
 cp -R $SCRIPT_PARENT_DIR/src/Spiders ${work}
 cp $SCRIPT_PARENT_DIR/src/*.pl  ${work}
 cp $SCRIPT_PARENT_DIR/example/jump_sj.params  ${work}
-cp ~/data/human_ft_mc2_c0_TMT_K229.fasta.mdx  ${work}
-cp ~/data/human_ft_mc2_c0_TMT_K229.fasta.prdx  ${work}
-cp ~/data/human_ft_mc2_c0_TMT_K229.fasta.sdx ${work}
-cp ~/data/HH_tmt10_human_jump.mzXML ${work}
+cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.mdx  ${work}
+cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.prdx  ${work}
+cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.sdx ${work}
+cp ~/data/proteomics/HH_tmt10_human_jump.mzXML ${work}
 
 #
 #
