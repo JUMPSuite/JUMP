@@ -8,12 +8,18 @@ dtn=$2
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 #
 
-cd $this_scripts_dir
-cd ..
-cd $this_work_dir
+
+echo "start (go)" $this_scripts_dir
+
+
+# 
+# cd $this_scripts_dir
+# cd ..
+# cd $this_work_dir
 
 #
 work=${this_work_dir}/${dtn}
+mkdir -p $work
 touch 0
 rm 0
 ln -s ${dtn} 0
