@@ -17,7 +17,6 @@ work=${WORK_ROOT_DIR}/${dtn}
 touch 0
 rm 0
 ln -s ${dtn} 0
-ls -al
 
 mkdir -p ${work}/output
 
