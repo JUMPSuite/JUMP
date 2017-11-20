@@ -25,11 +25,11 @@ ln -s ${dtn} 0
 
 #mkdir -p ${work}/output
 
-cp -R $SCRIPT_PARENT_DIR/src/Class ${work}
-cp -R $SCRIPT_PARENT_DIR/src/Set ${work}
-cp -R $SCRIPT_PARENT_DIR/src/Spiders ${work}
-cp $SCRIPT_PARENT_DIR/src/*.pl  ${work}
-cp $SCRIPT_PARENT_DIR/example/jump_sj.params  ${work}
+cp -R $this_work_dir/src/Class ${work}
+cp -R $this_work_dir/src/Set ${work}
+cp -R $this_work_dir/src/Spiders ${work}
+cp $this_work_dir/src/*.pl  ${work}
+cp $this_work_dir/example/jump_sj.params  ${work}
 cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.mdx  ${work}
 cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.prdx  ${work}
 cp ~/data/proteomics/human_ft_mc2_c0_TMT_K229.fasta.sdx ${work}
