@@ -10,15 +10,10 @@ this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd $this_scripts_dir
 cd ..
-SCRIPT_PARENT_DIR="$(pwd)"
 cd $this_work_dir
 
 #
-WORK_ROOT_DIR=${pwd}
-#WORK_ROOT_DIR=/scratch_space/${USER}/jump
-echo "SCRIPT_PARENT_DIR=${SCRIPT_PARENT_DIR}"
-#
-work=${WORK_ROOT_DIR}/${dtn}
+work=${this_work_dir}/${dtn}
 touch 0
 rm 0
 ln -s ${dtn} 0
