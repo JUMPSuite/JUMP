@@ -12,8 +12,8 @@ echo "this_scripts_dir $this_scripts_dir"
 echo "this_work_dir $this_work_dir"
 echo "dtn $dtn"
 
-$this_scripts_dir/step_1.sh $this_work_dir $dtn
-$this_scripts_dir/step_2.sh $this_work_dir $dtn
+$this_work_dir/bin/step_1.sh $this_work_dir $dtn
+$this_work_dir/bin/step_2.sh $this_work_dir $dtn
 
 echo "done. (steps)"
 
