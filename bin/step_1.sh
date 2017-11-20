@@ -19,6 +19,8 @@ echo "start (go)" $this_scripts_dir
 
 #
 work=${this_work_dir}/${dtn}
+cd ${this_work_dir}
+
 mkdir -p $work
 touch 0
 rm 0
