@@ -1,5 +1,6 @@
 #!/bin/bash
 #
+this_work_dir=$1
 this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 dtn=`date +%Y%m%d.%N`
 pwd="$(pwd)"
@@ -7,6 +8,8 @@ pwd="$(pwd)"
 
 echo "start (steps) $this_scripts_dir"
 echo "pwd $pwd"
+echo "this_scripts_dir $this_scripts_dir"
+echo "this_work_dir $this_work_dir"
 echo "dtn $dtn"
 
 $this_scripts_dir/step_1.sh $pwd $dtn
