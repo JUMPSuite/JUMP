@@ -87,7 +87,7 @@ foreach my $arg (sort @ARGV) {
 
 print "\n\t100 ";
 print localtime->strftime('%Y%m%d %k:%M:%S');
-print "\n ";
+printf "\n";
 
 
 foreach my $arg (sort @ARGV) {
@@ -121,6 +121,9 @@ foreach my $arg (sort @ARGV) {
         my $dir =  $path -> basedir() . "/$newdir";
 		my $rawfile = "$datafile/$arg";
 		$rawfile_hash{$rawfile} = $dir;
+		system(qq(mkdir $dir/lsf >/dev/null 2>&1));
+		system(qq(mkdir $dir/log >/dev/null 2>&1));
+		system(qq(mkdir $dir/dta >/dev/null 2>&1));
 		system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
     }
 }
@@ -291,7 +294,7 @@ sub runjobs {
 
 
 	printf "\n";
-	print "201 end runjobs";
+	print "201 end runjobs ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
 	printf "\n ";
 	
