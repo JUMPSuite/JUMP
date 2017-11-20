@@ -299,8 +299,12 @@ sub Create_Sort_BashFile {
 
 sub runjobs {
 
-	print "201 end runjobs";
 
+	printf "\n";
+	print "201 end runjobs";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+	
 
 	my ($file_array, $dta_path, $job_name) = @_;
 	my $curr_dir = getcwd;
@@ -356,9 +360,17 @@ sub runjobs {
 		close(JOB);
 	}
 
-	print "210 end runjobs";
 
-	exit 0;
+
+	printf "\n";
+	print "210 end runjobs";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+	
+	
+		printf "job_num  $job_num \n";
+
+	
 		
 		
 	## Run/control parallel jobs 
@@ -366,14 +378,17 @@ sub runjobs {
 	if ($params -> {'cluster'} eq '1') {	## Cluster system
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
 			for (my $i = 0; $i < $job_num; $i++) {
-				my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
-				my $job = qx[$command_line];
-				chomp $job;
-				my $job_id = 0;
-				if ($job =~ /Job \<(\d*)\> is/) {
-					$job_id = $1;
-				}
-				$job_list -> {$job_id} = 1;
+			
+				printf "ja ja ${job_name}_${i}.sh \n";
+
+				#my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
+				#my $job = qx[$command_line];
+				#chomp $job;
+				#my $job_id = 0;
+				#if ($job =~ /Job \<(\d*)\> is/) {
+				#	$job_id = $1;
+				#}
+				#$job_list -> {$job_id} = 1;
 			}
 		} elsif ($params -> {'Job_Management_System'} eq 'SGE') {
 			for (my $i = 0; $i < $job_num; $i++) {
@@ -391,7 +406,7 @@ sub runjobs {
 			}
 		}
 		print "\n  You submitted $job_num jobs for database search\n";
-		Check_Job_stat("${job_name}_", $job_num, $dta_path);
+#		Check_Job_stat("${job_name}_", $job_num, $dta_path);
 	} elsif($params->{'cluster'} eq '0') {	## Non-cluster system, but multiple cores
 		my $pm = new Parallel::ForkManager($MAX_PROCESSES);
 		for my $i (0 .. $MAX_PROCESSES) {
@@ -404,6 +419,15 @@ sub runjobs {
 		}
 		$pm -> wait_all_children;		
 	}
+
+
+	printf "\n";
+	print "220 end submissions";
+	print localtime->strftime('%Y%m%d %k:%M:%S');
+	printf "\n ";
+	
+	
+	exit 0;
 
 	## Checking accidentally unfinished jobs  
 	my @temp_file_array;
