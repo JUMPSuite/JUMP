@@ -147,10 +147,9 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	my (%ms_hash, %msms_hash, @mz_array);
 	$proc_xml -> set_parameter($params);
 
-    printf "\n";
-	print "\t\t101 ";
+	print "\n\t101 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
-    printf "\n\n";
+    printf "\n";
 
     # Gathering scan information: 
     
@@ -159,10 +158,9 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	my $ms2N = scalar(keys %msms_hash) - $ms1N;	## Number of MS2 scans
 	printf "\n  There are %d MS and %d MS/MS in the entire run\n", $ms1N, $ms2N;
 	
-	printf "\n\n";
-	print "\t\t102 ";
+	print "\n\t102 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
-    printf "\n ";
+    printf "\n";
 
 	## Mass correction of MS1 and/or MS2 spectra
 	print "\n  Mass correction\n";
@@ -170,11 +168,6 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	my ($msms_hash_corrected, $mz_array_corrected) = $masscorr -> massCorrection(\%ms_hash, \%msms_hash, \@mz_array, $params);
 	%msms_hash = %$msms_hash_corrected;
 	@mz_array = @$mz_array_corrected;
-	
-	printf "\n";
-	print "\t\t103 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
 	
 	## Decharging/deconvolution of spectra
 	print "\n  Decharging scans\n";
@@ -195,16 +188,14 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	$pip -> set_isolation_variation($params -> {'isolation_window_variation'});
 	$pip -> set_dta_path($dta_path);
 	
-	printf "\n";
-	print "\t\t104 ";
+	print "\n\t103 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
 	printf "\n ";
 	
 	my $PIPref = $pip -> Calculate_PIP();
 	my ($charge_dist, $ppi_dist) = $pip -> changeMH_folder($PIPref);
 
-	printf "\n";
-	print "\t\t105 ";
+	print "\n\t104 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
 	printf "\n ";
 	
@@ -225,17 +216,13 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 		print "  Please specify a right second_search parameter!!\n";
 	}
 		
-	printf "\n";
-	print "106 ";
+	print "\n\t105 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
-
-	
+	printf "\n ";	
 	
 	my $temp_file_array = runjobs(\@file_array, $dta_path, "sch_${random}");
 
-	printf "\n\n";
-	print "108 ";
+	print "\n\t106 ";
 	print localtime->strftime('%Y%m%d %k:%M:%S');
 	printf "\n ";
 
@@ -328,7 +315,7 @@ sub runjobs {
 			$job_num = $i;
 			last;
 		}
-		open (JOB, ">", "$dta_path/${job_name}_${i}.sh") || die "can not open the job files\n";
+		open (JOB, ">", "$dta_path/lsf/${job_name}_${i}.sh") || die "can not open the job files\n";
 		my $dta_file_temp = "";
 		my @dta_file_arrays = ();
 		my $multiple_jobs_num = 0;
@@ -343,8 +330,8 @@ sub runjobs {
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
-			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
+			print JOB "#BSUB -eo $dta_path/log/${job_name}_${i}.e\n";
+			print JOB "#BSUB -oo $dta_path/log/${job_name}_${i}.o\n";
 			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";		
 		} elsif($params->{'Job_Management_System'} eq 'SGE') {
 			print JOB "#!/bin/bash\n";
@@ -377,8 +364,9 @@ sub runjobs {
 	my $job_list;
 	if ($params -> {'cluster'} eq '1') {	## Cluster system
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
-			for (my $i = 0; $i < $job_num; $i++) {
-			
+			#for (my $i = 0; $i < $job_num; $i++) {
+			for (my $i = 0; $i < 10; $i++) {
+
 				printf "ja ja ${job_name}_${i}.sh \n";
 
 				#my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
