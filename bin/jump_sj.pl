@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+our $VERSION = 12.1.0;
+
 ## General packages
 use strict;
 use warnings;
@@ -8,9 +10,8 @@ use Cwd;
 use Cwd 'abs_path';
 use Storable;
 use File::Basename;
-use Parallel::ForkManager;
+use File::Spec;
 use Time::Piece;
-
 
 ## Custom packages
 my $libPath;
@@ -38,10 +39,20 @@ my $library = $libPath;
 ## Get arguments and show the usage of the script if necessary
 my $progname = $0;
 $progname =~ s@(.*)/@@i;
-my ($help, $parameter, $raw_file);
+my ($help, $batch, $parameter, $raw_file);
 GetOptions('-help|h' => \$help,
-			'-p=s' => \$parameter,);
+	   '-b=s' => \$batch,
+	   '-p=s' => \$parameter,);
+
 usage() if ($help || !defined($parameter));
+usage("Please verify your parameter file $parameter path is correct\n") if(!(-e $parameter));
+foreach my $file (@ARGV) {
+    usage("Please verify your input $file path is correct\n") if(!(-e $file));
+}
+
+unless( File::Spec->file_name_is_absolute($parameter) ) {
+    $parameter = File::Spec->rel2abs($parameter);
+}
 
 print <<EOF;
 ################################################################
@@ -69,8 +80,18 @@ $params -> {'high_mass'} = 187;
 $params -> {'tag_coeff_evalue'} = 1;
 $params -> {'pho_neutral_loss'} = 0;
 database_creation();
+if( $params->{'cluster'} eq '0') {
+    use Parallel::ForkManager;
+}
 
 #
+if( defined($batch) && $params->{'cluster'} eq '0' ) {
+    print 'Batch dispatch ignored: not running on a cluster\n';
+}
+elsif( defined($batch) ) {
+    dispatch_batch_run($batch,$parameter,\@ARGV);
+}
+
 
 ## Create the path for multiple raw files
 my %rawfile_hash;
@@ -119,7 +140,7 @@ foreach my $arg (sort @ARGV) {
         print "  Using: $newdir\n";
         $path -> add_subdir($newdir);
         my $dir =  $path -> basedir() . "/$newdir";
-		my $rawfile = "$datafile/$arg";
+		my $rawfile = "$datafile/$filename";
 		$rawfile_hash{$rawfile} = $dir;
 		system(qq(mkdir $dir/lsf >/dev/null 2>&1));
 		system(qq(mkdir $dir/log >/dev/null 2>&1));
@@ -131,7 +152,6 @@ foreach my $arg (sort @ARGV) {
 foreach my $raw_file (sort keys %rawfile_hash) {		
 	## Get working directory
 	print "  Searching data: $raw_file\n";
-	my $curr_dir = getcwd;
 	my $dta_path = $rawfile_hash{$raw_file};
 	if ($raw_file =~ /\.mzXML/) {
 		$raw_file =~ s/\.mzXML//g;
@@ -300,7 +320,6 @@ sub runjobs {
 	
 
 	my ($file_array, $dta_path, $job_name) = @_;
-	my $curr_dir = getcwd;
 	my $MAX_PROCESSES = 32;
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
@@ -336,23 +355,22 @@ sub runjobs {
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-			print JOB "#BSUB -eo $dta_path/log/${job_name}_${i}.e\n";
-			print JOB "#BSUB -oo $dta_path/log/${job_name}_${i}.o\n";
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";		
+			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
+			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
+			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";		
 		} elsif($params->{'Job_Management_System'} eq 'SGE') {
 			print JOB "#!/bin/bash\n";
 			print JOB "#\$ -N ${job_name}_${i}\n";
 			print JOB "#\$ -e $dta_path/${job_name}_${i}.e\n";
 			print JOB "#\$ -o $dta_path/${job_name}_${i}.o\n";			
 			foreach (@dta_file_arrays) {
-				print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $_\n";	
+				print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";	
 			}
 		} else {
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";	
+			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";	
 		}
 		close(JOB);
 	}
-
 
 
 	printf "\n";
@@ -365,7 +383,6 @@ sub runjobs {
 
 	
 		
-		
 	## Run/control parallel jobs 
 	my $job_list;
 	if ($params -> {'cluster'} eq '1') {	## Cluster system
@@ -375,14 +392,15 @@ sub runjobs {
 
 				printf "writing ${job_name}_${i}.sh \n";
 
-				my $command_line = qq(cd $dta_path && bsub <${job_name}_${i}.sh);
+				my $command_line = qq(cd $dta_path && bsub <lsf/${job_name}_${i}.sh);
 				my $job = qx[$command_line];
+#				print "return code is ",$?,"\n";
 				chomp $job;
-				#my $job_id = 0;
-				#if ($job =~ /Job \<(\d*)\> is/) {
-				#	$job_id = $1;
-				#}
-				#$job_list -> {$job_id} = 1;
+				my $job_id = 0;
+				if ($job =~ /Job \<(\d*)\> is/) {
+					$job_id = $1;
+				}
+				$job_list -> {$job_id} = 1;
 			}
 		} elsif ($params -> {'Job_Management_System'} eq 'SGE') {
 			for (my $i = 0; $i < $job_num; $i++) {
@@ -400,7 +418,7 @@ sub runjobs {
 			}
 		}
 		print "\n  You submitted $job_num jobs for database search\n";
-#		Check_Job_stat("${job_name}_", $job_num, $dta_path);
+		Check_Job_stat("${job_name}_", $job_num, $dta_path,$job_list);
 	} elsif($params->{'cluster'} eq '0') {	## Non-cluster system, but multiple cores
 		my $pm = new Parallel::ForkManager($MAX_PROCESSES);
 		for my $i (0 .. $MAX_PROCESSES) {
@@ -420,9 +438,6 @@ sub runjobs {
 	print localtime->strftime('%Y%m%d %k:%M:%S');
 	printf "\n ";
 	
-	
-	exit 0;
-
 	## Checking accidentally unfinished jobs  
 	my @temp_file_array;
 	for (my $k = 0; $k <= $#$file_array; $k++) {
@@ -479,7 +494,7 @@ sub MergeFile {
 	
 sub Check_Job_stat {
 	## Check the status of distributed jobs
-	my ($jobs_prefix, $job_num, $dta_path) = @_;
+	my ($jobs_prefix, $job_num, $dta_path, $jobs_hashref) = @_;
 	my $job_info = 1;
     my ($username) = getpwuid($<);
 	my $command_line = "";
@@ -510,21 +525,19 @@ sub Check_Job_stat {
 	
 		## Consider only the ones that we submitted
 		if ($params -> {'Job_Management_System'} eq 'LSF') {
-			$command_line =  "bjobs -u $username";
+			$command_line =  "bjobs -u $username -noheader";
 			my $job_status = qx[$command_line];
-			my @job_status_array = split(/\n/,$job_status);
-			my $job_number = $job_num - scalar(@job_status_array);
-			if (scalar(@job_status_array) == 0) {
-				print "\r  $job_num jobs finished          ";
-			} else {
-				print "\r  $job_number jobs finished          ";
-				sleep(5);
+			my $running_jobs = set_intersection( $jobs_hashref, parse_bjobs_output($job_status) );
+			my $job_number = $job_num - scalar(@$running_jobs);
+			if( scalar(@$running_jobs) == 0 ) {
+			    print "\r  $job_num jobs finished          ";			    
+			    $job_info = 0;
 			}
-			if (scalar(@job_status_array) > 0) {
-				$job_info = 1;
-			} else {
-				$job_info = 0;
+			else {
+			    print "\r  $job_number jobs finished          ";			    
 			}
+			sleep(10);
+			
 		} elsif ($params -> {'Job_Management_System'} eq 'SGE') {
 			@job_status_array = grep(/$jobs_prefix/, @job_status_array);
 			if ($job_status =~ /No unfinished job found/) {
@@ -797,6 +810,7 @@ sub delete_run_dir {
 }
 
 sub usage {
+    my $msg = shift;
 print <<EOF;
 ################################################################
 #                                                              #
@@ -817,5 +831,60 @@ Usage: $progname -p parameterfile rawfile.raw
 	
 
 EOF
+if( defined($msg) ) { print STDERR $msg; }
 exit 1;
+}
+
+sub parse_bjobs_output {
+    my $output = shift;
+    my @arr = ($output =~ /^(\d+).*$/mg);
+    my %rv;
+    @rv{@arr} = @arr;
+    return \%rv;
+}
+
+sub set_intersection {
+    my ($s1,$s2) = @_;
+    my @rv;
+    foreach my $i1 (keys(%$s1)) {
+	if(defined($s2->{$i1})) {
+	    push( @rv, $i1 );
+	}
+    }
+    return \@rv;
+}
+
+sub dispatch_batch_run {
+    my ($dir,$parameter,$ARGV_ref) = @_;
+    my $args = join( " ", @$ARGV_ref );
+    unless( -e $dir ) {
+	mkdir( "$dir" );
+    }
+    open( JOB, ">$dir/jump_dispatch.sh" );
+    if($params->{'Job_Management_System'} eq 'LSF') {
+	print JOB "#BSUB -P prot\n";
+	print JOB "#BSUB -q normal\n";
+	print JOB "#BSUB -M 8192\n";
+	print JOB "#BSUB -oo $dir/jump.o\n";
+	print JOB "#BSUB -eo $dir/jump.e\n";
+	print JOB "yes | jump_sj.pl -p $parameter $args &> $dir/jump.out\n";
+	close(JOB);
+	my $output = qx[bsub <"$dir/jump_dispatch.sh"];
+
+	my $job_id = 0;
+	if ($output =~ /Job \<(\d*)\> is/) {
+	    $job_id = $1;
+	}
+	print "JUMP search submitted; job id is $job_id\nOutput will be stored in $dir/jump.out\n";
+	
+    } elsif($params->{'Job_Management_System'} eq 'SGE') {
+	print JOB "#!/bin/bash\n";
+	print JOB "#\$ -N JUMP\n";
+	print JOB "#\$ -o $dir/jump.o\n";
+	print JOB "#\$ -e $dir/jump.e\n";
+	print JOB "perl jump_sj.pl -p $parameter $args\n";
+	close(JOB);
+	system (qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$dir/jump_dispatch.sh" >/dev/null 2>&1));    
+    }    
+    exit 0;
 }

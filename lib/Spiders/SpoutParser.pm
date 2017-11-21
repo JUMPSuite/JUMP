@@ -11,6 +11,8 @@ use warnings;
 use Storable;
 use vars qw($VERSION @ISA @EXPORT);
 use Excel::Writer::XLSX;
+use File::Temp;
+use File::Path;
 
 $VERSION     = 2.01;
 @ISA	 = qw(Exporter);
@@ -685,7 +687,8 @@ sub printXLSX
     my $workbook = Excel::Writer::XLSX->new($FileName);
 
     # set tmp path
-    $workbook->set_tempdir( '/data/XLSXtmp' );
+    my $tmpdir = File::Temp::mkdtemp("XXXXXXXXXXXXXX");
+    $workbook->set_tempdir( $tmpdir );
 
     # Add 'Summary' worksheet
     my $worksheet0 = $workbook->add_worksheet('Summary Table');
@@ -1127,7 +1130,7 @@ sub printXLSX
 
 
         $workbook->close();
-
+    File::Path::remove_tree($tmpdir);
 }
 
 sub fstr {
