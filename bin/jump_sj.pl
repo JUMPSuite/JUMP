@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+our $VERSION = 12.1.0;
+
 ## General packages
 use strict;
 use warnings;
@@ -9,9 +11,7 @@ use Cwd 'abs_path';
 use Storable;
 use File::Basename;
 use File::Spec;
-use Parallel::ForkManager;
 use Time::Piece;
-
 
 ## Custom packages
 my $libPath;
@@ -39,9 +39,11 @@ my $library = $libPath;
 ## Get arguments and show the usage of the script if necessary
 my $progname = $0;
 $progname =~ s@(.*)/@@i;
-my ($help, $parameter, $raw_file);
+my ($help, $batch, $parameter, $raw_file);
 GetOptions('-help|h' => \$help,
-			'-p=s' => \$parameter,);
+	   '-b=s' => \$batch,
+	   '-p=s' => \$parameter,);
+
 usage() if ($help || !defined($parameter));
 usage("Please verify your parameter file $parameter path is correct\n") if(!(-e $parameter));
 foreach my $file (@ARGV) {
@@ -78,8 +80,18 @@ $params -> {'high_mass'} = 187;
 $params -> {'tag_coeff_evalue'} = 1;
 $params -> {'pho_neutral_loss'} = 0;
 database_creation();
+if( $params->{'cluster'} eq '0') {
+    use Parallel::ForkManager;
+}
 
 #
+if( defined($batch) && $params->{'cluster'} eq '0' ) {
+    print 'Batch dispatch ignored: not running on a cluster\n';
+}
+elsif( defined($batch) ) {
+    dispatch_batch_run($batch,$parameter,\@ARGV);
+}
+
 
 ## Create the path for multiple raw files
 my %rawfile_hash;
@@ -820,4 +832,39 @@ sub set_intersection {
 	}
     }
     return \@rv;
+}
+
+sub dispatch_batch_run {
+    my ($dir,$parameter,$ARGV_ref) = @_;
+    my $args = join( " ", @$ARGV_ref );
+    unless( -e $dir ) {
+	mkdir( "$dir" );
+    }
+    open( JOB, ">$dir/jump_dispatch.sh" );
+    if($params->{'Job_Management_System'} eq 'LSF') {
+	print JOB "#BSUB -P prot\n";
+	print JOB "#BSUB -q normal\n";
+	print JOB "#BSUB -M 8192\n";
+	print JOB "#BSUB -oo $dir/jump.o\n";
+	print JOB "#BSUB -eo $dir/jump.e\n";
+	print JOB "yes | jump_sj.pl -p $parameter $args &> $dir/jump.out\n";
+	close(JOB);
+	my $output = qx[bsub <"$dir/jump_dispatch.sh"];
+
+	my $job_id = 0;
+	if ($output =~ /Job \<(\d*)\> is/) {
+	    $job_id = $1;
+	}
+	print "JUMP search submitted; job id is $job_id\nOutput will be stored in $dir/jump.out\n";
+	
+    } elsif($params->{'Job_Management_System'} eq 'SGE') {
+	print JOB "#!/bin/bash\n";
+	print JOB "#\$ -N JUMP\n";
+	print JOB "#\$ -o $dir/jump.o\n";
+	print JOB "#\$ -e $dir/jump.e\n";
+	print JOB "perl jump_sj.pl -p $parameter $args\n";
+	close(JOB);
+	system (qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$dir/jump_dispatch.sh" >/dev/null 2>&1));    
+    }    
+    exit 0;
 }
