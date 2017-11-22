@@ -825,9 +825,16 @@ print <<EOF;
 #                                                              #
 ################################################################
 
-Usage: $progname -p parameterfile rawfile.raw 
+Usage: 
+ Interactive mode:
+   $progname -p parameterfile rawfile.raw 
 	or
-       $progname -p parameterfile rawfile.mzXML
+   $progname -p parameterfile rawfile.mzXML
+
+ Batch mode (preferred for HPC clusters):
+   $progname -b directory -p parameterfile rawfile.raw 
+	or
+   $progname -b directory -p parameterfile rawfile.mzXML
 	
 
 EOF
@@ -857,7 +864,10 @@ sub set_intersection {
 sub dispatch_batch_run {
     my ($dir,$parameter,$ARGV_ref) = @_;
     my $args = join( " ", @$ARGV_ref );
-    unless( -e $dir ) {
+    if( -e $dir ) {
+	warn( "Directory $dir exists; existing output files will be overwritten\n" )
+    }
+    else {
 	mkdir( "$dir" );
     }
     open( JOB, ">$dir/jump_dispatch.sh" );
