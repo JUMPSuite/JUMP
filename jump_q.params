@@ -1,0 +1,65 @@
+# JUMP quantification parameter file (Version: 12.1.0, Date: 10/07/2015)
+# Input:  ID.txt or IDmod.txt
+database_name = /scratch_space/abreuer/human_ft_mc2_c0_TMT_K229.fasta.mdx						# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST
+pit_file = /scratch_space/abreuer/human_ft_mc2_c0_TMT_K229.pit							# protein inference table (pit) for grouping proteins/genes
+
+idtxt = ID.txt
+id_all_prot_quan = 0
+# 0 = skip the generation of a pubilcation table combining whole proteome and phosphopeptides
+# otherwise, put the full path of 'id_all_prot_quan.xlsx' file after whole proteome quantification analysis
+save_dir = test						# name of the directory for JUMPq results (prefix "quan-" will be added)
+ppi_filter = 50								# precursor peak intensity percentage threshold
+
+# Minimum intensity-based filtering of PSM(s)
+# Multiple filters can be used
+# e.g. min_intensity_method = 1, 4      -> minimum intensity and median intensity of PSM are evaluated
+#      min_intensity_value = 1000, 5000 -> intensity threshold for each filtering method
+min_intensity_method = 1, 4						# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median
+min_intensity_value = 1000, 5000					# Minimum intensity threshold
+# Minimum intensity-based filtering of PSM(s) used for summarizing a protein
+# Multiple filters can be used as above
+min_intensity_method_1_2_psm = 1, 4					# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median
+min_intensity_value_1_2_psm = 2000, 10000				# Minimum intensity threshold
+
+# Impurity correction parameters
+impurity_correction = 0							# 1 = Yes; 0 = No; if only a part of reporters are used, it should be set to 0
+impurity_matrix = /Research/Pipeline/dev/version1.12.0/JUMPq/TMT10.ini	# impurity table for correction
+
+# Loading-bias correction is generally required to remove systematic biases of mass spectrometry data
+loading_bias_correction = 1						# 1 = Yes; 0 = No;
+loading_bias_correction_method = 1					# 1 = mean; 2 = median;
+SNratio_for_correction = 10						# define the minimal signal (SN ratio) for the correction
+percentage_trimmed = 25							# percentage of most variable intensities to be trimmed for the correction
+
+# Interference-removal
+interference_removal = 1						# 1 = Yes; 0 = No;
+
+# Names of TMT reporters used
+# TMT reporter ion masses are as follows
+# TMT10 reporters (126.127726;127.124761;127.131081;128.128116;128.134436;129.131471;129.137790;130.134825;130.141145;131.138180)
+# TMT8 reporters (126.127726;127.124761;127.131081;128.134436;129.131471;129.137790;130.141145;131.138180)
+# TMT6 reporters (126.127726;127.124761;128.134436;129.131471;130.141145;131.138180)
+tmt_reporters_used = sig126; sig127N; sig127C; sig128N; sig128C; sig129N; sig129C; sig130N; sig130C; sig131#N; sig131C
+tmt_peak_extraction_second_sd = 8					# SD used for identification of reporter ions
+tmt_peak_extraction_method = 1						# 1 = strongest intensity; 2 = closest to expected report ion mass; only if multiple peaks detected within mass tolerance
+
+# Sample labels corresponding the reporters used
+# Do NOT use any special characters other than underscore, "_" 
+sig126 = S1
+sig127N = S2
+sig127C = S3
+sig128N = S4
+sig128C = S5
+sig129N = S6
+sig129C = S7
+sig130N = S8
+sig130C = S9
+sig131 = S10
+#sig131C = S11
+
+# The program allows multiple comparisons (e.g. comparison_groups_comp1, do not change the prefix "comparison_groups_")
+# e.g. sample labels are S1, S2, S3, S4, S5 : S6, S7, S8, S9 and S10 for all TMT10 reporters (sorted by mass)
+#      comparison_groups_twoGroups = S1, S2, S3, S4, S5 : S6, S7, S8, S9, S10
+#      comparison_groups_threeGroups = S1, S2, S3 : S4, S5, S6, S7 : S8, S9, S10
+comparison_analysis = 0							# 1 = Yes; 0 = No; for group comparison
+comparison_groups_twoGroups = S1, S2, S3, S4, S5 : S6, S7, S8, S9, S10
