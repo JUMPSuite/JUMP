@@ -167,7 +167,7 @@ sub create_dbHash  #returns a hash that contains name, annotation, and sequence 
 {
 	shift @_;
 	my ($db,$dbHash) = @_;
-	open (DB, "<$db.pit") || die "Cannot open database: $db $!\n";
+	open (DB, "<$db") || die "Cannot open database: $db $!\n";
                                                                                                                                                              
 #  my %dbHash;
   	my $inProt = 0;

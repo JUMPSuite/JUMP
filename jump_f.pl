@@ -1311,6 +1311,7 @@ close (DTAFILES);
 	#foreach my $pro (keys %$grouphash) { print $pro,',', $grouphash->{$pro}->{group},';'; }
 	#foreach my $pro (keys %proteinhash) { my $seq=$proteinhash{$pro}{sequence}; if (length($seq)==0) { die "protein $pro sequence: $seq\n\n"; } }
 	print "\nGenerating HTML files ...\n";
+
 	my ($unique_protein_fpr,$subgroupnum) = $html->gen_IDHtml(\%proteinhash, \%peptidehash, \%fprhash, $group_dir, $database, $grouphash); # html deactivate for debug
 	$html->gen_IDwGHtml(\%proteinhash, \%peptidehash, \%fprhash, $group_dir, $database, $grouphash); # html deactivate for debug
 
@@ -1691,26 +1692,28 @@ print "\nGenerating core reports\n";
 
 #system("cp -r ./$output_folder /var/www/html/$current_user");
 
+
 # path under /var/www/html
-my $var_path = $out_dir;
+# replace with a publish_html subroutine
+# my $var_path = $out_dir;
 
-if ($var_path =~ /^\/home/) {
-	$var_path =~ s/^\/home/\/var\/www\/html/;
-} else {
-	$var_path = "\/var\/www\/html\/".$current_user.$var_path;
-}
+# if ($var_path =~ /^\/home/) {
+# 	$var_path =~ s/^\/home/\/var\/www\/html/;
+# } else {
+# 	$var_path = "\/var\/www\/html\/".$current_user.$var_path;
+# }
 
-my $basename = dirname($var_path);
+# my $basename = dirname($var_path);
 
-#print "ttttt$out_dir\t$basename\n";
+# #print "ttttt$out_dir\t$basename\n";
 
-unless (-e $basename) {
-	system("mkdir -p $basename");	
-}
+# unless (-e $basename) {
+# 	system("mkdir -p $basename");	
+# }
 
-#system(qq(cp -r "./$output_folder/* $var_path" >/dev/null 2>&1));
-#system("ln -s ./$output_folder/* $var_path");
-system(qq(ln -s $out_dir/ $basename >/dev/null 2>&1));
+# #system(qq(cp -r "./$output_folder/* $var_path" >/dev/null 2>&1));
+# #system("ln -s ./$output_folder/* $var_path");
+# system(qq(ln -s $out_dir/ $basename >/dev/null 2>&1));
 
 my $mod_output_folder = $output_folder."_mod";
 #if(defined($modsum_dir))
