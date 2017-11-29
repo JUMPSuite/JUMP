@@ -86,7 +86,7 @@ sub generatePublicationTables {
 	$table =~ s/\.txt/_quan\.xlsx/;
 	$table = $publicationDir."/".$table;
 	my $workbook = Excel::Writer::XLSX -> new($table);
-	my $tmpdir = File::Temp->newdir( "jump_q_XXXXXX", {'CLEANUP' => 1} );
+	my $tmpdir = File::Temp->newdir();
 	$workbook -> set_tempdir($tmpdir->dirname);
 	my $worksheet = $workbook -> add_worksheet();
 	my $format = $workbook -> add_format();
