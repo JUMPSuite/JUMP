@@ -12,6 +12,7 @@ use Storable;
 use File::Basename;
 use File::Spec;
 use Time::Piece;
+use List::Util qw(max);
 
 ## Custom packages
 my $libPath;
@@ -106,9 +107,9 @@ foreach my $arg (sort @ARGV) {
 	}
 } 
 
-print "\n\t100 ";
-print localtime->strftime('%Y%m%d %k:%M:%S');
-printf "\n";
+# print "\n\t100 ";
+# print localtime->strftime('%Y%m%d %k:%M:%S');
+# printf "\n";
 
 
 foreach my $arg (sort @ARGV) {
@@ -117,18 +118,19 @@ foreach my $arg (sort @ARGV) {
     push @suffixlist, ".RAW";
     push @suffixlist, ".mzXML";
     if ($arg =~ /.[raw|RAW|mzXML]/) {	
-		my ($filename, $directory, $suffix) = fileparse($arg, @suffixlist);	
+	my ($filename, $directory, $suffix) = fileparse($arg, @suffixlist);	
         system(qq(mkdir $directory/$filename >/dev/null 2>&1));
         system(qq(mkdir $directory/$filename/lsf >/dev/null 2>&1));
         system(qq(mkdir $directory/$filename/log >/dev/null 2>&1));
         system(qq(mkdir $directory/$filename/dta >/dev/null 2>&1));
-        system(qq(mv $arg $directory/$filename >/dev/null 2>&1));
-        my $datafile = "$directory/$filename";
+        link($arg,File::Spec->join($directory,$filename,$filename . $suffix));
+        my $datafile = File::Spec->join($directory,$filename);
         my $path = new Spiders::Path($datafile);
         my $list = $path -> make_directory_list();
         my $newdir;
-        
-        $newdir	= $filename . ".1";
+	
+        my $pattern = File::Spec->join($datafile,$filename);
+	$newdir	= $filename . "." . (max(map(/.*\.(\d+)/,glob("$pattern.*")))+1);
 
 
 #        if (@$list) {
@@ -137,7 +139,7 @@ foreach my $arg (sort @ARGV) {
 #			$newdir	= $filename . ".1";
 #            $newdir = $path -> ask("  Choose a .out file directory (2)", $newdir);
 #        }
-        print "  Using: $newdir\n";
+        print "  Using directory: $newdir\n";
         $path -> add_subdir($newdir);
         my $dir =  $path -> basedir() . "/$newdir";
 		my $rawfile = "$datafile/$filename";
@@ -173,9 +175,9 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	my (%ms_hash, %msms_hash, @mz_array);
 	$proc_xml -> set_parameter($params);
 
-	print "\n\t101 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-    printf "\n";
+    # 	print "\n\t101 ";
+    # 	print localtime->strftime('%Y%m%d %k:%M:%S');
+    # printf "\n";
 
     # Gathering scan information: 
     
@@ -184,9 +186,9 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	my $ms2N = scalar(keys %msms_hash) - $ms1N;	## Number of MS2 scans
 	printf "\n  There are %d MS and %d MS/MS in the entire run\n", $ms1N, $ms2N;
 	
-	print "\n\t102 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-    printf "\n";
+    # 	print "\n\t102 ";
+    # 	print localtime->strftime('%Y%m%d %k:%M:%S');
+    # printf "\n";
 
 	## Mass correction of MS1 and/or MS2 spectra
 	print "\n  Mass correction\n";
@@ -214,16 +216,16 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 	$pip -> set_isolation_variation($params -> {'isolation_window_variation'});
 	$pip -> set_dta_path($dta_path);
 	
-	print "\n\t103 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# print "\n\t103 ";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 	
 	my $PIPref = $pip -> Calculate_PIP();
 	my ($charge_dist, $ppi_dist) = $pip -> changeMH_folder($PIPref);
 
-	print "\n\t104 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# print "\n\t104 ";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 	
 	## Database search
 	print "  Starting database searching\n";
@@ -242,15 +244,15 @@ foreach my $raw_file (sort keys %rawfile_hash) {
 		print "  Please specify a right second_search parameter!!\n";
 	}
 		
-	print "\n\t105 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";	
+	# print "\n\t105 ";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";	
 	
 	my $temp_file_array = runjobs(\@file_array, $dta_path, "sch_${random}");
 
-	print "\n\t106 ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# print "\n\t106 ";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 
 	
 	## Re-searching part; look for accidentally unfinished jobs and re-run them
@@ -313,10 +315,10 @@ sub Create_Sort_BashFile {
 sub runjobs {
 
 
-	printf "\n";
-	print "201 end runjobs ";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# printf "\n";
+	# print "201 end runjobs ";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 	
 
 	my ($file_array, $dta_path, $job_name) = @_;
@@ -373,13 +375,13 @@ sub runjobs {
 	}
 
 
-	printf "\n";
-	print "210 end runjobs";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# printf "\n";
+	# print "210 end runjobs";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 	
 	
-		printf "job_num  $job_num \n";
+	# 	printf "job_num  $job_num \n";
 
 	
 		
@@ -390,7 +392,7 @@ sub runjobs {
 			for (my $i = 0; $i < $job_num; $i++) {
 			#for (my $i = 0; $i < 10; $i++) {
 
-				printf "writing ${job_name}_${i}.sh \n";
+#				printf "writing ${job_name}_${i}.sh \n";
 
 				my $command_line = qq(cd $dta_path && bsub <lsf/${job_name}_${i}.sh);
 				my $job = qx[$command_line];
@@ -433,10 +435,10 @@ sub runjobs {
 	}
 
 
-	printf "\n";
-	print "220 end submissions";
-	print localtime->strftime('%Y%m%d %k:%M:%S');
-	printf "\n ";
+	# printf "\n";
+	# print "220 end submissions";
+	# print localtime->strftime('%Y%m%d %k:%M:%S');
+	# printf "\n ";
 	
 	## Checking accidentally unfinished jobs  
 	my @temp_file_array;

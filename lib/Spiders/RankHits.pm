@@ -30,6 +30,7 @@ $VERSION     = 1.01;
 
 use List::Util qw(first);
 use File::Basename;
+use File::Spec;
 
 ############## Example ##################
 ## Get database info
@@ -96,7 +97,7 @@ sub parse_spOut_files_v5{
 	
 	foreach my $spout (@files){
 
-		print "\r  Reading file $spout                   ";		
+		print "\r  Reading file ",(File::Spec->splitpath($spout))[-1];		
 		open(INPUT,$spout) or die "Could onpen $spout. Error:!$\n";
 		my @content = <INPUT>;		
 		$spout = basename($spout);
