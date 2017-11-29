@@ -31,4 +31,3 @@ lib/Spiders/WilcoxonRankSum.pm
 lib/Spiders/Dtas.pm
 lib/Class/Std.pm
 bin/jump_sj.pl
-lib/test.pl
