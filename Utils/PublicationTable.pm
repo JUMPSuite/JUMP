@@ -86,14 +86,15 @@ sub generatePublicationTables {
 	$table =~ s/\.txt/_quan\.xlsx/;
 	$table = $publicationDir."/".$table;
 	my $workbook = Excel::Writer::XLSX -> new($table);
-	$workbook -> set_tempdir('/data/XLSXtmp');
+	my $tmpdir = File::Temp->newdir( "jump_q_XXXXXX", {'CLEANUP' => 1} );
+	$workbook -> set_tempdir($tmpdir->dirname);
 	my $worksheet = $workbook -> add_worksheet();
 	my $format = $workbook -> add_format();
 	## 2. PublicationTableNA
 	my $tableNA = $table;
 	$tableNA =~ s/\.xlsx/_with_na\.xlsx/;
 	my $workbookNA = Excel::Writer::XLSX -> new($tableNA);
-	$workbookNA -> set_tempdir('/data/XLSXtmp');
+	$workbookNA -> set_tempdir($tmpdir->dirname);
 	my $worksheetNA = $workbookNA -> add_worksheet();
 	my $formatNA = $workbookNA -> add_format();	
 	## 3. PublicationTableTxt
@@ -240,14 +241,14 @@ sub generatePublicationTables {
 	my $tableFiltered = $table;
 	$tableFiltered =~ s/quan\.xlsx/zero\_psm\_quan\.xlsx/;
 	my $workbookFiltered = Excel::Writer::XLSX -> new($tableFiltered);
-	$workbookFiltered -> set_tempdir('/data/XLSXtmp');
+	$workbookFiltered -> set_tempdir($tmpdir->dirname);
 	my $worksheetFiltered = $workbookFiltered -> add_worksheet();
 	my $formatFiltered = $workbookFiltered -> add_format();
 	## 5. PublicationTableFilteredOnly
 	my $tableFilteredOnly = $table;
 	$tableFilteredOnly =~ s/quan\.xlsx/zero\_psm\_only\_quan\.xlsx/;
 	my $workbookFilteredOnly = Excel::Writer::XLSX -> new($tableFilteredOnly);
-	$workbookFilteredOnly -> set_tempdir('/data/XLSXtmp');
+	$workbookFilteredOnly -> set_tempdir($tmpdir->dirname);
 	my $worksheetFilteredOnly = $workbookFilteredOnly -> add_worksheet();
 	my $formatFilteredOnly = $workbookFilteredOnly -> add_format();
 	
@@ -424,7 +425,8 @@ sub generateCombinedPublicationTable {
 	}
 	
 	my $workbook = Excel::Writer::XLSX->new($combinedFile);
-	$workbook->set_tempdir( '/data/XLSXtmp' );
+	my $tmpdir = File::Temp->newdir();
+	$workbook->set_tempdir( $tmpdir->dirname );
 	my $worksheet = $workbook->add_worksheet();
 	my $format = $workbook->add_format();
 	my $i = 4;
