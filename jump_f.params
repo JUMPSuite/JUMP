@@ -16,7 +16,7 @@ one_hit_wonders_removal = 0			# keep or remove one hit wonders (-1: removal all,
 min_protein_SC = 1				# minimum spectral counts requirement for proteins
 mods = 0					# Display modified peptides and their unmodified (0:Off, K:Lys, STY: Phosphorylation, ...)
 modpairs = 0					# Show modified peptides pairs or just modified peptides (0:only modified peptides, 1:modified pairs)
-pit_file = /scratch_space/abreuer/human_ft_mc2_c0_TMT_K229.pit				# absolute path of pit file: use updated pit file; 0 = using pit file in jump.params in the search folder
+pit_file = /scratch_space/abreuer/human_ft_mc2_c0_TMT_K229.fasta.pit				# absolute path of pit file: use updated pit file; 0 = using pit file in jump.params in the search folder
 DB_composite = 1				# 0: turn off filtering; 1: only includes core proteins (n = ~20k); 2: the whole uniProt database (n = ~80k). This option is used only when a multi-tier database was used for database search.
 
 # Minimum filtering parameters for removing low quality PSMs during reading process

@@ -1,9 +1,5 @@
 #!/usr/bin/perl 
 
-use FindBin qw($Bin);
-use lib "$Bin";
-#print "$Bin\n";
-
 use strict;
 use idsum2::CommonUtils;
 use idsum2::XMLParser;
@@ -31,6 +27,16 @@ use Socket;
 # idsum2 modeuls
 use idsum2::ProteinGrouping;;
 use idsum2::IdsumUtils6_beta;
+
+### R packages are insalled in same library as Utils
+my $Rlib;
+{
+    my @pth = File::Spec->splitpath($INC{'idsum2/CL.pm'});
+    my @dirs = File::Spec->splitdir($pth[1]);
+    while( pop(@dirs) eq '' ) {}
+    push( @dirs, 'R' );
+    $Rlib = File::Spec->catdir( @dirs );
+}
 
 #use idsum2_debug::ProteinGrouping;;
 #use idsum2_debug::IdsumUtils6_beta;
@@ -772,7 +778,7 @@ close (DTAFILES);
 			print LOGFILE "\nPerforming LDA analysis (~300k outfiles per minute)\n";
 			$idutils->buildFeatureHash(\%peptidehash, \%featurehash);
 			$idutils->printFeatureHash($LDAfile, \%featurehash);
-			my $ldaresult=$idutils->rLDA_analysis($LDAfile,$paramhash{'search_engine'},"$Bin/idsum2/LDA.R");
+			my $ldaresult=$idutils->rLDA_analysis($LDAfile,$paramhash{'search_engine'},File::Spec->join($Rlib,"LDA.R"));
 			$idutils->attchLDAresult2FeatureHash($LDAfile, \%featurehash);
 
 			# peptide FDR
@@ -1747,7 +1753,7 @@ if (-e $mod_output_folder)
 	#system("cp -r ./$mod_output_folder /var/www/html/$current_user");
 	my $var_path_mod = $out_dir."_mod";
 	
-	system(qq(ln -s $var_path_mod $basename >/dev/null 2>&1));
+#	system(qq(ln -s $var_path_mod $basename >/dev/null 2>&1));
 	
 	system ("cp ./$output_folder/$log_file ./$mod_output_folder/");
 }
