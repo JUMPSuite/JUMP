@@ -1,5 +1,7 @@
 #!/usr/bin/perl
 
+our $VERSION = 12.1.0;
+
 use strict;
 use warnings;
 use File::Basename;
