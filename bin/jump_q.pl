@@ -3,13 +3,12 @@
 use strict;
 use warnings;
 use File::Basename;
+use File::Spec;
 use Cwd;
 use Statistics::R;
 use Excel::Writer::XLSX;
 
 ## Custom libraries
-use FindBin qw($Bin);
-use lib "$Bin";
 use Utils::FileGeneration;
 use Utils::Parse;
 use Utils::ProcessingMzXML;
@@ -17,11 +16,20 @@ use Utils::PublicationTable;
 use Utils::ReporterIonExtraction;
 use Utils::XMLParser;
 
+### R packages are insalled in same library as Utils
+my $Rlib;
+{
+    my @pth = File::Spec->splitpath($INC{'Utils/Parse.pm'});
+    my @dirs = File::Spec->splitdir($pth[1]);
+    while( pop(@dirs) eq '' ) {}
+    push( @dirs, 'R' );
+    $Rlib = File::Spec->catdir( @dirs );
+}
+
 ##########################
 ## Initialization	##
 ##########################
 my ($paramFile) = @ARGV;
-my $Rlib = $Bin . "/R/";
 my $cwd = getcwd();
 if (!(-e $paramFile)){
 	print "$cwd does not contain a valid parameter file\n";
@@ -251,7 +259,7 @@ $R -> set('inputFile', $rawScanTxt);
 $R -> set('noiseLevel', $noiseLevel);
 $R -> set('SNratio', $params{'SNratio_for_correction'});
 $R -> set('pctRemoval', $params{'percentage_trimmed'});
-my $showLoadingBias = $Rlib."showLoadingBias.R";
+my $showLoadingBias = File::Spec->join($Rlib,"showLoadingBias.R");
 $R -> run_from_file($showLoadingBias);
 my $reporters = $R -> get('reporters');
 my $nRows = $R -> get('nRows');
@@ -360,7 +368,7 @@ $R -> set('noiseLevel', $noiseLevel);
 $R -> set('SNratio', $params{'SNratio_for_correction'});
 $R -> set('pctRemoval', $params{'percentage_trimmed'});
 $R -> set('interference_removal', $params{'interference_removal'});
-my $normalizationR = $Rlib."normalization.R";
+my $normalizationR = File::Spec->join($Rlib,"normalization.R");
 $R -> run_from_file($normalizationR);
 my $canRemoveInterference = $R -> get('canRemoveInterference');
 my $corrVec = $R -> get('rho');
@@ -409,7 +417,7 @@ if (defined $params{'comparison_analysis'} && $params{'comparison_analysis'} == 
 	$R -> set('fdrMethod', $params{'FDR_method'});
 	$R -> set('comparisons', \@comparisons);
 	$R -> set('comparisonNames', \@comparisonNames);
-	my $statTestR = $Rlib."statTest.R";
+	my $statTestR = File::Spec->join($Rlib,"statTest.R");
 	$R -> run_from_file($statTestR);
 	$R -> stop;	
 }
