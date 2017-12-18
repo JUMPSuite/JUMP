@@ -26,7 +26,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_C_value get_C_value set_H_value get_H_value set_pho_neutral_loss get_pho_neutral_loss set_dta get_dta set_parameter get_parameter MS2_deisotope MS1_deisotope calculate_signal_noise_ratio median remove_prec sort_hash define_charge deisotope get_isotopic_peaks_mass_error print_mass_error changeMH deisotope_charge_1 check_pho_loss new set_parameter get_parameter enzDigest generate_modif_peptide rmRedundancy writeFreq digest MW readFasta writeFasta generatePeps);
 
 sub new{
 	my ($class,%arg)=@_;

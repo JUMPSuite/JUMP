@@ -32,13 +32,12 @@ use Spiders::Hypergeometric;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.02;
-##### version 1.0.2 #############
-# allow specifying the tag_select_method 
-###
 
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_C_value get_C_value set_H_value get_H_value set_dta get_dta set_parameter get_parameter set_keepnum get_keepnum get_precursor_mz get_msms_dta get_peaks4tags derive_tag construct_search_tag construct_search_tag_from_file select_top_rank_pvalue select_top_hyper_pvalue OutputTag iterate scoring_tag calculate_hyper_pvalue2 calculate_hyper_pvalue number_peaks calculate_tag sum_intensity rank_intensity average  standardization);
 
+
+#@EXPORT      = qw(set_dta get_dta set_keepnum get_keepnum get_precursor_mz get_msms_dta get_peaks4tags derive_tag construct_search_tag construct_search_tag_from_file select_top_rank_pvalue select_top_hyper_pvalue OutputTag iterate scoring_tag calculate_hyper_pvalue2 calculate_hyper_pvalue number_peaks calculate_tag sum_intensity rank_intensity average min  max  standardization);
 sub new{
 	my ($class,%arg)=@_;
     my $self = {

@@ -24,12 +24,14 @@ use Spiders::MassUtils;
 use Spiders::Hypergeometric;
 use Spiders::BuildIndex;
 use Spiders::MathUtils;
+use Spiders::WilcoxonRankSum;
 
-
-require Exporter;
-@ISA = qw(Exporter);
-@EXPORT = qw(findTag readTags exportMatches);
 use vars qw($VERSION @ISA @EXPORT);
+
+@ISA = qw(Exporter);
+
+@EXPORT = qw(set_H_value get_H_value set_C_value get_C_value set_pho_neutral_loss get_pho_neutral_loss readTags set_parameter get_parameter set_tag get_tag set_tag_number get_tag_number set_precMass get_precMass set_precCharge get_precCharge set_scanNum get_scanNum set_dtafile get_dtafile get_tagSeq get_sideMass set_database get_database set_masshash get_masshash set_peptidehash get_peptidehash set_proteinhash get_proteinhash get_tagPvalue set_mass_tolerance get_mass_tolerance set_mass_tolerance_units get_mass_tolerance_units set_frag_tolerance get_frag_tolerance get_AA_mass SearchMass SearchTag matchtwoseq matchTagSeq checkSideMass checkSideMass_rev SearchWithoutTag generate_peptide_theoritical_mass compare_theoritical_experiment set_exp_mz get_exp_mz get_exp_mz_hash set_exp_mz_int get_exp_mz_int get_peptide_matched get_peptide_pvalue mergeresults writingHeader WriteResults WriteResults4NoTags calculate_weighted_score weight_p_value_notag lc_substr  exportMatches get_isotopic_distribution get_mod);
+
 
 $VERSION     = 2.01;
 
@@ -1050,7 +1052,7 @@ sub generate_peptide_theoritical_mass
 
 #	push (@ion_series_used,'immo');
 # version 11.0.2
-	$massutils->getFragmentMasses(pept=>$peptide, modif=>$modif, fragTypes=>[@ion_series_used], spectrum=>\%spectrum);
+	$massutils->getFragmentMasses($AA_mass,$fragType,$dynamic_mod,$series,$loss,pept=>$peptide, modif=>$modif, fragTypes=>[@ion_series_used], spectrum=>\%spectrum);
 
 #	$massutils->getFragmentMasses(pept=>$peptide, modif=>$modif, fragTypes=>[@ion_series_used], spectrum=>\%spectrum, peptidemass=>$peptidemass,AA_mass=>$AA_mass);
 #	$massutils->getFragmentMasses(pept=>$peptide, modif=>$modif, fragTypes=>['b','y','b++','y++','immo'], spectrum=>\%spectrum);
@@ -1362,7 +1364,9 @@ sub WriteResults
 	
 	my $protein_index_file = $database . ".prdx";	
 	my $index = new Spiders::BuildIndex();
-	
+	my $massutils = new Spiders::MassUtils();
+	my $params = $self->get_parameter();
+	$massutils->set_parameter($params);
 	open(OUTPUT,">$outfile") || die "can not open the output file: $output!\n";
 	my $parameter = $self->get_parameter();
 #	my @mod_symbol = ("@","#","%","^","&","*","?","~","!","(",")","{","}","[","]",":",";","'","<",">");	
@@ -1387,7 +1391,7 @@ sub WriteResults
 	print OUTPUT "ion series ABCDVWXYZ: ", $parameter->{'ion_series'},"\n";
 	print OUTPUT "ion losses H2O H3PO4 Ammonia: ", $parameter->{'ion_losses_MS2'},"\n";
 	
-
+	our ($AA_mass,$dynamic_mod,$fragType,$series,$loss) = $massutils->get_fragment_parameter();
 ###### output modification information ###############################
 	my $i=0;
 	my $mod_symbol_used="";
@@ -1743,7 +1747,11 @@ sub WriteResults4NoTags
 	
 	print OUTPUT "ion series ABCDVWXYZ: ", $parameter->{'ion_series'},"\n";
 	print OUTPUT "ion losses H2O H3PO4 Ammonia: ", $parameter->{'ion_losses_MS2'},"\n";
+	my $massutils = new Spiders::MassUtils();
+	my $params = $self->get_parameter();
+	$massutils->set_parameter($params);	
 	
+	our ($AA_mass,$dynamic_mod,$fragType,$series,$loss) = $massutils->get_fragment_parameter();	
 ###### output modification information ###############################
 	my $i=0;
 	my $mod_symbol_used="";

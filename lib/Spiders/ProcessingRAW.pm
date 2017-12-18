@@ -27,7 +27,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_raw_file get_raw_file get_rawfile_basename get_rawfile_dirname set_converter get_converter raw2mzXML get_mzXML_file);
  
 sub new{
 	my ($class,%arg)=@_;

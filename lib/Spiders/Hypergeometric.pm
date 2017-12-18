@@ -3,32 +3,18 @@
 ## Release date: 11/01/2015
 ## Release version: version 12.1.0
 ## Module name: Spiders::Hypergeometric
-######### Bionomial  ##########################################
-#                                                             #
-#       **************************************************    #  
-#       **** Binomial module for Tag		          ****    #     
-#       ****					                      ****    #  
-#       ****Copyright (C) 20212 - Xusheng Wang	      ****    #     
-#       ****all rights reserved.		              ****    #  
-#       ****xusheng.wang@stjude.org		              ****    #  
-#       ****					                      ****    #  
-#       ****					                      ****    #  
-#       **************************************************    # 
-###############################################################
 
 package Spiders::Hypergeometric;
         
 use strict;
-use bignum;
-
 use warnings;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(Hypergeometric  choose  logfact  hypergeom  gammln );
 
-sub new{
+sub new {
 	my ($class,%arg)=@_;
     my $self = {
         _n => undef,
@@ -40,25 +26,24 @@ sub new{
 }
 
 sub Hypergeometric {
-	my ($self,$n, $k, $r,$x) = @_;
+	my ($self, $n, $k, $r, $x) = @_;
 	return $k == 0 if $r == 0;
-	return choose($r,$x)*choose($n-$r,$k-$x)/choose($n, $k);
+	return exp(choose($r, $x) + choose($n - $r, $k - $x) - choose($n, $k));
 }
 
 sub choose {
 	my ($n, $k) = @_;
-	my ($result, $j) = (1, 1);
+	my ($result, $j) = (0, 1);
 	return 0 if $k > $n || $k < 0;
 	$k = ($n - $k) if ($n - $k) < $k;
-	while ( $j <= $k ) 
-	{
-		$result *= $n--;
-		$result /= $j++;
+	while ($j <= $k) {
+		$result += log($n--);
+		$result -= log($j++);
 	}
 	return $result;
 }
 
-
+=head
 sub logfact {
    return gammln(shift(@_) + 1.0);
 }
@@ -86,5 +71,6 @@ sub gammln {
   }
   -$tmp + log(2.5066282746310005*$ser/$x);
 }
+=cut
 
 1;

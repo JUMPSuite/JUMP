@@ -32,7 +32,7 @@ $VERSION     = 1.02;
 ###
 
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_digestion get_digestion get_parameter_hash set_database get_database set_dta_path get_dta_path create_index  create_index_file CreateHashs  create_pepseq_index_file create_masspep_index_file create_mass_index_file create_protein_index_file readMassIndex getAssociatedPeptides getAssociatedPeptides_bak getProtein readEntry dicoSearch);
 
 sub new{
 	my ($class,%arg)=@_;

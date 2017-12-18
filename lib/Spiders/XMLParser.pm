@@ -194,103 +194,44 @@ sub get_MSLevel{
 	return $msLevel;
 }
 sub get_PrecursorMZINTACT{
-  shift @_;
-  (*XML, my $scan_index) = @_;
-  my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
-  my $mslevel=2;                                                                                                                            
-  seek (XML, $scan_index, 0);
-  while (<XML>){
-
-###### changed by yanji
-    next if (!/filterLine/);
-
-    if ((/filterLine/)) {
-      chomp;
-        if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
-        {
-                ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-                $mslevel =~ s/\s+//g;
-                $prec_mz =~ s/\s+//g;
-                $prec_act =~ tr/a-z/A-Z/;
-                last;
-        }
-	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
-      	{
-     	 	($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
- 	 	$mslevel =~ s/\s+//g;
-      	 	$prec_mz =~ s/\s+//g;
-      	 	$prec_act =~ tr/a-z/A-Z/;
-      	 	last;
-	}
-	elsif($_ =~ / ms \[\d+\./)
+	shift @_;
+	(*XML, my $scan_index) = @_;
+	my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
+	my $mslevel=2;                                                                                                                            
+	seek (XML, $scan_index, 0);
+	while (<XML>)
 	{
-		$mslevel=1;
-		$prec_mz = 0;
-		last;
+		if ((/filterLine/)) 
+		{
+			chomp;
+			if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
+			{
+					($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+					$mslevel =~ s/\s+//g;
+					$prec_mz =~ s/\s+//g;
+					$prec_act =~ tr/a-z/A-Z/;
+					last;
+			}
+			elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
+			{
+				($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+				$mslevel =~ s/\s+//g;
+				$prec_mz =~ s/\s+//g;
+				$prec_act =~ tr/a-z/A-Z/;
+				last;
+			}
+			elsif($_ =~ / ms \[\d+\./)
+			{
+				$mslevel=1;
+				$prec_mz = 0;
+				last;
+			}
+		}
+		elsif(//)
+		{
+		}
 	}
-    }
-  }
 
-#    next if (!/<precursorMz/);
-#    if (/<\/precursorMz>/){
-#      chomp;
-#      $prec_mz = $_;
-#      if ($prec_mz =~ /activationMethod/) {
-#				if ($prec_mz =~ /precursorCharge/){
-#        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
-#					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
-#				} else { #ADDED Feb 12 2010 for non-data dependent scans
-				#print "\n$prec_mz\n";
-#        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
-#					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
-#				}
-			#print "$prec_mz, $prec_act, $prec_int\n";
-#      }elsif ($prec_mz =~ /precursorCharge/){
-#        $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*//;
-#        ($prec_mz, $prec_int) = ($2, $1);
-#			} else {
-#       $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)">([e\d\.\+]+)<\/precursorMz>.*//;
-#       ($prec_mz, $prec_int) = ($2, $1);
-#    }
-
-
-#      last;
-#    } 
-#    else {
-#      while (<XML>){
-#        chomp;
-#        exit if (!/collisionEnergy=/);
-#        $prec_mz = $_;
-#        $prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
-#        last;
-#      }
-#      last;
-#    }
-#  }
-
-
-
-#  if(defined $prec_mz) {
-#    print "YYYYYYYYYYYanji $prec_mz\n";
-#  } else {
-#    print "JJJJJJJJJJJJJ None\n";	
-#  }  
-# {
-
-# seek (XML, $scan_index, 0);
-#    while (<XML>){
-#        chomp;
-	
-#      if(/filterLine/)
-#      {
-#	$prec_mz = $_;
-#        if($prec_mz=~ /Full ms2 (.*)\@cid/)
-#	{
-#       		 $prec_mz = $1;
-#	}
-#       }
-#    }
-#  }
 
   return ($prec_mz, $prec_int, $prec_act,$mslevel);
 }
@@ -305,14 +246,18 @@ sub get_Precursor{
 		if (/<\/precursorMz>/){
 			chomp;
 			$prec_mz = $_;
-			#print "$prec_mz\n";
+
 			if ($prec_mz =~ /activationMethod/){
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+" activationMethod="[A-Z]+"\s+>([e\d\.\+]+)<\/precursorMz>.*/$1/;
+
+				#$prec_mz =~ s/.*activationMethod="[A-Z]+"\s+>([e\d\.\+]+)<\/precursorMz>.*/$1/;
+				$prec_mz =~ s/.*>(\d.+)<\/precursorMz>/$1/;
 			
 			}elsif ($prec_mz =~ /precursorCharge/){
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+
+				$prec_mz =~ s/\s+.*>([e\d\.\+]+)<\/precursorMz>.*/$1/;
 			} else {
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+
+				$prec_mz =~ s/.*>(\d+)<\/precursorMz>.*/$1/;
 			}
 			last;
 		} else {
@@ -326,7 +271,7 @@ sub get_Precursor{
 			last;
 		}
   }
-	#print "$prec_mz\n";exit;
+#print "$prec_mz\n";exit;
                                                                                                                                                              
   return $prec_mz;
 }
@@ -341,7 +286,7 @@ sub get_PrecursorIntensity{
     next if (!/<precursorMz/);
 		chomp;
 		$prec_intensity = $_;
-		$prec_intensity =~ s/[\s\t]+<precursorMz\sprecursorIntensity="([e\d\.\-\+]+)".*/$1/;
+		$prec_intensity =~ s/precursorIntensity="([e\d\.\-\+]+)".*/$1/;
 		last;
 	}              
   return $prec_intensity;
@@ -484,24 +429,35 @@ sub get_Peaks{
 		#print "$_\n";
 		#if (/m\/z-int/){print "$_\n\n\n";	}
 	  if (/<peaks\sprecision="32"/ || /pairOrder="m\/z-int"[\s]*>/){
-      chomp;
-			next if ($_ =~ /<peaks precision="32"\Z/);
-      $peaks_line = $_;
+      		chomp;
+		next if ($_ =~ /<peaks precision="32"\Z/);
+      		$peaks_line = $_;
 	  	if (/<peaks precision="32">/){
-       	$peaks_line =~ s/\s+<peaks precision="32"[\s\w\W\d\=\"]+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-			} else {
-       	$peaks_line =~ s/\s+pairOrder="m\/z-int"[\s]*>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-				#print "$peaks_line\n";exit;
-			}
-	  	last;
-		} elsif (/compressedLen/){
-      chomp;
-      $peaks_line = $_;
-     	$peaks_line =~ s/\s+compressedLen="[\d]"\s+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-			last;
+       			$peaks_line =~ s/\s+<peaks precision="32"[\s\w\W\d\=\"]+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
 		} else {
-			next;
+       			$peaks_line =~ s/\s+pairOrder="m\/z-int"[\s]*>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+				#print "$peaks_line\n";exit;
 		}
+	  	last;
+	} 
+	elsif (/compressedLen.*>/)
+	{
+      		chomp;
+      		$peaks_line = $_;
+     		$peaks_line =~ s/\s+compressedLen="[\d]"\s+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+		last;
+	}
+	elsif (/contentType.*>/)
+	{
+      		chomp;
+      		$peaks_line = $_;
+     		$peaks_line =~ s/\s+contentType=".*">([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+		last;
+	} 
+	else 
+	{
+		next;
+	}
 	}
 	#Base64 Decode
 	#print "$peaks_line\n";exit;

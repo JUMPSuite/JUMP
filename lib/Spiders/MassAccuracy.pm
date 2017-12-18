@@ -27,7 +27,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(setmshash getmshash setmzarray getmzarray setmsmshash getmsmshash setmasstolerance getmasstolerance setmasstolerance_frac getmasstolerance_frac calculate_dynamic_tolerance);
 
 =head program example
 

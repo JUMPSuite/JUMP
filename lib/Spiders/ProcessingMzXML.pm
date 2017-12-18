@@ -28,7 +28,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_mzXML_file get_mzXML_file get_mzXMLfile_dirname set_dta_path get_dta_path set_converter get_converter mzXML2dta readmzXML get_last_scan_num get_total_scan_num get_index_array get_total_runtime set_parameter get_parameter get_ms1_rt generate_hash_dta generate_dta_file generate_ms3_file strongest_prec create_surveyhash);
 
 sub new{
 	my ($class,%arg)=@_;
@@ -119,7 +119,7 @@ sub readmzXML
 	my ($self)=@_;
 	my $mzXML = $self->get_mzXML_file();
 
-	open (XML, "<$mzXML") || die "can not open the file";
+	open (XML, "<$mzXML") || die "can not open $mzXML file";
 	my $xml = new Spiders::XMLParser();
 	my $indexOffset = $xml->get_IndexOffset(*XML); 
 	my ($index_array, $last_scan) = $xml->get_IndexArray(*XML, $indexOffset);
@@ -206,16 +206,14 @@ sub generate_hash_dta
 		$number++;
 		my $mslevel=0;
 
-
+		next if ($number<$parameter->{'first_scan_extraction'});	
 		next if ($number>$parameter->{'last_scan_extraction'});			
-		if( ($number % 100) == 0 || $number == $last_scan ) { 
-		    $| = 1;
-		    print "\r Gathering scan information: $number of $last_scan scans          ";
-		    $| = 0;
-		}
+		print "\r  Gathering scan information: $number of $last_scan scans          ";
 		my ($rt) = $xml->get_RT(*XML, $index);
 
-		($$msms_hash{$number}{'xml_mz'}, $$msms_hash{$number}{'xml_int'}, $$msms_hash{$number}{'xml_act'},$mslevel) = $xml->get_PrecursorMZINTACT(*XML, $index);
+		#($$msms_hash{$number}{'xml_mz'}, $$msms_hash{$number}{'xml_int'}, $$msms_hash{$number}{'xml_act'},$mslevel) = $xml->get_PrecursorMZINTACT(*XML, $index);
+		$mslevel = $xml->get_MSLevel(*XML, $index);
+		$$msms_hash{$number}{'xml_mz'}=$xml->get_Precursor(*XML, $index);
         if($mslevel == 2)
         {
 			next if ($number<$parameter->{'first_scan_extraction'});		

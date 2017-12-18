@@ -21,7 +21,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(no_rawfile_error no_dta_path no_sim_path usage);
 
 package Spiders::Error;
 

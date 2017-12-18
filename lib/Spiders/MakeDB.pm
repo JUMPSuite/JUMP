@@ -25,7 +25,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(get_dbfile get_enzyme make_db get_peptides get_Nterm get_Cterm create_dbHash);
  
 
 sub new{
@@ -83,7 +83,8 @@ sub make_db
 	my ($dbhash, $proteinnum) = $self->create_dbHash($db);
 	my $protein_num = scalar keys (%$dbhash);
 	print "There are $protein_num in the database\n";
-	
+
+
 	while (my ($protein, $hash) = each %$dbhash)
 	{
 		my $head;
@@ -93,53 +94,24 @@ sub make_db
 
 		push @{$parsedSqs}, $head;
 		
-		if($param->{'inclusion_decoy'}==1)
-		{			
-			my $sequence = $$hash{'sequence'};
-	#		my $key = "$protein " . $$hash{'annotation'};
-	#		$decoy_hash->{$key}=$sequence;
-			my $peparray;
-			($sequence,$peparray) = $self->get_peptides($sequence, 1, $param->{'enzyme_info'});
-			
-			$sequence =~ s/\-//g;
-			my @revpeparray = @$peparray;
-			for (@revpeparray){
-				my $mid = $_;	
-				$mid =~ s/([a-zA-Z\-]+)\.([A-Za-z]+)\.([a-zA-Z\-]+)/$2/; 
-				#print "orig=$mid\n";
-				chomp($mid);
-				my $revmid = reverse $mid;				
-######## exchange the last two amino acid and reverse #################				
-#				my $revmid = $mid;
-				my $first_two_AA= join("",substr($revmid,1,1),substr($revmid, 0, 1));
-				substr($revmid,0,2,$first_two_AA);
-#				$revmid = reverse $revmid;
-################################################				
-	#			print "$mid\t$revmid\n";
-				$sequence =~ s/$mid/$revmid/;
-				
-			}
-
-			$head={};
-			$head->{'id'} = "##Decoy__$protein";
-			$head->{'desc'} = $$hash{'annotation'};
-			$head->{'seq'} = $sequence;
-
-			push @{$parsedSqs}, $head;
-		}	
 	}
 	if($param->{'inclusion_decoy'}==1)
-	{
-		print "Generating reverse database\n";
-		my $database_name = $param->{'database_name'};
-		my $database_name_rev = $database_name . "_reverse";
-		open(REV,">>$database_name_rev") || die "you do not have permission to write in the database directory.\n";
-		foreach (@{$parsedSqs})
+	{			
+		while (my ($protein, $hash) = each %$dbhash)
 		{
-			print REV ">",$_->{'id'}," ",$_->{'desc'},"\n",$_->{'seq'},"\n";
-		}
-		close(REV);
+			my $decoyKey = $protein;
+			$decoyKey =~ s/>(\w+)/>##Decoy__$1/;
+			my $head;
+			$head->{'id'} = $decoyKey;
+			$head->{'desc'} = $$hash{'annotation'};
+			$head->{'seq'} = reverse($$hash{'sequence'});
+
+			push @{$parsedSqs}, $head;
+			
+		}		
 	}	
+
+	
 	return $parsedSqs;
 }
 

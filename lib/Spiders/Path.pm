@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 ## Release date: 11/01/2015
 ## Release version: version 12.1.0
@@ -376,6 +376,38 @@ sub choose_dir_entry {
 }
 
 
+
+sub choose_default_entry {
+  my($class,$dir_entries,$msg,$default) = @_;
+  local $|=1;
+  my $choice;
+
+  while(1){
+
+    my $num = 1;
+    my @entries = @$dir_entries;
+	my $updated_file;
+	if($entries[$#entries] =~ /(.*)\.(\d+)/)
+	{
+		my $num = $2 + 1;
+		$updated_file = $1 . ".$num"; 
+	}
+	print "$msg [$updated_file]:";
+	
+    my $key = '';
+ 
+    if($key eq ""){      
+	  $choice = $updated_file;
+      last;
+    }
+    elsif(defined($key)){
+      $choice = $key;
+      last;
+    }
+  }
+
+  return $choice;
+}
 
 
 1;

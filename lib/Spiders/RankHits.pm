@@ -22,7 +22,7 @@ package Spiders::RankHits;
 
 require Exporter;
 @ISA = qw(Exporter);
-@EXPORT = qw();
+@EXPORT = qw(get_mis_cleavage_number get_mod_site_number set_parameter get_parameter parse_spOut_files_v5 get_score_scans calculate_random_matching_score rerank_Jscore get_miscleavage_mod_spout calculate_best_weight parse_spOut_data get_db_mis_mod calculate_mass_shift calculate_FDR score_distribution checkParameters istryptic);
 use vars qw($VERSION @ISA @EXPORT);
 use strict; 
 
@@ -30,7 +30,6 @@ $VERSION     = 1.01;
 
 use List::Util qw(first);
 use File::Basename;
-use File::Spec;
 
 ############## Example ##################
 ## Get database info
@@ -97,7 +96,7 @@ sub parse_spOut_files_v5{
 	
 	foreach my $spout (@files){
 
-		print "\r  Reading file ",(File::Spec->splitpath($spout))[-1];		
+		print "\r  Reading file $spout                   ";		
 		open(INPUT,$spout) or die "Could onpen $spout. Error:!$\n";
 		my @content = <INPUT>;		
 		$spout = basename($spout);

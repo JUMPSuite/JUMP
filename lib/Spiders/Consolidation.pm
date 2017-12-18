@@ -22,6 +22,7 @@ package Spiders::Consolidation;
         
 use strict;
 use warnings;
+use Spiders::Dta;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.01;
@@ -423,7 +424,34 @@ sub write_dta_file
 	close(DTA);
 }
 
-
+sub remove_TMTc_peaks
+{
+	my ($self,$dta_file,$minPeak,$dis,$peakTol) = @_;
+	my $Dta=new Spiders::Dta();
+	$Dta -> {'_dta_file'} = $dta_file;
+	$Dta->JumpExe($minPeak,$dis,$peakTol);
+	my $int =  $Dta->{'_int_hash'};
+	$dis =  $Dta->{'_dis_hash'};
+	my $array = $Dta->{'_index_array'};
+	my $re = $Dta->{'_rm_value'};
+	my %rm_value = %{$re};
+	my %hash_int=%{$int};
+	my %hash_dis=%{$dis};
+	open OUT,">$dta_file" || die "can not open the dta file: $dta_file";;
+	print "======Removed=====\n";
+	foreach my $in(@{$array})
+	{
+		if(!exists $rm_value{$in})
+		{
+			print OUT "$in\t$hash_int{$in}\n";	
+		}
+		else
+		{
+			print "$in\t$hash_int{$in}\n";
+		}
+	}
+	close(OUT);
+}
 
 sub get_TMT_peaks
 {

@@ -1,76 +1,65 @@
 #!/usr/bin/perl
-
-## Release date: 11/01/2015
-## Release version: version 12.1.0
-## Module name: Spiders::WilcoxonRankSum
-
+#
 package Spiders::WilcoxonRankSum;
-######### Sequest ###########################################
-#                                                           # 
-#       **************************************************  #    
-#       **** Deisotope program for MS2		          ****  #    
-#       ****					                      ****  #    
-#       ****Copyright (C) 20212 - Xusheng Wang	      ****  #    
-#       ****all rights reserved.		              ****  #    
-#       ****xusheng.wang@stjude.org		              ****  #    
-#       ****					                      ****  #    
-#       ****					                      ****  #    
-#       **************************************************  #   
-#############################################################
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
-@ISA	 = qw(Exporter);
-@EXPORT      = ();
+@ISA     = qw(Exporter);
+@EXPORT      = qw(_check_dataset  _compute_N_MaxSum  _reset_dependant_datastructures  _rank_sum_for  _set_smaller_rank_for  _NormalZ  set_dataset1  set_dataset2  load_data  compute_ranks  compute_rank_array  rank_sum_for  get_smaller_rank_sum  smaller_rank_sums_count  rank_sums_other_than_expected_counts  probability_exact  bcomb  probability_normal_approx  probability_status  chisqrdistr  udistr  tdistr  fdistr  uprob  chisqrprob  tprob  fprob  _subfprob  _subchisqrprob  _subu  _subuprob  _subt  _subtprob  _subf  _subf2  _subchisqr  log10  precision  precision_string);
 
-#use Contextual::Return;
 use List::Util qw(sum);
 use Set::Partition;
 use Math::BigInt;
-#use Math::BigFloat;
-#use Math::Counting ':big';
 
-#use Statistics::Distributions;
 
 use Class::Std;
 
-use constant PI => 3.1415926536;
-use constant SIGNIFICANT => 5; # number of significant digits to be returned
+sub new
 {
-    ############ Data ######################################################################
+    my ($class,%arg) = @_;
+    my $self = {
+    };
+    bless $self, $class;
+     return $self;
+}
 
+use constant SIGNIFICANT => 5; 
+
+use constant PI => 3.14159265;
+
+{
     my %EXACT_UPTO : ATTR( :init_arg<exact_upto> :default<20> );
-    my %dataset1_of : ATTR( :get<dataset1> );  # array of numbers
-    my %dataset2_of : ATTR( :get<dataset2> );  # array of numbers
-    my %n1_of : ATTR( :get<n1> );              # number of elements in dataset 1
-    my %n2_of : ATTR( :get<n2> );              # number of elements in dataset 2
-    my %N_of : ATTR( :get<N>  );    # overall number of elements (ranks)
-    my %MaxSum_of : ATTR( :get<max_rank_sum> );    # biggest possible ranksum
-    my %ranks_of : ATTR( :get<ranks>    :set<ranks>  ); # hash with ranked data
-    my %rank_array_of : ATTR( :get<rank_array> );       # rank array from %ranks
-    my %rankSum1_of : ATTR( :get<rankSum_dataset1> );   # rank sum for dataset 1
+    my %dataset1_of : ATTR( :get<dataset1> );   
+    my %dataset2_of : ATTR( :get<dataset2> );   
+    my %n1_of : ATTR( :get<n1> );               
+    my %n2_of : ATTR( :get<n2> );               
+    my %N_of : ATTR( :get<N>  );     
+    my %MaxSum_of : ATTR( :get<max_rank_sum> );     
+    my %ranks_of : ATTR( :get<ranks>    :set<ranks>  );  
+    my %rank_array_of : ATTR( :get<rank_array> );        
+    my %rankSum1_of : ATTR( :get<rankSum_dataset1> );    
     my %expected_rank_sum_1_of : ATTR( :get<expected_rank_sum_dataset1>)
-      ;    # expected rank sum for dataset 1
+      ;     
     my %expected_rank_sum_2_of : ATTR( :get<expected_rank_sum_dataset2>)
-      ;    # expected rank sum for dataset 2
-    my %rankSum2_of : ATTR( :get<rankSum_dataset2> );   # rank sum for dataset 2
+      ;     
+    my %rankSum2_of : ATTR( :get<rankSum_dataset2> );    
     my %smaller_rank_sum_of : ATTR;
     my %smaller_ranks_count_of : ATTR;
     my %expected_rank_count_for_smaller_ranks_count_of :
       ATTR( :get<expected_rank_count_for_smaller_ranks_count>);
     my %smaller_rank_sums_count_of :
-      ATTR;    # number of possible arrangements with lesser rank sum
-               # than the smaller rank sum
+      ATTR;     
+                
     my %rank_sums_other_than_expected_count_of :
-      ATTR;    # number of possible arrangements with rank sum
-               # other than the smaller rank sum
+      ATTR;     
+                
     my %probability_of :
-      ATTR;    # probability for the ranking with smaller rank sum
+      ATTR;     
     my %probability_normal_approx_of : ATTR;
 
-    ############ Utility subroutines #######################################################
+     
 
     sub _check_dataset {
         my ($dataset_ref) = @_;
@@ -163,39 +152,39 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
         return;
     }
 
-    sub _NormalZ {    # ($Z) -> $p
+    sub _NormalZ {     
         my ($x) = @_;
-        #
-        # P(x) = 1 - Z(x)(b1*t+b2*t**2+b3*t**3+b4*t**4+b5*t**5)
-        # Z(x) = exp(-$x*$x/2.0)/(sqrt(2*3.14159265358979323846))
-        # t = 1/(1+p*x)
-        #
-        # Parameters
+         
+         
+         
+         
+         
+         
         my @b =
           ( 0.319381530, -0.356563782, 1.781477937, -1.821255978, 1.330274429 );
         my $p = 0.2316419;
         my $t = 1 / ( 1 + $p * $x );
 
-        # Initialize variables
+         
         my $fact = $t;
         my $Sum;
 
-        # Sum polynomial
+         
         foreach my $bi (@b) {
             $Sum += $bi * $fact;
             $fact *= $t;
         }
 
-        # Calculate probability
+         
         $p =
           2 * $Sum *
           exp( -$x * $x / 2.0 ) /
           ( sqrt( 2 * 3.14159265358979323846 ) );
-        #
+         
         return $p;
     }
 
-    ############ Methods ###################################################################
+     
 
     sub set_dataset1 {
         my ( $self, $dataset1_ref ) = @_;
@@ -255,7 +244,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
         my @dataset1 = @{ $dataset1_of{$id} };
         my @dataset2 = @{ $dataset2_of{$id} };
 
-# at this point we are sure we have both data sets, so we may as well compute N and MaxSum - if not already computed
+ 
         _compute_N_MaxSum($id);
 
         my %ranks;
@@ -276,7 +265,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
                 $tied_ranks += $ranks{$value}->{in_dataset}->{$ds};
             }
 
-#            assert $tied_ranks if DEBUG;
+ 
 
             my $rs;
             for my $r ( $rank + 1 .. $rank + $tied_ranks ) {
@@ -420,7 +409,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
 
         my @ranks = map { $_->[0] } $self->compute_rank_array();
 
-        # let's do some checks before starting the big counting
+         
         if ( $W > $MaxSum ) {
             die "Rank sum bound $W is bigger than the maximum possible rank sum $MaxSum\n";
         }
@@ -429,7 +418,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
               . scalar(@ranks) . "\n";
         }
 
-        # compute all possible partitions
+         
         my $s = Set::Partition->new(
             list      => \@ranks,
             partition => [ $nA, $nB ],
@@ -466,7 +455,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
 
         my @ranks = map { $_->[0] } $self->compute_rank_array();
 
-        # let's do some checks before starting the big counting
+         
         if ( $W > $MaxSum ) {
             die
 "Rank sum bound $W is bigger than the maximum possible rank sum $MaxSum\n";
@@ -476,7 +465,7 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
               . scalar(@ranks) . "\n";
         }
 
-        # compute all possible partitions
+         
         my $s = Set::Partition->new(
             list      => \@ranks,
             partition => [ $nA, $nB ],
@@ -523,12 +512,12 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
         my $N = $N_of{$id};
 
         my $p;
-    #    if ( $N <= $EXACT_UPTO{$id} ) {
-     #       $p = $self->probability_exact();
-      #  }
-       # else {
+     
+      
+       
+        
             $p = $self->probability_normal_approx();
-        #}
+         
 
         $probability_of{$id} = $p;
 
@@ -576,18 +565,18 @@ use constant SIGNIFICANT => 5; # number of significant digits to be returned
         my $z          = ( $W - $mean + $continuity ) / $deviation;
         @{ $probability_normal_approx_of{$id} }{ 'mean', 'std deviation', 'z' }
           = ( $mean, $deviation, $z );
-################ Changed by xusheng #####################
-################ It is one side test rather than two sides test
-####### orig:
-#        my $p = 2 * uprob( abs($z) );
-####### changed:
+ 
+ 
+ 
+ 
+ 
 		my $p = uprob( abs($z) );
-#		print $nA,"\t",$nB,"\t",$W,"\t",$mean-$W,"\n";
+ 
 		if($W<($mean) )
 		{
 			$p = 1 - $p;
 		}
-#########################################################
+ 
         return $p;
 
     }
@@ -694,10 +683,10 @@ END_FORMAT
 
 }
 
-sub chisqrdistr { # Percentage points  X^2(x^2,n)
+sub chisqrdistr {  
 		my ($n, $p) = @_;
 			if ($n <= 0 || abs($n) - abs(int($n)) != 0) {
-						die "Invalid n: $n\n"; # degree of freedom
+						die "Invalid n: $n\n";  
 								}
 				if ($p <= 0 || $p > 1) {
 							die "Invalid p: $p\n"; 
@@ -705,7 +694,7 @@ sub chisqrdistr { # Percentage points  X^2(x^2,n)
 					return precision_string(_subchisqr($n, $p));
 }
 
-sub udistr { # Percentage points   N(0,1^2)
+sub udistr {  
 		my ($p) = (@_);
 			if ($p > 1 || $p <= 0) {
 						die "Invalid p: $p\n";
@@ -713,7 +702,7 @@ sub udistr { # Percentage points   N(0,1^2)
 				return precision_string(_subu($p));
 }
 
-sub tdistr { # Percentage points   t(x,n)
+sub tdistr {  
 		my ($n, $p) = @_;
 			if ($n <= 0 || abs($n) - abs(int($n)) != 0) {
 						die "Invalid n: $n\n";
@@ -724,13 +713,13 @@ sub tdistr { # Percentage points   t(x,n)
 					return precision_string(_subt($n, $p));
 }
 
-sub fdistr { # Percentage points  F(x,n1,n2)
+sub fdistr {  
 		my ($n, $m, $p) = @_;
 			if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-						die "Invalid n: $n\n"; # first degree of freedom
+						die "Invalid n: $n\n";  
 								}
 				if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
-							die "Invalid m: $m\n"; # second degree of freedom
+							die "Invalid m: $m\n";  
 									}
 					if (($p<=0) || ($p>1)) {
 								die "Invalid p: $p\n";
@@ -738,34 +727,34 @@ sub fdistr { # Percentage points  F(x,n1,n2)
 						return precision_string(_subf($n, $m, $p));
 }
 
-sub uprob { # Upper probability   N(0,1^2)
+sub uprob {  
 		my ($x) = @_;
 			return precision_string(_subuprob($x));
 }
 
-sub chisqrprob { # Upper probability   X^2(x^2,n)
+sub chisqrprob {  
 		my ($n,$x) = @_;
 			if (($n <= 0) || ((abs($n) - (abs(int($n)))) != 0)) {
-						die "Invalid n: $n\n"; # degree of freedom
+						die "Invalid n: $n\n";  
 								}
 				return precision_string(_subchisqrprob($n, $x));
 }
 
-sub tprob { # Upper probability   t(x,n)
+sub tprob {  
 		my ($n, $x) = @_;
 			if (($n <= 0) || ((abs($n) - abs(int($n))) !=0)) {
-						die "Invalid n: $n\n"; # degree of freedom
+						die "Invalid n: $n\n";  
 								}
 				return precision_string(_subtprob($n, $x));
 }
 
-sub fprob { # Upper probability   F(x,n1,n2)
+sub fprob {  
 		my ($n, $m, $x) = @_;
 			if (($n<=0) || ((abs($n)-(abs(int($n))))!=0)) {
-						die "Invalid n: $n\n"; # first degree of freedom
+						die "Invalid n: $n\n";  
 								}
 				if (($m<=0) || ((abs($m)-(abs(int($m))))!=0)) {
-							die "Invalid m: $m\n"; # second degree of freedom
+							die "Invalid m: $m\n";  
 									} 
 					return precision_string(_subfprob($n, $m, $x));
 }
@@ -863,7 +852,7 @@ sub _subu {
 
 sub _subuprob {
 	my ($x) = @_;
-	my $p = 0; # if ($absx > 100)
+	my $p = 0;  
 	my $absx = abs($x);
 	if ($absx < 1.9) {
 	$p = (1 +
@@ -1044,8 +1033,7 @@ sub _subchisqr {
 	$p1 += $a;
 	}
 	}
-	$z = exp((($n-1) * log($x/$n) - log(4*PI*$x) 
-	+ $n - $x - 1/$n/6) / 2);
+	$z = exp((($n-1) * log($x/$n) - log(4*PI*$x) + $n - $x - 1/$n/6) / 2);
 	$x += ($p1 - $p) / $z;
 	$x = sprintf("%.5f", $x);
 	} while (($n < 31) && (abs($x0 - $x) > 1e-4));
@@ -1093,342 +1081,6 @@ sub precision_string {
 	}
 }
 
-1;    # Magic true value required at end of module
+1;     
 
-__END__
-
-=head1 NAME
-
-Statistics::Test::WilcoxonRankSum - perform the Wilcoxon (aka Mann-Whitney) rank sum test on two sets of numeric data.
-
-
-=head1 VERSION
-
-This document describes Statistics::Test::WilcoxonRankSum version 0.0.1
-
-
-=head1 SYNOPSIS
-
-    use Statistics::Test::WilcoxonRankSum;
-
-    my $wilcox_test = Statistics::Test::WilcoxonRankSum->new();
-
-    my @dataset_1 = (4.6, 4.7, 4.9, 5.1, 5.2, 5.5, 5.8, 6.1, 6.5, 6.5, 7.2);
-    my @dataset_2 = (5.2, 5.3, 5.4, 5.6, 6.2, 6.3, 6.8, 7.7, 8.0, 8.1);
-
-    $wilcox_test->load_data(\@dataset_1, \@dataset_2);
-    my $prob = $wilcox_test->probability();
-
-    my $pf = sprintf '%f', $prob; # prints 0.091022
-
-    print $wilcox_test->probability_status();
-
-    # prints something like:
-    # Probability:   0.002797, exact
-    # or
-    # Probability:   0.511020, normal approx w. mean: 104.000000, std deviation:  41.840969, z:   0.657251
-
-    my $pstatus = $wilcox_test->probability_status();
-    # $pstatus is like the strings above
-
-    $wilcox_test->summary();
-
-    # prints something like:
-
-    # ----------------------------------------------------------------
-    # dataset |    n      | rank sum: observed / expected 
-    # ----------------------------------------------------------------
-    #   1    |     10    |               533      /    300
-    # ----------------------------------------------------------------
-    #   2    |     50    |              1296      /   1500
-    # ----------------------------------------------------------------
-    # N (size of both datasets):      60
-    # Probability:   0.000006, normal approx w. mean: 305.000000, std deviation:  50.414945, z:   4.522468
-    # Significant (at 0.05 level)
-    # Ranks of dataset 1 are higher than expected
-
-=head1 DESCRIPTION
-
-In statistics, the Mann-Whitney U test (also called the Mann-Whitney-Wilcoxon (MWW), Wilcoxon rank-sum test, or Wilcoxon-Mann-Whitney test) is a non-parametric test for assessing whether two samples of observations come from the same distribution. The null hypothesis is that the two samples are drawn from a single population, and therefore that their probability distributions are equal. See the Wikipedia entry L<http://en.wikipedia.org/wiki/Mann-Whitney_U> (for eg.) or statistic textbooks for further details.
-
-When the sample sizes are small the probability can be computed directly. For larger samples usually a normal approximation is used.
-
-=head2 The Mechanics
-
-Input to the test are two sets (lists) of numbers. The values of both lists are ranked from the smallest to the largest, while remembering which set the items come from. When the values are the same, they get an average rank. For each of the sample sets, we compute the rank sum. Under the assumption that the two samples come from the same population, the rank sum of the first set should be close to the value B<n1 * (n1 + n2 + 1)/2>, where n1 and n2 are the sample sizes. The test computes the (exact, resp. approximated) probability of the actual rank sum against the expected value (which is the one given above). So, when the computed probability is below I<0.05>, we can reject the null hypothesis at level 0.05 and conclude that the two samples are significantly different.
-
-=head2 Implementation
-
-The implementation follows the mechanics described above. The exact probability is computed for sample sizes less than B<20>, but this threshold can be set with `new'. For larger samples the probability is computed by normal approximation.
-
-=head1 INTERFACE 
-
-=head2 Constructor
-
-=over
-
-=item new()
-
-Builds a new Statistics::Test::WilcoxonRankSum object.
-
-When called like this:
-
- Statistics::Test::WilcoxonRankSum->new( { exact_upto => 30 }
-
-the exact probability will be computed for sample sizes lower than 30 (instead of 20, which is the default).
-
-=back
-
-=head2 Providing the Data
-
-=over
-
-=item load_data(\@dataset_1, \@dataset_2)
-
-=item set_dataset1(\@dataset_1)
-
-=item set_dataset2(\@dataset_2)
-
-=back
-
-When calling these methods, all previously computed rank sums and probabilities are reset. 
-
-
-
-=head2 Computations
-
-=head3 Ranks
-
-=over
-
-=item compute_ranks()
-
-The two datasets are put together and ranked (taking care of ties). The method returns a hash reference to a hash, with the data values as keys, looking like this:
-
-                      '3' => {
-                              'tied' => 2,
-                              'in_dataset' => {
-                                               'ds2' => 2
-                                              },
-                              'rank' => '1.5'
-                             },
-                      '24' => {
-                               'tied' => 1,
-                               'in_dataset' => {
-                                                'ds1' => 1
-                                               },
-                               'rank' => '7'
-                              },
-
-
-=item compute_rank_array
-
-Returns the ranks computed above in a differen form (depending on the context, an array of or the reference to array references):
-
- [ [ '1.5', 'ds2' ], [ '1.5', 'ds2' ], [ '3', 'ds1' ], ...]
-
-The first item in the second level arrays is the rank and the second marks the data set the ranked item came from.
-I<ds1> --> first dataset, I<ds2> --> second dataset.
-
-In scalar context returns the number of elements (ie. the size of the two samples).
-
-=item rank_sum_for
-
-Computes rank sum for dataset given as argument. If the argument matches I<1>, this will be dataset 1, else dataset 2.
-
-=item get_smaller_rank_sum
-
-Checks which of the two rank sums is the smaller one.
-
-=item smaller_rank_sums_count
-
-For the set with the smaller rank sum, counts the number of partitions (of the ranks) giving a smaller rank sum than the observed one. Needed to compute the exact probability.
-
-=item rank_sums_other_than_expected_counts
-
-For the set with the smaller rank sum, counts the number of partitions (of the ranks) giving a rank sum other than the observed one (For example if the rank sum is larger than expected, counts the number of partitions giving a rank sum larger than the observed one). Needed to compute the exact probability.
-
-=back
-
-=head3 Probabilities
-
-=over
-
-=item probability
-
-Computes (and returns) the probability of the given outcome under the assumption that the two data samples come from the same population. When the size of the two samples taken together is less than I<exact_upto>, L</"probability_exact"> is called, else L</"probability_normal_approx">. The parameter I<exact_upto> can be passed to L</"new"> as argument and defaults to I<20>.
-
-When the size of the two samples taken together is less than 5, it makes not much sense to compute the probability. Currently, only the L</summary> method issues a warning.
-
-This method is also called whenever an object of this class needs to be coerced to a number.
-
-=item probability_exact
-
-Compute the probability by counting.
-
-=item probability_normal_approx
-
-Compute the probability by normal approximation.
-
-=back
-
-=head2 Display and Notification
-
-=over
-
-=item probability_status
-
-Tells if the probability has been or can be computed. If it has been computed shows the value and how it has been computed (by the direct method or by normal approximation).
-
-=item summary
-
-Prints or returns a string with diagnostics like this:
-
-    # ----------------------------------------------------------------
-    # dataset |    n      | rank sum: observed / expected 
-    # ----------------------------------------------------------------
-    #   1    |     10    |               533      /    300
-    # ----------------------------------------------------------------
-    #   2    |     50    |              1296      /   1500
-    # ----------------------------------------------------------------
-    # N (size of both datasets):      60
-    # Probability:   0.000006, normal approx w. mean: 305.000000, std deviation:  50.414945, z:   4.522468
-    # Significant (at 0.05 level)
-    # Ranks of dataset 1 are higher than expected
-
-This method also issues a warning, when the size of the 2 samples taken together is less than 5.
-
-B<summary> is called whenever an object of this class needs to be coerced to a string.
-
-=item as_hash
-
-Returns a hash reference with the gathered data, needed to compute the probabilities, with the following keys:
-
-=over
-
-=item dataset_1
-
-The first dataset (array ref)
-
-=item dataset_2
-
-The second dataset (also array ref)
-
-=item n1
-
-size of first dataset
-
-=item n2
-
-size of second dataset
-
-=item N
-
- n1 + n2
-
-=item rank_array
-
-the array returned by L</compute_rank_array>, see there.
-
-=item rank_sum_1, rank_sum_2
-
-rank sum of first and second dataset respectively.
-
-=item rank_sum_1_expected rank_sum_2_expected
-
-the expected rank sums, if the two samples came from the same population. For the first dataset this is:
-
-  n1 * (N+1) / 2
-
-=item probability
-
-=item probability_normal_approx
-
-data used for computing the probability by normal approximation, when the sample size is too large. A hash reference with the following keys: B<mean>, B<std deviation>, B<z>.
-
-=back
-
-=back
-
-=head2 Getter
-
-The following methods are provided by the I<Class::Std> I<:get> facility and return the corresponding object data:
-
-=over
-
-=item get_dataset1, get_dataset2
-
-=item get_n1
-
-=item get_n2
-
-=item get_N
-
-=item get_max_rank_sum
-
-=item get_rank_array
-
-=item get_rankSum_dataset1, get_rankSum_dataset2
-
-=item expected_rank_sum_dataset1, expected_rank_sum_dataset2
-
-=back
-
-=head1 DIAGNOSTICS
-
-=over
-
-=item C<< Need array ref to dataset >>
-
-=item C<< Datasets must be passed as array references >>
-
-When a L</"Providing the Data"> method is called without enough arguments, or when the arguments are not array references.
-
-=item C<< dataset has no element greater 0 >>
-
-It makes no sense to compute the probability when all the items are 0.
-
-=item C<< Please set/load datasets before computing ranks >>
-
-Maybe you called a L</compute_ranks> method, and didn't hand in both datasets?
-
-=item C<< Argument must match `1' or `2' (meaning dataset 1 or 2) >>
-
-The method L</rank_sum_for> must know what dataset to compute the rank for: dataset 1, if the argument matches 1, dataset 2 if the argument matches 2.
-
-=item C<< Rank sum bound %i is bigger than the maximum possible rank sum %i >>
-
-=item C<< Sum of %i and %i must be equal to number of ranks: %i >>
-
-Plausibility checks before doing the rank sum counts (L</smaller_rank_sums_count>). Something's terribly broken when this occurs.
-
-=back
-
-
-=head1 CONFIGURATION AND ENVIRONMENT
-
-Statistics::Test::WilcoxonRankSum requires no configuration files or environment variables.
-
-
-=head1 DEPENDENCIES
-
-=over
-
-=item Carp
-
-=item Carp::Assert
-
-=item Class::Std
-
-=item Contextual::Return
-
-=item Set::Partition
-
-=item List::Util qw(sum)
-
-=item Math::BigFloat
-
-=item Math::Counting
-
-=item Statistics::Distributions
-
+1;

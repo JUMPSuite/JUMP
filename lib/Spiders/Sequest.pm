@@ -25,7 +25,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_sequest_path get_sequest_path copy_sequest_parameter set_sequest_engine get_sequest_engine Run_Sequest Run_Sequest_standalone check_results);
 
 sub new{
 	my ($class,%arg)=@_;

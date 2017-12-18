@@ -24,7 +24,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_C_value get_C_value set_H_value get_H_value set_parameter get_parameter set_dta_path get_dta_path decharge MS1_deisotope get_isotopic_distribution get_intensity_ratio find_charge find_charge_by_more_scans changeMH changeMH_folder create_dtahash);
 
 sub new{
 	my ($class,%arg)=@_;

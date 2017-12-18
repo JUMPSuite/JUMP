@@ -37,7 +37,7 @@ $VERSION     = 1.03;
 
 
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_dta_path get_dta_path set_pip get_pip set_library_path get_library_path create_script make_createdb_script make_partialidx_script GetPreviousFilesMass create_job_files);
  
 
 sub new{
@@ -190,6 +190,14 @@ foreach my \$dta_file (\@dtafiles)
 #	}
 #	else
 #	{
+		my \$consolidation = new Spiders::Consolidation('-dta_file'=>\$dtafile,'-keepnum'=>\$params->{'ms2_consolidation'});
+		if(\$params->{'TMT_Cterm_ion_removal'})
+		{
+			\$minPeak=\$params->{'TMT_Cterm_ion_removal'};
+			\$dis="0.99703,1.00335";
+			\$peakTol = 0.01;
+			\$consolidation->remove_TMTc_peaks(\$dtafile,\$minPeak,\$dis,\$peakTol);
+		}
 		if(\$params->{'MS2_deisotope'}==1)
 		{
 			my \$deisotope = new Spiders::Deisotope();
@@ -202,7 +210,7 @@ foreach my \$dta_file (\@dtafiles)
 	#		\$deisotope->print_mass_error("\$dtafile.mserr");
 			undef \$deisotope;
 		}	
-		my \$consolidation = new Spiders::Consolidation('-dta_file'=>\$dtafile,'-keepnum'=>\$params->{'ms2_consolidation'});
+
 		\$consolidation->set_parameter(\$params);
 		\$consolidation->Consolidation();
 

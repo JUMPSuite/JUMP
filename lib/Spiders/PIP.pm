@@ -27,7 +27,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 2.01;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(set_parameter get_parameter set_origmz_array get_origmz_array set_origmsms_hash get_origmsms_hash set_isolation_window get_isolation_window set_isolation_offset get_isolation_offset set_isolation_variation get_isolation_variation set_dta_path get_dta_path Calculate_PIP set_C_value get_C_value set_H_value get_H_value define_charge deisotope changeMH_folder  get_isotopic_distribution get_intensity_ratio);
 
 #### Version 12.1.0 ############
 # add a parameter to control the PPI 
@@ -781,7 +781,9 @@ sub changeMH_folder {
 						print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
 					}
 					close(OUT);
-				} else {
+				}
+				else 
+				{
 					my @msms_mz_array = @{$msmshash -> {$scan} -> {'msms_mz'}};
 					my @msms_int_array = @{$msmshash -> {$scan} -> {'msms_int'}};
 					$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";

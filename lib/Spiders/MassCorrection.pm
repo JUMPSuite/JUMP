@@ -42,7 +42,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(massCorrection  partition  stdev  mean  getObservedMasses);
 
 sub new {
 	my ($class,%arg)=@_;
@@ -66,7 +66,8 @@ sub massCorrection {
 	my $thresholdPercentage = 0.05;			## Threshold ratio of the number of spectra used for the mass-shift calculation to the total number of spectra	 
 							## e.g. $thresholdPercentage = 0.2 indicates that at least 20% of spectra (MS1 or MS2)
 							## should be used to calculate mass shifts
-									
+	my %massShifts_hash;
+	my $mass_shift_mean_all;
 	##################################
 	## Mass-shift correction module	##
 	##################################	
@@ -85,9 +86,9 @@ sub massCorrection {
 		my @massShifts;
 		my $nScans = 0;
 		my $startScanNumber = $$params{'first_scan_extraction'};
-		my $endScanNumber = $$params{'last_scan_extraction'};
+		my $endScanNumber = $$params{'last_scan_extraction'}+1;
 		if ($endScanNumber >= scalar(@$mzArray)) {
-			$endScanNumber = scalar(@$mzArray);
+			$endScanNumber = scalar(@$mzArray)+1;
 		}
 		## Note that $mzArray[n] means that MS1 spectra of scan#n
 		## $mzArray[0] = null
@@ -115,17 +116,27 @@ sub massCorrection {
 				if ($observedMass ne "") {
 					my $ppm = ($observedMass - $referenceMass[0]) / $referenceMass[0] * 1e6;
 					push (@massShifts, $ppm);
+					
+					$massShifts_hash{$scanNumber} = $ppm;
 				}
 			}
 		}		
 
+	
+		
+		
+		
 		##########################################################################################
 		## Filter the calculated mass shifts							##
 		## 1. More than 50% of spectra should be used to calculate mass shifts			##
 		## 2. Remove 20% highest/lowest mass shifts to get a more reliable correction factor	## 
 		##########################################################################################
-		my $nMassShifts = scalar(@massShifts);
-		my $measuredPercentage = $nMassShifts / $nScans;	
+		my $nMassShifts = scalar(keys %massShifts_hash);
+		my $defined_peaks = (scalar (keys %{$msHash->{'surveyhash'}}));
+		my $measuredPercentage = $nMassShifts / (scalar (keys %{$msHash->{'surveyhash'}}));		
+		#my $nMassShifts = scalar(@massShifts);
+		#my $measuredPercentage = $nMassShifts / $nScans;	
+	
 		## More than 5% of spectra should be used to calculate mass shifts
 		## Otherwise, mass-shift correction will not be performed
 		if ($measuredPercentage >= $thresholdPercentage) {
@@ -146,27 +157,64 @@ sub massCorrection {
 			exit;
 		}
 		
-		##########################################################################
-		## Calculate a global "correction factor" by taking the mean value of	##
-		## mass shifts calculated from MS1 scans (i.e. mean of @massShifts)	##
-		##########################################################################
-		my $meanMassShift = mean(@massShifts);
-		my $stdMassShift = stdev(@massShifts);
-		printf ("  Calculated mass-shift: mean = %.5f ppm and SD = %.5f ppm\n", $meanMassShift, $stdMassShift); 
-		my $massCorrectionFactor = mean(@massShifts);
+		##############################################################
+		##  Use bins to correct the mass shift                   ##
+		##############################################################
+		my $bin_size = 100;
+
+		if((scalar keys %massShifts_hash)>1000)
+		{
+			$bin_size = int((scalar keys %massShifts_hash)/10)+1;
+		}
+
+		my ($mass_shift_mean)=partition(\%massShifts_hash,$bin_size);
+		my $bin_num=scalar keys (%$mass_shift_mean);
+		my $bin=0;
+		print "  Use $bin_num bin to correct the mass shift\n";
 		
+		foreach my $scan (sort {$a<=>$b} keys %$mass_shift_mean)
+		{
+			$bin++;
+			printf ("  Mass-shift at bin $bin: mean = %.5f ppm\n", $mass_shift_mean->{$scan}->{mass_shift});		
+			
+		}	
+	
+		my $last_scan = 0;
+		foreach my $scan (sort {$a<=>$b} keys %$mass_shift_mean)
+		{
+			for(my $i=0;$i<=$scan;$i++)
+			{
+				next if(defined($mass_shift_mean_all->{$i}));
+				$mass_shift_mean_all->{$i}->{mass_shift}=$mass_shift_mean->{$scan}->{mass_shift};
+
+			}
+			$last_scan = $scan;
+		}
+		#######
+		# The last scan in mass_shift_mean hash is not the last scan mshash and mzArray, use the last_scan to fill the remain data
+		####
+		$nScans = scalar keys %{$ms2Hash} if($nScans<(scalar keys %{$ms2Hash}));
+		if($last_scan<$endScanNumber)
+		{
+			for(my $i=$last_scan;$i<=$endScanNumber;$i++)
+			{
+				$mass_shift_mean_all->{$i}->{mass_shift}=$mass_shift_mean->{$last_scan}->{mass_shift};
+			}
+		}
 		##########################################################################
-		## Mass-shift correction of all MS1 spectra using the correction factor	##
+		## Mass-shift correction of all MS1 and MS2 spectra using the correction factor	##
 		##########################################################################
+		print "  correcting MS1 scan\n";
+		
 		for (my $scanNumber = 0; $scanNumber <= $endScanNumber; $scanNumber++) {
 			## Correction of MS1 masses
 			if (defined $$mzArray[$scanNumber]) {
-				for (my $i = 0; $i < scalar(@{$$mzArray[$scanNumber]}); $i++) {
+				for (my $i = 0; $i <= scalar(@{$$mzArray[$scanNumber]}); $i++) {
 					next if (!defined $$mzArray[$scanNumber][$i]);
 					foreach my $mz (keys %{$$mzArray[$scanNumber][$i]}) {
 						## Calculate new m/z and new key for $mzArray
 						my $val = $$mzArray[$scanNumber][$i]{$mz};
-						my $newMz = $mz / (1 + $massCorrectionFactor / 1e6);
+						my $newMz = $mz / (1 + $mass_shift_mean_all->{$scanNumber}->{mass_shift} / 1e6);
 						my $newKey = int($newMz);
 						## Replace an old m/z and its intensity with the new ones in $mzArray
 						delete $$mzArray[$scanNumber][$i]{$mz};
@@ -174,13 +222,37 @@ sub massCorrection {
 					}
 				}
 			}
-		}
-		print "  Mass-shift correction has been finished for MS1 spectra\n";
+		}		
+		
+		
+		print "\n";
+		print "  correcting MS2 scan\n";
+		foreach my $scanNumber (keys %{$ms2Hash})
+		{	
+			if (defined $$ms2Hash{$scanNumber}{'msms_mz'}) 
+			{
+				## Correction of MS2 masses
+				if (defined $$ms2Hash{$scanNumber}{'prec_mz'}) {
+					for (my $i = 0; $i < scalar(@{$$ms2Hash{$scanNumber}{'msms_mz'}}); $i++) {
+						$$ms2Hash{$scanNumber}{'msms_mz'}[$i] = $$ms2Hash{$scanNumber}{'msms_mz'}[$i] / (1 + $mass_shift_mean_all->{$scanNumber}->{mass_shift} / 1e6);
+					}
+				}
+			}
+		
+        }
+	
+		print "\n  Mass-shift correction has been finished\n";
 		return ($ms2Hash, $mzArray);
+		
+
 	} elsif ($option == 2) {
 		##################################################
 		## Mass-shift correction based on MS2 spectra	##
 		##################################################
+		my $endScanNumber = $$params{'last_scan_extraction'};
+		if ($endScanNumber >= scalar(@$mzArray)) {
+			$endScanNumber = scalar(@$mzArray);
+		}		
 		my @referenceMasses = (126.1277259380, 147.1128041645, 175.1189521741);
 		if ($$params{'add_K_Lysine'} > 0) {
 			my $modK = 147.1128041645 + $$params{'add_K_Lysine'};
@@ -192,6 +264,7 @@ sub massCorrection {
 		}
 		my $nReferences = scalar(@referenceMasses);
 		my @massShifts;
+		my @scanNumbers;	## added by JCho on 06/20/2016
 		my $nScans = 0;
 		
 		## Calculate mass shifts between observed reference masses and theoretical reference masses
@@ -203,6 +276,8 @@ sub massCorrection {
 				if ($observedMasses[$i] ne "") {
 					my $ppm = ($observedMasses[$i] - $referenceMasses[$i]) / $referenceMasses[$i] * 1e6;
 					push (@{$massShifts[$i]}, $ppm);
+					push (@{$scanNumbers[$i]}, $scanNumber);	## added by JCho on 06/20/2016
+					 $massShifts_hash{$scanNumber} = $ppm;	## commented by JCho on 06/20/2016
 				}
 			}
 		}
@@ -212,6 +287,7 @@ sub massCorrection {
 		##########################################################################
 		my $ind = 0;
 		my $nMassShifts = 0;
+		
 		for (my $i = 0; $i < $nReferences; $i++) {
 			if (defined $massShifts[$i] && scalar(@{$massShifts[$i]}) > $nMassShifts) {
 				$ind = $i;
@@ -227,27 +303,31 @@ sub massCorrection {
 			exit; 
 		} else {
 			@massShifts = @{$massShifts[$ind]};
+			@scanNumbers = @{$scanNumbers[$ind]};	## added by JCho on 06/20/2016
 		}
-		
+=head		
 		##########################################################################################
 		## Filter the calculated mass shifts							##
 		## 1. More than 50% of spectra should be used to calculate mass shifts			##
 		## 2. Remove 20% highest/lowest mass shifts to get a more reliable correction factor	## 
 		##########################################################################################
 		$nMassShifts = scalar(@massShifts);
-		my $measuredPercentage = $nMassShifts / $nScans;
-		## More than 50% of spectra should be used to calculate mass shifts
+		my $defined_peaks = (scalar (keys %$msHash));
+		my $measuredPercentage = $nMassShifts / (scalar (keys %$msHash));		
+		#my $nMassShifts = scalar(@massShifts);
+		#my $measuredPercentage = $nMassShifts / $nScans;	
+	
+		## More than 5% of spectra should be used to calculate mass shifts
 		## Otherwise, mass-shift correction will not be performed
 		if ($measuredPercentage >= $thresholdPercentage) {
-			printf("  %.2f%% of spectra (%d of %d effective MS2) is used to calculate mass shifts\n",
-					$measuredPercentage * 100, $nMassShifts, $nScans);
+			printf("  %.2f%% of spectra (%d of %d) is used to calculate mass shifts\n", $measuredPercentage * 100, $nMassShifts, $nScans);
 			@massShifts = sort {$a <=> $b} @massShifts;
 			## Filter the 20% of highest/lowest mass shifts
 			my $numFiltered = int(0.2 * scalar(@massShifts));
-			splice (@massShifts, 0, $numFiltered);									## Remove the lowest mass shifts
+			splice (@massShifts, 0, $numFiltered);					## Remove the lowest mass shifts
 			splice (@massShifts, scalar(@massShifts) - $numFiltered, $numFiltered);	## Remove the highest mass shifts
 		} else {
-			printf("  Only %.2f%% of spectra (%d of %d effective MS2) is used to calculate mass shifts\n", 
+			printf("  Only %.2f%% of spectra (%d of %d) is used to calculate mass shifts\n", 
 					$measuredPercentage * 100, scalar(@massShifts), $nScans);
 			printf("  Mass correction will not be performed when less than %.2f%% of spectra is used\n", $thresholdPercentage * 100);
 			print "  Please choose another option like,\n";
@@ -256,26 +336,59 @@ sub massCorrection {
 			print "  for the \"mass_correction\" parameter and run again\n";
 			exit;
 		}
+=cut		
+		##############################################################
+		##  Use bins to correct the mass shift                   ##
+		##############################################################
+		@massShifts_hash{@scanNumbers} = @massShifts;	## added by JCho on 06/20/2016
+		my $bin_size = 100;
+
+		if((scalar keys %massShifts_hash)>1000)
+		{
+			$bin_size = int((scalar keys %massShifts_hash)/10)+1;
+		}
+
+		my ($mass_shift_mean)=partition(\%massShifts_hash,$bin_size);
+		my $bin_num=scalar keys (%$mass_shift_mean);
+		my $bin=0;
+		print "  Use $bin_num bin to correct the mass shift\n";
+
 		
-		##################################################################################
-		## Calculate a global "correction factor" by taking the mean value of		##
-		## mass shifts calculated from MS2 or MS3 scans (i.e. mean of @massShifts)	##
-		##################################################################################
-		my $meanMassShift = mean(@massShifts);
-		my $stdMassShift = stdev(@massShifts);
-		printf ("  Calculated mass-shift: mean = %.5f ppm and SD = %.5f ppm\n", $meanMassShift, $stdMassShift); 
-		my $massCorrectionFactor = mean(@massShifts);
-		
-		##################################################################################
-		## Mass-shift correction of all MS1/MS2 spectra using the correction factor	##
-		##################################################################################
-		foreach my $scanNumber (keys %{$ms2Hash}) {
-			## Correction of MS2 masses
-			if (defined $$ms2Hash{$scanNumber}{'prec_mz'}) {
-				for (my $i = 0; $i < scalar(@{$$ms2Hash{$scanNumber}{'msms_mz'}}); $i++) {
-					$$ms2Hash{$scanNumber}{'msms_mz'}[$i] = $$ms2Hash{$scanNumber}{'msms_mz'}[$i] / (1 + $massCorrectionFactor / 1e6);
-				}
+		foreach my $scan (sort {$a<=>$b} keys %$mass_shift_mean)
+		{
+			$bin++;
+			printf ("  Mass-shift at bin $bin: mean = %.5f ppm\n", $mass_shift_mean->{$scan}->{mass_shift});			
+			
+		}	
+	
+		my $last_scan = 0;
+		foreach my $scan (sort {$a<=>$b} keys %$mass_shift_mean)
+		{
+			for(my $i=0;$i<=$scan;$i++)
+			{
+				next if(defined($mass_shift_mean_all->{$i}));
+				$mass_shift_mean_all->{$i}->{mass_shift}=$mass_shift_mean->{$scan}->{mass_shift};
+
 			}
+			$last_scan = $scan;
+		}
+		#######
+		# The last scan in mass_shift_mean hash is not the last scan mshash and mzArray, use the last_scan to fill the remain data
+		####
+		$nScans = scalar keys %{$ms2Hash} if($nScans<(scalar keys %{$ms2Hash}));
+		if($last_scan<=$nScans)
+		{
+			for(my $i=$last_scan;$i<=$nScans;$i++)
+			{
+				$mass_shift_mean_all->{$i}->{mass_shift}=$mass_shift_mean->{$last_scan}->{mass_shift};
+			}
+		}
+		##########################################################################
+		## Mass-shift correction of all MS1 and MS2 spectra using the correction factor	##
+		##########################################################################
+		print "  correcting MS1 scan\n";
+		
+		for (my $scanNumber = 0; $scanNumber <= $endScanNumber; $scanNumber++) {
 			## Correction of MS1 masses
 			if (defined $$mzArray[$scanNumber]) {
 				for (my $i = 0; $i < scalar(@{$$mzArray[$scanNumber]}); $i++) {
@@ -283,7 +396,7 @@ sub massCorrection {
 					foreach my $mz (keys %{$$mzArray[$scanNumber][$i]}) {
 						## Calculate new m/z and new key for $mzArray
 						my $val = $$mzArray[$scanNumber][$i]{$mz};
-						my $newMz = $mz / (1 + $massCorrectionFactor / 1e6);
+						my $newMz = $mz / (1 + $mass_shift_mean_all->{$scanNumber}->{mass_shift} / 1e6);
 						my $newKey = int($newMz);
 						## Replace an old m/z and its intensity with the new ones in $mzArray
 						delete $$mzArray[$scanNumber][$i]{$mz};
@@ -292,7 +405,25 @@ sub massCorrection {
 				}
 			}
 		}		
-		print "  Mass-shift correction has been finished for MS1 and MS2 spectra\n";
+		
+
+		print "  correcting MS2 scan\n";
+		foreach my $scanNumber (keys %{$ms2Hash})
+		{
+			#print "\r  correcting MS2 scan: $scanNumber";		
+			if (defined $$ms2Hash{$scanNumber}{'msms_mz'}) 
+			{
+				## Correction of MS2 masses
+				if (defined $$ms2Hash{$scanNumber}{'prec_mz'}) {
+					for (my $i = 0; $i < scalar(@{$$ms2Hash{$scanNumber}{'msms_mz'}}); $i++) {
+						$$ms2Hash{$scanNumber}{'msms_mz'}[$i] = $$ms2Hash{$scanNumber}{'msms_mz'}[$i] / (1 + $mass_shift_mean_all->{$scanNumber}->{mass_shift} / 1e6);
+					}
+				}
+			}
+		
+        }
+	
+		print "\n  Mass-shift correction has been finished\n";		
 		return ($ms2Hash, $mzArray);
 	} elsif ($option == 3) {
 		##################################################
@@ -335,6 +466,23 @@ sub massCorrection {
 ##################
 ## Subroutines	##
 ##################
+sub partition {
+    my ($hash, $N) = @_; 
+	my $i=0;
+	my %hash_bin;
+	my %hash_bin_mean;
+	foreach my $scan (sort {$a<=>$b} keys %$hash)
+	{
+		push(@{$hash_bin{int($i/$N)}{'mass_shift'}},$hash->{$scan});
+		$hash_bin{int($i/$N)}{'scan'}=$scan;
+		$i++;
+	}
+	foreach my $key (keys %hash_bin)
+	{
+		 $hash_bin_mean{$hash_bin{$key}{'scan'}}{'mass_shift'}= mean(@{$hash_bin{$key}{'mass_shift'}});
+	}
+	return \%hash_bin_mean;
+}
 
 sub stdev {
 	my (@x) = @_;

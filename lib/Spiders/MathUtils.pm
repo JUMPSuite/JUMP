@@ -26,7 +26,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = qw(min  max  min_array  max_array  combinations);
 
 sub new{
 	my ($class,%arg)=@_;

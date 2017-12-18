@@ -30,8 +30,11 @@ use Spiders::Params;
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
 
+#@EXPORT      = qw(set_C_value get_C_value set_H_value get_H_value set_parameter get_parameter set_amino_acid_mass get_AA_mass get_AA_mass_with_dyn_mod get_Mod_mass get_immo_mass get_mol_mass get_amino_acid_mass generate_mass_combination get_peptide_mass get_fragment_parameter getFragmentMasses  getFragmentMasses  get_AA_combination output_mass_combination get_mass_range get_max_mass get_min_mass get_amino_acid_number get_mis_cleavage_number get_mod_site_number istryptic get_fragType get_series get_loss);
+
+
+@EXPORT      = qw(set_amino_acid_mass get_AA_mass get_AA_mass_with_dyn_mod get_Mod_mass get_immo_mass get_mol_mass get_amino_acid_mass generate_mass_combination get_peptide_mass get_fragment_parameter getFragmentMasses  getFragmentMasses  get_AA_combination output_mass_combination get_mass_range get_max_mass get_min_mass get_amino_acid_number get_mis_cleavage_number get_mod_site_number istryptic get_fragType get_series get_loss);
 
 sub new{
 	my ($class,%arg)=@_;
@@ -389,11 +392,10 @@ sub get_peptide_mass
     return $m; 
 }
 
-
-sub getFragmentMasses {
-    my ($self, %h) = @_;
-    my ( $pept, $modif, $frags, $spectrum ) = ( $h{pept}, $h{modif}, $h{fragTypes}, $h{spectrum} );
-
+sub get_fragment_parameter
+{
+	my $self=shift;
+	
 	my $param = $self->get_parameter();
 	my $parameter = new Spiders::Params();
 	my ($dynamic_mod,$largest_mass) = $parameter->get_dynamic_modifications($param);
@@ -401,11 +403,22 @@ sub getFragmentMasses {
 #	my $modif_mass = $self->get_Mod_mass(); 
 	my $AA_mass = $self->get_AA_mass();
 	my $mol_mass = $self->get_mol_mass();
-	my $immo_mass = $self->get_immo_mass();
+#	my $immo_mass = $self->get_immo_mass();
 
 	my %fragType = %{$self->get_fragType()};
 	my %series = %{$self->get_series()};
 	my %loss = %{$self->get_loss()};
+	return ($AA_mass,$dynamic_mod,\%fragType,\%series,\%loss);
+}
+
+sub getFragmentMasses {
+    my ($self, $AA_mass,$fragType,$dynamic_mod,$series,$loss,%h) = @_;
+    my ( $pept, $modif, $frags, $spectrum ) = ( $h{pept}, $h{modif}, $h{fragTypes}, $h{spectrum} );
+	
+	my $param = $self->get_parameter();
+	my %fragType = %$fragType;
+	my %series = %$series;
+	my %loss = %$loss;	
 	
 	my $immoDelta =  -26.9871;
 	my $nTerm = 1.007825;
@@ -422,7 +435,7 @@ sub getFragmentMasses {
     my $len = length($peptSeq);
     my @modif = split( /:/, $modif );
 	
-    my $peptideMass =$self->get_peptide_mass($peptSeq, $modif,"C",$AA_mass,$dynamic_mod)-$mol_mass->{'H'};
+    my $peptideMass =$self->get_peptide_mass($peptSeq, $modif,"C",$AA_mass,$dynamic_mod)-1.007276466812;
 	
     $spectrum->{peptideMass} = $peptideMass;
     $spectrum->{peptide}     = $pept;
@@ -454,334 +467,294 @@ sub getFragmentMasses {
     $base[-1] += $dynamic_mod->{$modif[$len+1]} if ( $modif[ $len + 1 ] );      # C-term modif
 
     # Computes the fragments of each requested fragment type
-    foreach my $frag (@$frags) {
-        if ( $frag eq 'immo' ) 
-		{
+    foreach my $frag (@$frags) 
+	{
+
+       # Regular fragment types
+
+       my $series    = $fragType{$frag}{series};
+       my $charge    = $fragType{$frag}{charge};
+       my $loss      = $fragType{$frag}{loss};
+       my $firstFrag = $series{$series}{firstFrag};
+       my $lastFrag  = $series{$series}{lastFrag};
+       my $delta     = $series{$series}{delta}[$massType];
+
+       if ( !defined($loss) ) {
+
+           # no loss, straightforward computation
+           $delta += ( $charge - 1 ) * 1.007276466812;
+
+           if ( $series{$series}{terminus} eq 'N' ) {
+
+               # N-term ions
+               $delta += $nTerm;
+				if($param->{"add_Nterm_peptide"}>0)
+				{
+					$delta += $param->{"add_Nterm_peptide"};
+				}					
+               for (my $i = $firstFrag; $i <= $len - $lastFrag +1; $i++)
+               {
+                   $spectrum->{mass}{term}{$frag}[ $i - 1 ] =( $base[$i] + $delta) / $charge;
+
+               }
+               $spectrum->{ionType}{$frag}[0] = $frag;
+           }
+           else 
+			{
+
+               # C-term ions, reverse and complement masses
+               for (my $i = $firstFrag - 1 ; $i <= $len - $lastFrag +1; $i++)
+               {
 			
-	
-            # Immonium ions
-            my %already;
-            for ( my $i = 1 ; $i < @pept - 1 ; $i++ ) {
-                if ( defined( $immo_mass->{ $pept[$i] } ) ) {
-					 if(!defined($modif[$i+1]))
-					 {
-						$modif[$i+1] = '';
+                   $spectrum->{mass}{term}{$frag}[$i] = ( $peptideMass - $base[ $len - $i - 1 ] + $delta ) / $charge;
+               }
+               $spectrum->{ionType}{$frag}[0] = $frag;
+           }
+       }
+       else {
+
+           # Losses, possibly multiple and combined
+
+           # Locates available positions for loss for each loss type (and checks all residues are different)
+           my @loss = @$loss;
+			my $nTotLoss=0;
+           my ( @avail, @distinctPos );
+           my ( $startLoop, $endLoop ) = ( $series{$series}{terminus} eq 'N' ) ? ( 0, $len - $lastFrag ) : ( $lastFrag - 1, $len - 1 );
+			my $H2O_num = 0;						
+			my $NH3_num = 0;
+			my $HPO3_num = 0;
+			my $H3PO4_num = 0;				
+           for ( my $i = $startLoop ; $i <= $endLoop ; $i++ ) {
+               for ( my $j = 0 ; $j < @loss ; $j++ ) {
+					next if(!defined($loss{ $loss[$j] }{residues}{ $pept[$i]}));
+
+					if($loss[$j] eq 'H2O')
+					{
+						$H2O_num++;
 					}
-                    my $actualAA = "$pept[$i]|$modif[$i+1]";
+					if($loss[$j] eq 'NH3')
+					{
+						$NH3_num++;
+					}
+					if($loss[$j] eq 'HPO3')
+					{
+						$HPO3_num++;
+					}
+					if($loss[$j] eq 'H3PO4')
+					{
+						$H3PO4_num++;
+					}
+					
+                   if ( $loss{ $loss[$j] }{residues}{ $pept[$i] } ) {
+						next if (!defined($modif[ $i + 1 ]));
+                       push( @{ $avail[$j] }, $i );
+                       $nTotLoss++;
+                       $distinctPos[$i]++;
+                   }
+               }
+           }
 
-                    next if ( defined( $already{$actualAA} ) );
-
-#                    if (!$modif[ $i + 1 ] || (   ( $pept[$i] eq 'C' )  || ( $pept[$i] eq 'M' ) || ( $pept[$i] eq 'H' )))
-#                   {
-                        my $mass     = $AA_mass->{$pept[$i]} + $immoDelta;
-						print $mass,"eeee\n";
-                        my $immoName = $pept[$i];
-                        if ( $modif[ $i + 1 ] ) {
-                            $immoName .= "+$modif[$i+1]";
-                            $mass += $dynamic_mod->{"$modif[$i+1]"};
-                        }
-						print $mass,"fff\n",;
-                        $spectrum->{mass}{intern}{$frag}{$immoName} = $mass;
-   #                     if ( $pept[$i] eq 'K' ) {
-
-                            # Consider a possible extra mass with ammonia loss
-     #                       $mass -= $mol_mass->{'NH3'};
-      #                      $spectrum->{mass}{intern}{$frag}{"$immoName-NH3"} = $mass;
-      #                  }
-                        $already{$actualAA} = 1;
-                        $spectrum->{ionType}{$frag}[0] = 'immo';
-           #         }
-                }
-            }			
 			
-        }
-        else {
+			
+           next if ( $nTotLoss == 0 );    # this ion type is not possible for this peptide
 
-            # Regular fragment types
+           for ( my $i = 0 ; $i < @distinctPos ; $i++ ) {
+				next if (!defined($distinctPos[$i]));
+               if ( $distinctPos[$i] > 1 ) {
+                   croak("Multiple loss at one single amino acid [$pept[$i]] in [$frag]");
+               }
+           }
 
-            my $series    = $fragType{$frag}{series};
-            my $charge    = $fragType{$frag}{charge};
-            my $loss      = $fragType{$frag}{loss};
-            my $firstFrag = $series{$series}{firstFrag};
-            my $lastFrag  = $series{$series}{lastFrag};
-            my $delta     = $series{$series}{delta}[$massType];
+           # Computes maximum number of losses for each loss type
+           my @maxLoss;
+           for ( my $j = 0 ; $j < @loss ; $j++ ) {
+               my $repeat = $fragType{$frag}{repeat}[$j];
+               $repeat = $len if ( $repeat == -1 );
+               $maxLoss[$j] = defined( $avail[$j] ) ? (( @{ $avail[$j] } < $repeat ) ? scalar( @{ $avail[$j] } ) : $repeat ) : 0;
+           }
 
-            if ( !defined($loss) ) {
+           # Reverses the loss positions for C-term ions
+           if ( $series{$series}{terminus} eq 'C' ) {
+               for ( my $j = 0 ; $j < @loss ; $j++ ) {
+                   @{ $avail[$j] } = reverse( @{ $avail[$j] } );
+               }
+           }
 
-                # no loss, straightforward computation
-                $delta += ( $charge - 1 ) * $mol_mass->{'H'};
+           # Generates every combination of number of possible losses
+           my $comb = 0;
+           my @nLoss = split( //, '0' x @maxLoss );
+           $nLoss[0] = 1;
+           $delta += $nTerm if ( $series{$series}{terminus} eq 'N' );
 
-                if ( $series{$series}{terminus} eq 'N' ) {
+					
+			
+           while (1) {
 
-                    # N-term ions
-                    $delta += $nTerm;
+
+               # Computes the fragments of the current combination
+
+               # Adapt delta to the number of losses
+               my $d = $delta;
+				
+               for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+                   $d += $nLoss[$i] * $loss{ $loss[$i] }{delta}[$massType];
+               }
+
+               if ( $series{$series}{terminus} eq 'N' ) 
+				{
+
+                   # N-term ions
+
+                   # First position that includes as many as required possible losses
+                   my $rightMost = 0;
+					
+
+
 					if($param->{"add_Nterm_peptide"}>0)
 					{
 						$delta += $param->{"add_Nterm_peptide"};
-					}					
-                    for (my $i = $firstFrag; $i <= $len - $lastFrag +1; $i++)
-                    {
-                        $spectrum->{mass}{term}{$frag}[ $i - 1 ] =( $base[$i] + $delta) / $charge;
+					}			
+					
+				##### xusheng on 11/25/2014 because loss from N terminal
+					if(($H2O_num > 1) and ($frag =~  /H2O/))
+					{
+						for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
+						{
+							if ( $i >= $firstFrag ) {
+								$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
+							}
+						}							
+					}
+					if(($NH3_num > 0) and ($frag =~  /NH3/))
+					{
+						for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
+						{
+							if ( $i >= $firstFrag ) {
+								$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
+							}
+						}							
+					}						
+					if(($HPO3_num > 1) and ($frag =~  /HPO3/))
+					{
+						for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+							if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] > $rightMost ) )
+							{
+								$rightMost = $avail[$i][ $nLoss[$i] - 1 ];
+							}
+						}
+						for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
+						{
+							if ( $i >= $firstFrag ) {
+								$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
+							}
+						}							
+					}
+					if(($H3PO4_num > 1) and ($frag =~  /H3PO4/))
+					{
+						for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+							if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] > $rightMost ) )
+							{
+								$rightMost = $avail[$i][ $nLoss[$i] - 1 ];
+							}
+						}
+						for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
+						{
+							if ( $i >= $firstFrag ) {
+								$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
+							}
+						}							
+					}
+				
+               }
+               else {
 
-                    }
-                    $spectrum->{ionType}{$frag}[0] = $frag;
-                }
-                else 
+                   # C-term ions
+
+                   # Last position that includes as many as required possible losses (from the right)
+                  # my $leftMost = $len - 1;
+					 my $leftMost = $len-1;
+				 
+				##### xusheng on 11/25/2014 because loss from N terminal
+					#print $H2O_num,"\t",$frag,"dfdfddfd\n";
+					if(($H2O_num>0) and ($frag =~ /H2O/))
+					{
+                   # Computes the fragments and check they are visible (firstFrag/lastFrag)
+						for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
+						{
+							if ( $i >= $firstFrag - 1 ) {
+								$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
+							}
+						}						
+					}
+					if(($NH3_num > 1) and ($frag =~ /NH3/))
+					{
+						# Computes the fragments and check they are visible (firstFrag/lastFrag)
+						for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
+						{
+							if ( $i >= $firstFrag - 1 ) {
+								$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
+							}
+						}						
+					}
+					if(($HPO3_num > 1) and ($frag =~ /HPO3/))
+					{
+						for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+							if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] < $leftMost ))
+							{
+								$leftMost = $avail[$i][ $nLoss[$i] - 1 ];
+							}
+						}
+						for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
+						{
+							if ( $i >= $firstFrag - 1 ) {
+								$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
+							}
+						}								
+					}
+					if(($H3PO4_num > 1) and ($frag =~ /H3PO4/))
+					{
+						for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+							if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] < $leftMost ))
+							{
+								$leftMost = $avail[$i][ $nLoss[$i] - 1 ];
+							}
+						}
+						for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
+						{
+							if ( $i >= $firstFrag - 1 ) {
+								$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
+							}
+						}							
+					}						
+				}
+
+               # Computes the exact ion type and saves its name
+				my $ionType = $series;
+				for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
+					if ( $nLoss[$i] > 1 ) {
+						$ionType .= "-$nLoss[$i]($loss[$i])";
+					}
+					elsif ( $nLoss[$i] == 1 ) {
+						$ionType .= "-$loss[$i]";
+					}
+				}
+				$spectrum->{ionType}{$frag}[$comb] = $ionType;
+				$comb++;
+
+				# Gets the next combination
+				my $i;
+				for ($i = 0 ;( $i < @maxLoss ) && ( $nLoss[$i] == $maxLoss[$i] ) ; $i++)
 				{
-
-                    # C-term ions, reverse and complement masses
-                    for (my $i = $firstFrag - 1 ; $i <= $len - $lastFrag +1; $i++)
-                    {
+				}
+				last if ( $i == @maxLoss );
+				$nLoss[$i]++;
+				for ( my $j = 0 ; $j < $i ; $j++ ) 
+				{
+					$nLoss[$j] = 0;
+				}
 				
-                        $spectrum->{mass}{term}{$frag}[$i] = ( $peptideMass - $base[ $len - $i - 1 ] + $delta ) / $charge;
-                    }
-                    $spectrum->{ionType}{$frag}[0] = $frag;
-                }
-            }
-            else {
-
-                # Losses, possibly multiple and combined
-
-                # Locates available positions for loss for each loss type (and checks all residues are different)
-                my @loss = @$loss;
-				my $nTotLoss=0;
-                my ( @avail, @distinctPos );
-                my ( $startLoop, $endLoop ) = ( $series{$series}{terminus} eq 'N' ) ? ( 0, $len - $lastFrag ) : ( $lastFrag - 1, $len - 1 );
-				my $H2O_num = 0;						
-				my $NH3_num = 0;
-				my $HPO3_num = 0;
-				my $H3PO4_num = 0;				
-                for ( my $i = $startLoop ; $i <= $endLoop ; $i++ ) {
-                    for ( my $j = 0 ; $j < @loss ; $j++ ) {
-						next if(!defined($loss{ $loss[$j] }{residues}{ $pept[$i]}));
-
-						if($loss[$j] eq 'H2O')
-						{
-							$H2O_num++;
-						}
-						if($loss[$j] eq 'NH3')
-						{
-							$NH3_num++;
-						}
-						if($loss[$j] eq 'HPO3')
-						{
-							$HPO3_num++;
-						}
-						if($loss[$j] eq 'H3PO4')
-						{
-							$H3PO4_num++;
-						}
-						
-                        if ( $loss{ $loss[$j] }{residues}{ $pept[$i] } ) {
-							next if (!defined($modif[ $i + 1 ]));
-                            push( @{ $avail[$j] }, $i );
-                            $nTotLoss++;
-                            $distinctPos[$i]++;
-                        }
-                    }
-                }
-
-				
-				
-                next if ( $nTotLoss == 0 );    # this ion type is not possible for this peptide
-
-                for ( my $i = 0 ; $i < @distinctPos ; $i++ ) {
-					next if (!defined($distinctPos[$i]));
-                    if ( $distinctPos[$i] > 1 ) {
-                        croak("Multiple loss at one single amino acid [$pept[$i]] in [$frag]");
-                    }
-                }
-
-                # Computes maximum number of losses for each loss type
-                my @maxLoss;
-                for ( my $j = 0 ; $j < @loss ; $j++ ) {
-                    my $repeat = $fragType{$frag}{repeat}[$j];
-                    $repeat = $len if ( $repeat == -1 );
-                    $maxLoss[$j] = defined( $avail[$j] ) ? (( @{ $avail[$j] } < $repeat ) ? scalar( @{ $avail[$j] } ) : $repeat ) : 0;
-                }
-
-                # Reverses the loss positions for C-term ions
-                if ( $series{$series}{terminus} eq 'C' ) {
-                    for ( my $j = 0 ; $j < @loss ; $j++ ) {
-                        @{ $avail[$j] } = reverse( @{ $avail[$j] } );
-                    }
-                }
-
-                # Generates every combination of number of possible losses
-                my $comb = 0;
-                my @nLoss = split( //, '0' x @maxLoss );
-                $nLoss[0] = 1;
-                $delta += $nTerm if ( $series{$series}{terminus} eq 'N' );
-
-						
-				
-                while (1) {
-
-                    # Computes the fragments of the current combination
-
-                    # Adapt delta to the number of losses
-                    my $d = $delta;
-					
-                    for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-                        $d += $nLoss[$i] * $loss{ $loss[$i] }{delta}[$massType];
-                    }
-
-                    if ( $series{$series}{terminus} eq 'N' ) 
-					{
-
-                        # N-term ions
-
-                        # First position that includes as many as required possible losses
-                        my $rightMost = 0;
-						
-
-
-						if($param->{"add_Nterm_peptide"}>0)
-						{
-							$delta += $param->{"add_Nterm_peptide"};
-						}			
-						
-					##### xusheng on 11/25/2014 because loss from N terminal
-						if(($H2O_num > 1) and ($frag =~  /H2O/))
-						{
-							for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
-							{
-								if ( $i >= $firstFrag ) {
-									$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
-								}
-							}							
-						}
-						if(($NH3_num > 0) and ($frag =~  /NH3/))
-						{
-							for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
-							{
-								if ( $i >= $firstFrag ) {
-									$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
-								}
-							}							
-						}						
-						if(($HPO3_num > 1) and ($frag =~  /HPO3/))
-						{
-							for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-								if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] > $rightMost ) )
-								{
-									$rightMost = $avail[$i][ $nLoss[$i] - 1 ];
-								}
-							}
-							for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
-							{
-								if ( $i >= $firstFrag ) {
-									$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
-								}
-							}							
-						}
-						if(($H3PO4_num > 1) and ($frag =~  /H3PO4/))
-						{
-							for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-								if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] > $rightMost ) )
-								{
-									$rightMost = $avail[$i][ $nLoss[$i] - 1 ];
-								}
-							}
-							for ( my $i = $rightMost + 1 ; $i <= $len - $lastFrag + 1 ; $i++ )
-							{
-								if ( $i >= $firstFrag ) {
-									$spectrum->{mass}{term}{$frag} [ ( $comb * $len ) + $i - 1 ] = ( $base[$i] + $d ) / $charge;
-								}
-							}							
-						}
-					
-                    }
-                    else {
-
-                        # C-term ions
-
-                        # Last position that includes as many as required possible losses (from the right)
-                       # my $leftMost = $len - 1;
-						 my $leftMost = $len-1;
-					 
-					##### xusheng on 11/25/2014 because loss from N terminal
-						#print $H2O_num,"\t",$frag,"dfdfddfd\n";
-						if(($H2O_num>0) and ($frag =~ /H2O/))
-						{
-                        # Computes the fragments and check they are visible (firstFrag/lastFrag)
-							for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
-							{
-								if ( $i >= $firstFrag - 1 ) {
-									$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
-								}
-							}						
-						}
-						if(($NH3_num > 1) and ($frag =~ /NH3/))
-						{
-							# Computes the fragments and check they are visible (firstFrag/lastFrag)
-							for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
-							{
-								if ( $i >= $firstFrag - 1 ) {
-									$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
-								}
-							}						
-						}
-						if(($HPO3_num > 1) and ($frag =~ /HPO3/))
-						{
-							for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-								if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] < $leftMost ))
-								{
-									$leftMost = $avail[$i][ $nLoss[$i] - 1 ];
-								}
-							}
-							for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
-							{
-								if ( $i >= $firstFrag - 1 ) {
-									$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
-								}
-							}								
-						}
-						if(($H3PO4_num > 1) and ($frag =~ /H3PO4/))
-						{
-							for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-								if (   ( $nLoss[$i] > 0 ) && ( $avail[$i][ $nLoss[$i] - 1 ] < $leftMost ))
-								{
-									$leftMost = $avail[$i][ $nLoss[$i] - 1 ];
-								}
-							}
-							for (my $i = $len - $leftMost - 1 ; $i < $len - $lastFrag +1; $i++)
-							{
-								if ( $i >= $firstFrag - 1 ) {
-									$spectrum->{mass}{term}{$frag}[ ( $comb * $len ) + $i ] = ( $peptideMass - $base[ $len - $i - 1 ] + $d ) / $charge;
-								}
-							}							
-						}						
-					}
-
-                    # Computes the exact ion type and saves its name
-					my $ionType = $series;
-					for ( my $i = 0 ; $i < @maxLoss ; $i++ ) {
-						if ( $nLoss[$i] > 1 ) {
-							$ionType .= "-$nLoss[$i]($loss[$i])";
-						}
-						elsif ( $nLoss[$i] == 1 ) {
-							$ionType .= "-$loss[$i]";
-						}
-					}
-					$spectrum->{ionType}{$frag}[$comb] = $ionType;
-					$comb++;
-
-					# Gets the next combination
-					my $i;
-					for ($i = 0 ;( $i < @maxLoss ) && ( $nLoss[$i] == $maxLoss[$i] ) ; $i++)
-					{
-					}
-					last if ( $i == @maxLoss );
-					$nLoss[$i]++;
-					for ( my $j = 0 ; $j < $i ; $j++ ) 
-					{
-						$nLoss[$j] = 0;
-					}
-					
-                }
-            }
-        }
+           }
+       }
     }
 
 }    # getFragmentMasses

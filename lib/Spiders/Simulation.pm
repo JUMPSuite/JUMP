@@ -28,7 +28,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = ();#qw(set_dta_file set_param get_dta_file get_param set_sim_path get_dta_path get_sim_path Simulation_Multiplexing_Two_DataSets sort_dtafile_by_scan Simulation_Multiplexing_One_DataSet normalize_intensity simulation  SpoutParser.pm gettime getNowDate AA_mass enzymeStat readSpsearchParam parseSpout genParOut  readOutfile printPepXML set_MS1scanNumber set_MS2scanNumber set_MS1MS2ratio set_chargeDistribution set_ppiDistribution set_totalScan num2letter printXLSX fstr  _calculate_qValue buildNomodHash SpoutParser.pm);
  
 
 sub new{

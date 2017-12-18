@@ -22,7 +22,7 @@ use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
-@EXPORT      = ();
+@EXPORT      = ();#qw(error  path  enzymes  current_enzyme  enzyme_by_number  get_parameters  get_dynamic_modifications get_static_modification parse_param  create_sequest_params  get_full_text  write_text  reconstruct  reconstruct_new  rewrite  update  get  set_default_dir  get_defaults  generateSeqeust make_default);
 
 package Spiders::Params;
 
@@ -351,7 +351,8 @@ sub generateSeqeust
 
 	my @ks=(keys %$p);
 	my $diff_search_options='';
-	foreach my $k (@ks)
+#	foreach my $k (@ks)
+	foreach my $k (keys %$p)
 	{
 		if ($k =~ m/^dynamic_(\w)$/)
 		{
