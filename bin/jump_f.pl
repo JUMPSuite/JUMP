@@ -22,6 +22,5 @@ print <<EOF;
 ################################################################
 EOF
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
-$cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip perl " . File::Spec->join(abs_path(dirname(__FILE__)),"parallel","jump_f.pl") . " " . $ARGV[0];
-print $cmd,"\n";
+$cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip perl " . File::Spec->join(abs_path(dirname(__FILE__)),"_jump_f.pl") . " " . $ARGV[0];
 system($cmd);
