@@ -279,7 +279,6 @@ sub main
 		{
 			$rerunN++;
 			print "\n",scalar(@$temp_file_array)," .dta files not finished! Doing re-search (rerunN = $rerunN)\n";
-			$params->{'cluster'} = 0;
 			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'});
 
 			$temp_file_array=$remaining;
