@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /data1/pipeline/release/version12.1.0/JUMPl/
+#!/bin/env perl 
 
 use Getopt::Long;
 use Spiders::Search;
