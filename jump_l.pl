@@ -12,6 +12,8 @@ use Spiders::ProcessingMzXML;
 use Spiders::Params;
 use List::Util qw(shuffle);
 use Parallel::ForkManager;
+use Spiders::LSFQueue;
+use Spiders::SGEQueue;
 
 my ($help,$parameter,$raw_file);
 GetOptions('-help|h'=>\$help,
@@ -55,6 +57,17 @@ printf LOGFILE "%4d-%02d-%02d %02d:%02d:%02d\n", $year + 1900, $mon + 1, $mday, 
 print "  Initializing jump -l program\n\n";
 print LOGFILE "  Initializing jump -l program\n\n";
 
+my $queue;
+if( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+    $queue = Spiders::LSFQueue->new();
+}
+elsif( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+    $queue = Spiders::SGEQueue->new();
+}
+else {
+    die "cluster mode selected but queueing system $parars->{'cluster_type'} unknown";
+}
+
 ##########################
 ## Read IDmod.txt file	##
 ##########################
@@ -77,25 +90,15 @@ if ($params -> {'cluster'} eq '1') {
 		system(qq(mkdir $new_path >/dev/null 2>&1));
 		system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));	
 		my $jobName = "Extraction_".$nTotalJobs;
-		open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
-		print JOB "#!/bin/bash\n";
-		print JOB "#\$ -N $jobName\n";
-		print JOB "#\$ -e $new_path/$jobName.e\n";
-		print JOB "#\$ -o $new_path/$jobName.o\n";
-		print JOB "perl /data1/pipeline/release/version12.1.0/JUMPl/Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
-		close (JOB);
-		my $command = qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$new_path/$jobName.sh");
-		my $job = lc(qx[$command]);
-		chomp ($job);
-		if ($job =~ /job (\d+)/) {
-			$jobIDs{$1} = 1;
-		}
+		my$job = $queue->submit_job($new_path,$jobName,"perl /data1/pipeline/release/version12.1.0/JUMPl/Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n");
+
+		$jobIDs{$job} = 1;
 		$nTotalJobs++;
 		print "\r  $nTotalJobs jobs are submitted";
 	}
 	print "\n  You submitted $nTotalJobs job(s) for data extraction \n";
 	print LOGFILE "  You submitted $nTotalJobs job(s) for data extraction \n";
-	CheckJobStat($nTotalJobs, \%jobIDs);
+	CheckJobStat($nTotalJobs, \%jobIDs, $queue);
 } elsif ($params -> {'cluster'} eq '0') {
 	my $nTotalJobs = 0;
 	my $pm = new Parallel::ForkManager($MAX_PROCESSES);
@@ -113,7 +116,7 @@ if ($params -> {'cluster'} eq '1') {
 		print JOB "#\$ -N $jobName\n";
 		print JOB "#\$ -e $new_path/$jobName.e\n";
 		print JOB "#\$ -o $new_path/$jobName.o\n";
-		print JOB "perl /data1/pipeline/release/version12.1.0/JUMPl/Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
+		print JOB "perl Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
 		close (JOB);
 		system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
 		$pm -> finish;
@@ -145,32 +148,24 @@ if ($params -> {'cluster'} eq '1') {
 		}      
 		for (my $i = 0; $i < $nJobs; $i++) {
 			my $jobName = "Job_PTM_".$nTotalJobs;
-			open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
-			print JOB "#!/bin/bash\n";
-			print JOB "#\$ -N $jobName\n";
-			print JOB "#\$ -e $new_path/$jobName.e\n";
-			print JOB "#\$ -o $new_path/$jobName.o\n";
+			my $cmd = "";
 			for (my $j = 0; $j < $nEntriesPerJob; $j++) {
 				my $k = $nEntriesPerJob * $i + $j;
 				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-				print JOB "perl /data1/pipeline/release/version12.1.0/JUMPl/JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
+				$cmd .= "perl JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
 			}
-			close (JOB);
-			my $command = qq(qsub -cwd "$new_path/$jobName.sh");
-		        my $job = lc(qx[$command]);
-	        	chomp ($job);
-		        if ($job =~ /job (\d+)/) {
-	        	        $jobIDs{$1} = 1;
-		        } 
+
+		        my $job = $queue->submit_job($new_path,$jobName,$cmd);
+			$jobIDs{$job} = 1;
 			$nTotalJobs++;
 			print "\r  $nTotalJobs jobs are submitted";
 		}
 	}
 	print "\n  You submitted $nTotalJobs job(s) for local scoring \n";
 	print LOGFILE "\n  You submitted $nTotalJobs job(s) for local scoring \n";
-	CheckJobStat($nTotalJobs, \%jobIDs);
+	CheckJobStat($nTotalJobs, \%jobIDs, $queue);
 } elsif ($params -> {'cluster'} eq '0') {
 	my $nEntriesPerJob = 100;
 	my $nTotalJobs = 0;
@@ -214,14 +209,13 @@ if ($params -> {'cluster'} eq '1') {
 }
 
 sub CheckJobStat {
-	my ($nJobs, $jobIDs) = @_;
+	my ($nJobs, $jobIDs,$queue) = @_;
 	my $nFinishedJobs = 0;
 	my $jobInfo = 1;
 	my ($username) = getpwuid($<);
+	$| = 1;
 	while($jobInfo) {
-		my $command =  "qstat -u $username";
-		my $jobStatus = qx[$command];
-		my @jobStatusArray = split(/\n/,$jobStatus);
+		my @jobStatusArray = $queue->get_running_jobs($jobIDs);#split(/\n/,$jobStatus);
 		if (@jobStatusArray) {	# i.e. There are some jobs in the queue (may include other jobs like searching)
 			my @jobIDsInQueue;
 			foreach (@jobStatusArray) {
@@ -248,6 +242,7 @@ sub CheckJobStat {
 		}
 		sleep(5);
 	}
+	$| = 0;
 }
 
 ##########################################################
