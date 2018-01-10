@@ -20,6 +20,7 @@ package Spiders::BuildIndex;
 
 use strict;
 use warnings;
+use Carp;
 use File::Basename;
 use Spiders::Digestion;
 use Spiders::MakeDB;
@@ -508,7 +509,7 @@ sub getProtein{
 	
 	#Here we suppose that the Ids are ordered sequencly , there is no missing IDs in the middle
 	if($proteinId*$entrySize>$fileSize){
-		die "the id you provided is out of range, please verify\n";
+	    confess( "the id you provided is out of range, please verify.  fileSize=$fileSize; proteinId=$proteinId.\n" );
 	}
 	my ($input,$curIndex);
 	open($input,"<$filename") or die "Error opening file $fileSize. $!\n";

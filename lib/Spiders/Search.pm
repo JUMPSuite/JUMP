@@ -1993,6 +1993,12 @@ sub WriteResults4NoTags
 				foreach my $pro_id (@protein_id_array)
 				{
 					next if($pro_id eq '|');
+					    my $entrySize = length(pack("L",0))+length(pack("A500","x"))+length(pack("A200","x"));
+					    my $fileSize = -s $protein_index_file;
+					    if($pro_id*$entrySize>$fileSize){
+						$DB::single=2;
+					    }
+
 					my ($protein,$proteinDesc) = $index->getProtein($pro_id,$protein_index_file);
 
 				

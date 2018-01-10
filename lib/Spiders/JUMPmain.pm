@@ -436,7 +436,9 @@ sub runjobs
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
 			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";		
+			foreach (@dta_file_arrays) {
+			    print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";
+			}
 		}
 		elsif($params->{'Job_Management_System'} eq 'SGE')
 		{

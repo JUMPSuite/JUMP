@@ -1,12 +1,12 @@
 #!/usr/bin/perl  
 
-use FindBin qw($Bin);
-use lib "$Bin";
+my $Bin=$ENV{"JUMP_SJ_LIB"};
+use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
 use Spiders::JUMPmain;
 use Cwd;
 use Cwd 'abs_path';
-my $VERSION = 1.2.5;
+our $VERSION = 1.13.0;
 
 my ($help,$parameter,$raw_file);
 GetOptions('-help|h'=>\$help,

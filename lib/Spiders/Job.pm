@@ -411,7 +411,7 @@ sub make_createdb_script
 	my $lib = $self->get_library_path();	
 	open(DB,">$dta_path/create_db.pl") || die "can not open the create_db.pl file:\n";
 
-	print DB "#!/usr/bin/perl -I $lib\n";
+	print DB "#!/bin/env perl -I $lib\n";
 	print DB "my \$fasta_path = \$ARGV[0];\n";
 	print DB "use Spiders::BuildIndex;\n\n";
 	print DB "use Spiders::Params;\n";
@@ -473,7 +473,7 @@ sub make_partialidx_script
 	my $lib = $self->get_library_path();
 	open(PIDX,">$dir/Create_Partial_Idx.pl");
 print PIDX <<EOF;
-#!/usr/bin/perl -I $lib
+#!/bin/env perl -I $lib
 
 use Getopt::Long;	
 
