@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-our $VERSION = 12.1.0;
+our $VERSION = 1.13.0;
+use lib $ENV{"JUMP_Q_LIB"};
 
 use strict;
 use warnings;
