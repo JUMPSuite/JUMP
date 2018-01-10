@@ -1,6 +1,7 @@
-#!/usr/bin/perl 
+#!/bin/env perl 
 
-our $VERSION = 12.1.0;
+our $VERSION = 1.13.0;
+use lib $ENV{"JUMP_F_LIB"};
 
 use strict;
 use idsum2::CommonUtils;
