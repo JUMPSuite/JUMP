@@ -2,6 +2,7 @@
 
 use Getopt::Long;
 
+use lib $ENV{"JUMP_L_LIB"};
 use Cwd;
 use Cwd 'abs_path';
 use File::Basename;

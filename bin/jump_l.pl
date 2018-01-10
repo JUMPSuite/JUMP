@@ -5,8 +5,9 @@ use Getopt::Long;
 use Cwd;
 use Cwd 'abs_path';
 use File::Basename;
-use FindBin qw($Bin);
-use lib "$Bin";
+
+my $Bin=$ENV{"JUMP_L_LIB"};
+use lib $ENV{"JUMP_L_LIB"};
 use Clone qw(clone);
 use Spiders::ProcessingMzXML;
 use Spiders::Params;

@@ -1,5 +1,6 @@
 #!/bin/env perl 
 
+use lib $ENV{"JUMP_L_LIB"};
 use Getopt::Long;
 use Spiders::Search;
 use Spiders::Deisotope;
