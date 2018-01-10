@@ -1,5 +1,7 @@
 #!/bin/env perl
 
+our $version = 1.13.0
+
 use Getopt::Long;
 
 use Cwd;
