@@ -18,6 +18,7 @@ package Spiders::JUMPmain;
 use Cwd;
 use Cwd 'abs_path';
 use Storable;
+use Carp;
 use File::Basename;
 use Spiders::Params;
 use Spiders::ProcessingRAW;
@@ -384,8 +385,8 @@ sub runjobs
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
 	## Set the maximum number of jobs to 4000
-	if ($job_num > 4000) {
-		$job_num = 4000;
+	if ($job_num > 512) {
+		$job_num = 512;
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
 	}
 
@@ -472,11 +473,18 @@ sub runjobs
 			{
 				$command_line = qq(cd $dta_path && bsub <lsf/${job_name}_${i}.sh);
 				my $job=qx[$command_line];
+				while( $? != 0 ) {
+				    sleep(1);
+				    my $job=qx[$command_line];
+				}
 				chomp $job;
 				my $job_id=0;
-				if($job=~/Job \<(\d*)\> is/)
+				if($job=~/Job \<(\d*)\>/)
 				{
 					$job_id=$1;
+				}
+				else {
+				    croak "could not parse job id $job";
 				}
 				$job_list->{$job_id}=1;
 			}

@@ -1,4 +1,4 @@
-#!/usr/bin/perl  
+#!/bin/env perl
 
 my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
@@ -8,8 +8,8 @@ use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
 
-my ($help,$parameter,$raw_file);
-GetOptions('-help|h'=>\$help,
+my ($help,$parameter,$raw_file,$nobatch);
+GetOptions('-help|h'=>\$help, '--no-batch'=>\$nobatch,
 			'-p=s'=>\$parameter,
 		);
 
@@ -35,11 +35,23 @@ print <<EOF;
 
 EOF
 
-my $library = $Bin;
-my $main = new Spiders::JUMPmain();
-$main->set_library($library);
-$main->main($parameter,\@ARGV);
-
+unless( defined($nobatch) ) {
+    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter;
+    print "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --no-batch",'\n';
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --no-batch" );
+}
+else {
+    my @args;
+    foreach my $arg (@ARGV) {
+	unless( $arg =~ /--no-batch/ ) {
+	    push( @args, $arg );
+	}
+    }
+    my $library = $Bin;
+    my $main = new Spiders::JUMPmain();
+    $main->set_library($library);
+    $main->main($parameter,\@args);
+}
 sub usage {
 
 print <<"EOF";

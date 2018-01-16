@@ -101,7 +101,7 @@ sub create_script
 	
 	open(RUNSHELL,">$dir/runsearch_shell.pl");
 print RUNSHELL <<EOF;	
-#!/usr/bin/perl  -I $lib
+#!/bin/env perl  -I $lib
 use Getopt::Long;
 
 use Cwd 'abs_path';
