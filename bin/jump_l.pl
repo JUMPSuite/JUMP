@@ -34,5 +34,5 @@ GetOptions('-help|h'=>\$help,
 
 usage() if ($help || !defined($parameter));
 
-my $cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip _jump_l.pl" . " " . join(" ",@ARGV);
+my $cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip _jump_l.pl" . " -p " . $parameter;
 system($cmd);
