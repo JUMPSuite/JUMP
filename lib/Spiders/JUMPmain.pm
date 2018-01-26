@@ -36,6 +36,8 @@ use Spiders::RankHits;
 use Spiders::SpoutParser;
 use Parallel::ForkManager;
 use Spiders::MassCorrection;
+use Spiders::Dtas;
+use Spiders::FsDtasBackend;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -259,7 +261,8 @@ sub main
 		$job->set_library_path($library);		
 		$job->set_dta_path("$dta_path");
 		$job->set_pip($PIPref);
-		my @file_array = glob("$dta_path/*.dta");
+		my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new($dta_path,"read"));
+		my @file_array = @{$dtas->list_dta()};#splitall(glob("$dta_path/*.dta"));
 		my $random = int(rand(100));
 		if($params->{'second_search'} == 0)
 			{
@@ -537,6 +540,7 @@ sub runjobs
 		my $out_file = $data_file;
 		#$out_file =~ s/\.dta$/\.out/;
 		$out_file =~ s/\.dta$/\.spout/;
+		$out_file = File::Spec->join($dta_path,$out_file);
 		if(!-e $out_file)
 		{
 			push (@{$temp_file_array},$data_file);

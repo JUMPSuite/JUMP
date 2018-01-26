@@ -6,58 +6,49 @@
 
 package Spiders::Dtas;
 
-
 use strict;
 use warnings;
 
 sub new
 {
-	my ($class) = @_;
-	my $self = {};
-	bless ($self,$class);
-	return $self;
+    my ($class,$backend) = @_;
+    my $self = { 'backend' => $backend };
+    bless ($self,$class);
+    return $self;
 }
 
 #-------------------------------------------------------------------------------------------
 1;
 
-sub add_dta
+sub add_dta 
 {
-	my ($self,$dtafile)=@_;
-
-	open(IN,"$dtafile") || die "Cannot open dta file: $dtafile!!!\n";
-	
-	my $head=<IN>;
-	my @t=split(/\s/,$head);
-	$self->{$dtafile}->{'mass'}=$t[0];
-	$self->{$dtafile}->{'charge'}=$t[1];
-
-	my @int;my $k=0;
-	while(<IN>)
-	{
-		$k++;
-		@t=split(/\s/,$_);
-		$self->{$dtafile}->{'peak'}->{$k}->{'mz'}=$t[0];
-		$self->{$dtafile}->{'peak'}->{$k}->{'int'}=$t[1];
-	}
-	$self->{$dtafile}->{'peaknum'}=$k;
-
-	close IN;
+    my ($self,$dta)=@_;
+    $self->{'backend'}->store_dta( $dta->get_dta_file(), $dta );
 }
 
-sub print_dtas
+sub get_dta
 {
-	my ($self,$dtasfile)=@_;
-
-	open(OUT,">>$dtasfile");
-
-	foreach my $dtafile (keys %{$self})
-	{
-		my @t=split(/\//,$dtafile); 
-		print OUT "$t[$#t] ",$self->{$dtafile}->{'mass'}," ",$self->{$dtafile}->{'charge'},"\n";
-		for (my $i=1; $i<=$self->{$dtafile}->{'peaknum'}; $i++) {print OUT $self->{$dtafile}->{'peak'}->{$i}->{'mz'}," ";} print OUT "\n";
-		for (my $i=1; $i<=$self->{$dtafile}->{'peaknum'}; $i++) {print OUT $self->{$dtafile}->{'peak'}->{$i}->{'int'}," ";} print OUT "\n";
-	}
-
-	close OUT;
+    my ($self,$dta_file) = @_;
+    return $self->{'backend'}->load_dta( $dta_file );
 }
+
+sub list_dta 
+{
+    my ($self) = @_;
+    return $self->{'backend'}->keys();
+}
+
+sub print_dtas 
+{
+    my ($self,$outfilename,$dtasfiles)=@_;
+    open( my $outf, ">>$outfilename" );
+    foreach my $dta_file (@$dtasfiles) 
+    {
+	my $dta = $self->get_dta($dta_file);
+	print $outf "$dta_file ",$dta->get_prec_mz()," ",$dta->get_charge(),"\n";
+	print $outf join( " ", @{$dta->get_mz_array()} ),"\n";
+	print $outf join( " ", @{$dta->get_int_array()} ),"\n";
+    }
+    close( $outf );
+}
+

@@ -23,11 +23,14 @@ use strict;
 use warnings;
 use File::Basename;
 use Storable;
+use Spiders::Dta;
+use Spiders::Dtas;
+use Spiders::FsDtasBackend;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 2.01;
 @ISA	 = qw(Exporter);
-@EXPORT      = qw(set_parameter get_parameter set_origmz_array get_origmz_array set_origmsms_hash get_origmsms_hash set_isolation_window get_isolation_window set_isolation_offset get_isolation_offset set_isolation_variation get_isolation_variation set_dta_path get_dta_path Calculate_PIP set_C_value get_C_value set_H_value get_H_value define_charge deisotope changeMH_folder  get_isotopic_distribution get_intensity_ratio);
+@EXPORT      = ();
 
 #### Version 12.1.0 ############
 # add a parameter to control the PPI 
@@ -641,6 +644,7 @@ sub changeMH_folder {
 	my $dtafile_basename = basename($dir);
 	$dtafile_basename =~s/(.*)\.(\d+)/$1/;
 	my $dtafile;
+	my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new($newdir,"write"));
 
 	foreach my $scan (keys %{$PIP}) {
 		foreach my $order (keys %{$PIP->{$scan}}) {
@@ -677,13 +681,19 @@ sub changeMH_folder {
 								}
 								$dtafile = $dtafile_basename.".".$scan.".".$order.".".$k.".dta";
 								$ppi_number{$order}++;
-								open (OUT, ">$newdir/$dtafile");
-								my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
-								print OUT "$MH $k\n";
-								for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-									print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-								}
-								close(OUT);
+								my $dta = Spiders::Dta->new( $dtafile,
+											     $k,
+											     sprintf("%.5f",($prec_mz - $H) * $k + $H),
+											     \@msms_mz_array,
+											     \@msms_int_array );
+								$dtas->add_dta($dta);
+								# open (OUT, ">$newdir/$dtafile");
+								# my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
+								# print OUT "$MH $k\n";
+								# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+								# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+								# }
+								# close(OUT);
 							}
 						}
 					} elsif($charge == 1) { ######## when charge ==1, we got more decoy than target for peptides with high scores 
@@ -710,13 +720,19 @@ sub changeMH_folder {
 							$charge_number{$charge}++;
 							$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 							$ppi_number{$order}++;
-							open (OUT, ">$newdir/$dtafile");
-							my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
-							print OUT "$MH $charge\n";
-							for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-								print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-							}
-							close(OUT);
+							my $dta = Spiders::Dta->new( $dtafile,
+										     $charge,
+										     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+										     \@msms_mz_array,
+										     \@msms_int_array );							
+							$dtas->add_dta($dta);
+							# open (OUT, ">$newdir/$dtafile");
+							# my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
+							# print OUT "$MH $charge\n";
+							# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+							# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+							# }
+							# close(OUT);
 						}
 					} else {
 						my @msms_mz_array = @{$msmshash -> {$scan} -> {'msms_mz'}};
@@ -724,13 +740,19 @@ sub changeMH_folder {
 						$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 						$charge_number{$charge}++;
 						$ppi_number{$order}++;
-						open (OUT, ">$newdir/$dtafile");
-						my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
-						print OUT "$MH $charge\n";
-						for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-							print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-						}
-						close(OUT);
+						my $dta = Spiders::Dta->new( $dtafile,
+									     $charge,
+									     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+									     \@msms_mz_array,
+									     \@msms_int_array );							
+						$dtas->add_dta($dta);
+						# open (OUT, ">$newdir/$dtafile");
+						# my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
+						# print OUT "$MH $charge\n";
+						# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+						# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+						# }
+						# close(OUT);
 =head
 						for(my $j=0;$j<=$#$prec_mz_array;$j++)
 						{
@@ -759,13 +781,19 @@ sub changeMH_folder {
 						for (my $k = 2; $k <= 3; $k++) {
 							$dtafile = $dtafile_basename.".".$scan.".".$order.".".$k.".dta";
 							$ppi_number{$order}++;
-							open (OUT, ">$newdir/$dtafile");
-							my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
-							print OUT "$MH $k\n";
-							for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-								print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-							}
-							close(OUT);
+							my $dta = Spiders::Dta->new( $dtafile,
+										     $k,
+										     sprintf("%.5f",($prec_mz - $H) * $k + $H),
+										     \@msms_mz_array,
+										     \@msms_int_array );							
+							$dtas->add_dta($dta);
+							# open (OUT, ">$newdir/$dtafile");
+							# my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
+							# print OUT "$MH $k\n";
+							# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+							# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+							# }
+							# close(OUT);
 						}
 					}
 				} elsif($charge == 1 and $parameter->{'ppi_charge_1'}) { ######## when charge ==1, we got more decoy than target for peptides with high scores
@@ -774,28 +802,40 @@ sub changeMH_folder {
 					$charge_number{$charge}++;
 					$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 					$ppi_number{$order}++;
-					open (OUT, ">$newdir/$dtafile");
-					my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
-					print OUT "$MH $charge\n";
-					for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-						print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-					}
-					close(OUT);
-				}
-				else 
-				{
+					my $dta = Spiders::Dta->new( $dtafile,
+								     $charge,
+								     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+								     \@msms_mz_array,
+								     \@msms_int_array );							
+					$dtas->add_dta($dta);
+
+					# open (OUT, ">$newdir/$dtafile");
+					# my $MH = sprintf("%.5f",(($prec_mz - $H) * $charge + $H));
+					# print OUT "$MH $charge\n";
+					# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+					# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+					# }
+					# close(OUT);
+				} else {
 					my @msms_mz_array = @{$msmshash -> {$scan} -> {'msms_mz'}};
 					my @msms_int_array = @{$msmshash -> {$scan} -> {'msms_int'}};
 					$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 					$charge_number{$charge}++;
 					$ppi_number{$order}++;
-					open (OUT, ">$newdir/$dtafile");
-					my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
-					print OUT "$MH $charge\n";
-					for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-						print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-					}
-					close(OUT);
+					my $dta = Spiders::Dta->new( $dtafile,
+								     $charge,
+								     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+								     \@msms_mz_array,
+								     \@msms_int_array );							
+					$dtas->add_dta($dta);
+
+					# open (OUT, ">$newdir/$dtafile");
+					# my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
+					# print OUT "$MH $charge\n";
+					# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+					# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+					# }
+					# close(OUT);
 =head
 					for(my $j=0;$j<=$#$prec_mz_array;$j++)
 					{
@@ -824,13 +864,20 @@ sub changeMH_folder {
 							for (my $k = 2; $k <= 3; $k++) {
 								$dtafile = $dtafile_basename.".".$scan.".".$order.".".$k.".dta";
 								$ppi_number{$order}++;
-								open (OUT, ">$newdir/$dtafile");
-								my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
-								print OUT "$MH $k\n";
-								for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-									print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-								}
-								close(OUT);
+								my $dta = Spiders::Dta->new( $dtafile,
+											     $k,
+											     sprintf("%.5f",($prec_mz - $H) * $k + $H),
+											     \@msms_mz_array,
+											     \@msms_int_array );							
+								$dtas->add_dta($dta);
+
+#								open (OUT, ">$newdir/$dtafile");
+								# my $MH = sprintf("%.5f",(($prec_mz - $H) * $k + $H));
+								# print OUT "$MH $k\n";
+								# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+								# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+								# }
+								# close(OUT);
 							}
 						}
 					} elsif($charge == 1) {######## when charge ==1, we got more decoy than target for peptides with high scores
@@ -840,13 +887,20 @@ sub changeMH_folder {
 							my @msms_int_array = @{$msmshash -> {$scan} -> {'msms_int'}};
 							$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 							$ppi_number{$order}++;
-							open (OUT, ">$newdir/$dtafile");
-							my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
-							print OUT "$MH $charge\n";
-							for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-								print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-							}
-							close(OUT);
+							my $dta = Spiders::Dta->new( $dtafile,
+										     $charge,
+										     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+								     \@msms_mz_array,
+										     \@msms_int_array );							
+							$dtas->add_dta($dta);
+
+							# open (OUT, ">$newdir/$dtafile");
+							# my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
+							# print OUT "$MH $charge\n";
+							# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+							# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+							# }
+							# close(OUT);
 						}
 					} else {
 						my @msms_mz_array = @{$msmshash -> {$scan} -> {'msms_mz'}};
@@ -854,13 +908,20 @@ sub changeMH_folder {
 						$dtafile = $dtafile_basename.".".$scan.".".$order.".".$charge.".dta";
 						$charge_number{$charge}++;
 						$ppi_number{$order}++;
-						open (OUT, ">$newdir/$dtafile");
-						my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
-						print OUT "$MH $charge\n";
-						for (my $i = 0; $i <= $#msms_mz_array; $i++) {
-							print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
-						}
-						close(OUT);
+						my $dta = Spiders::Dta->new( $dtafile,
+									     $charge,
+									     sprintf("%.5f",($prec_mz - $H) * $charge + $H),
+									     \@msms_mz_array,
+									     \@msms_int_array );							
+						$dtas->add_dta($dta);
+
+						# open (OUT, ">$newdir/$dtafile");
+						# my $MH = sprintf("%.5f",(($prec_mz-$H)*$charge+$H));
+						# print OUT "$MH $charge\n";
+						# for (my $i = 0; $i <= $#msms_mz_array; $i++) {
+						# 	print OUT "$msms_mz_array[$i] $msms_int_array[$i]\n";
+						# }
+						# close(OUT);
 =head
 						for(my $j=0;$j<=$#$prec_mz_array;$j++)
 						{

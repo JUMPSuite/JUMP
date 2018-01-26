@@ -37,7 +37,7 @@ $VERSION     = 1.03;
 
 
 @ISA	 = qw(Exporter);
-@EXPORT      = qw(set_dta_path get_dta_path set_pip get_pip set_library_path get_library_path create_script make_createdb_script make_partialidx_script GetPreviousFilesMass create_job_files);
+@EXPORT      = ();
  
 
 sub new{
@@ -101,7 +101,7 @@ sub create_script
 	
 	open(RUNSHELL,">$dir/runsearch_shell.pl");
 print RUNSHELL <<EOF;	
-#!/bin/env perl  -I $lib
+#!/usr/bin/perl  -I $lib
 use Getopt::Long;
 
 use Cwd 'abs_path';
@@ -120,6 +120,7 @@ use Spiders::Error;
 use Spiders::Search;
 use Spiders::Dta;
 use Spiders::Dtas;
+use Spiders::FsDtasBackend;
 use Storable;
 
 my (\$help,\$parameter,\$sim_path);
@@ -129,6 +130,7 @@ GetOptions('-help|h'=>\\\$help,
 		'-dta_path=s'=>\\\$dta_path,
 		);
 my \@dtafiles = \@ARGV;		
+
 my \$p = Spiders::Params->new('-path'=>\$parameter);
 my \$params=\$p->parse_param();	
 \$params->{'Mn_Mn1'} = 0.5;
@@ -149,10 +151,11 @@ my \$databasename = \$params->{'database_name'};
 
 my \$dynamic_mass_tolerance_hash = retrieve("\$dta_path\/\.dynamic_mass_tolerance") if(\$params->{'vary_tolerance'});
 my \$pip = retrieve("\$dta_path\/\.pip_hash");
-my \$dtas = Spiders::Dtas->new();
+my \$dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(\$dta_path,"read"));
 
 foreach my \$dta_file (\@dtafiles)
 {	
+        my \$dta = \$dtas->get_dta(\$dta_file);
 	next if(\$dta_file eq "\.");
 	next if(\$dta_file eq "\.\.");
 	next if(\$dta_file !~/\.dta/);
@@ -190,14 +193,6 @@ foreach my \$dta_file (\@dtafiles)
 #	}
 #	else
 #	{
-		my \$consolidation = new Spiders::Consolidation('-dta_file'=>\$dtafile,'-keepnum'=>\$params->{'ms2_consolidation'});
-		if(\$params->{'TMT_Cterm_ion_removal'})
-		{
-			\$minPeak=\$params->{'TMT_Cterm_ion_removal'};
-			\$dis="0.99703,1.00335";
-			\$peakTol = 0.01;
-			\$consolidation->remove_TMTc_peaks(\$dtafile,\$minPeak,\$dis,\$peakTol);
-		}
 		if(\$params->{'MS2_deisotope'}==1)
 		{
 			my \$deisotope = new Spiders::Deisotope();
@@ -205,12 +200,12 @@ foreach my \$dta_file (\@dtafiles)
 		
 	#	my \$dtafile = abs_path(\$dtafile);
 		
-			\$deisotope->set_dta(\$dtafile);
+			\$deisotope->set_dta(\$dta);
 			(\$ms2_signal_noise_ratio,\$pho_neutral_loss) = \$deisotope->MS2_deisotope();
 	#		\$deisotope->print_mass_error("\$dtafile.mserr");
 			undef \$deisotope;
 		}	
-
+		my \$consolidation = new Spiders::Consolidation('-dta_file'=>\$dta,'-keepnum'=>\$params->{'ms2_consolidation'});
 		\$consolidation->set_parameter(\$params);
 		\$consolidation->Consolidation();
 
@@ -231,8 +226,8 @@ foreach my \$dta_file (\@dtafiles)
 		{
 			my \$tag = new Spiders::Tag();
 			\$tag->set_parameter(\$params);
-			\$tag->set_dta(\$dtafile);
-			my \$msms_hash_dta=\$tag->get_msms_dta(\$dtafile);
+			\$tag->set_dta(\$dta);
+			my \$msms_hash_dta=\$tag->get_msms_dta(\$dta);
 			\$prec_mass = \$tag->get_precursor_mz();
 			my \$cand_tag = \$tag->derive_tag(\$dtafile,\$msms_hash_dta);
 			my \$tag_rank_num = 0;
@@ -274,8 +269,8 @@ foreach my \$dta_file (\@dtafiles)
 #		{
 			my \$tag = new Spiders::Tag();
 			\$tag->set_parameter(\$params);
-			\$tag->set_dta(\$dtafile);
-			my \$msms_hash_dta=\$tag->get_msms_dta(\$dtafile);
+			\$tag->set_dta(\$dta);
+			my \$msms_hash_dta=\$tag->get_msms_dta(\$dta);
 			\$prec_mass = \$tag->get_precursor_mz();
 			my \$cand_tag = \$tag->derive_tag(\$dtafile,\$msms_hash_dta);
 			my \$tag_rank_num = 0;
@@ -309,14 +304,9 @@ foreach my \$dta_file (\@dtafiles)
 
 		\$search->set_pho_neutral_loss(\$pho_neutral_loss);
 		
-		my \$dta = new Spiders::Dta();
-		\$dta->set_dta_file(\$dta_file);
-		\$dta->process_dtafile();
-		\$dta->parse_dtafile_name();	
 		my \$charge = \$dta->get_charge();
 		my \$exp_mz = \$dta->get_mz_array();
 		my \$exp_mz_int = \$dta->get_mz_int_hash();
-		undef \$dta;
 		
 		\$search->set_exp_mz(\$exp_mz);
 		\$search->set_exp_mz_int(\$exp_mz_int);
@@ -393,13 +383,14 @@ foreach my \$dta_file (\@dtafiles)
 		
 		undef \$search;
 		print "\$dta_file searched\n";
-		\$dtas->add_dta(\$dtafile);		
+		#\$dtas->add_dta(\$dtafile);		
 	#	system(qq(rm -rf \$dta_file));		
 	#	system(qq(rm -rf \$dta_file)) if($search_flag);
 	}
 
+	\$dtas->add_dta(\$dta);
 }
-\$dtas->print_dtas("job_\$job_num.dtas");	
+\$dtas->print_dtas("job_\$job_num.dtas",\\\@dtafiles);	
 EOF
 	close(RUNSHELL);
 }
@@ -411,7 +402,7 @@ sub make_createdb_script
 	my $lib = $self->get_library_path();	
 	open(DB,">$dta_path/create_db.pl") || die "can not open the create_db.pl file:\n";
 
-	print DB "#!/bin/env perl -I $lib\n";
+	print DB "#!/usr/bin/perl -I $lib\n";
 	print DB "my \$fasta_path = \$ARGV[0];\n";
 	print DB "use Spiders::BuildIndex;\n\n";
 	print DB "use Spiders::Params;\n";
@@ -473,7 +464,7 @@ sub make_partialidx_script
 	my $lib = $self->get_library_path();
 	open(PIDX,">$dir/Create_Partial_Idx.pl");
 print PIDX <<EOF;
-#!/bin/env perl -I $lib
+#!/usr/bin/perl -I $lib
 
 use Getopt::Long;	
 
