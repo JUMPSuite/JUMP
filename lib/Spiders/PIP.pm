@@ -26,6 +26,7 @@ use Storable;
 use Spiders::Dta;
 use Spiders::Dtas;
 use Spiders::FsDtasBackend;
+use Spiders::IdxDtasBackend;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 2.01;
@@ -644,7 +645,7 @@ sub changeMH_folder {
 	my $dtafile_basename = basename($dir);
 	$dtafile_basename =~s/(.*)\.(\d+)/$1/;
 	my $dtafile;
-	my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new($newdir,"write"));
+	my $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new($newdir,"create"));
 
 	foreach my $scan (keys %{$PIP}) {
 		foreach my $order (keys %{$PIP->{$scan}}) {

@@ -50,7 +50,7 @@ sub new{
 	}
 
 	for( my $i = 0; $i < scalar(@$mz_array); ++$i ) {
-	    $mz_int_hash->{$$mz_array[$i]} = $$mz_array[$i];
+	    $mz_int_hash->{$$mz_array[$i]} = $$int_array[$i];
 	}
 
 	$self = {

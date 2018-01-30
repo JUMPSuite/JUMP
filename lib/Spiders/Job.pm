@@ -120,6 +120,7 @@ use Spiders::Error;
 use Spiders::Search;
 use Spiders::Dta;
 use Spiders::Dtas;
+use Spiders::IdxDtasBackend;
 use Spiders::FsDtasBackend;
 use Storable;
 
@@ -151,7 +152,7 @@ my \$databasename = \$params->{'database_name'};
 
 my \$dynamic_mass_tolerance_hash = retrieve("\$dta_path\/\.dynamic_mass_tolerance") if(\$params->{'vary_tolerance'});
 my \$pip = retrieve("\$dta_path\/\.pip_hash");
-my \$dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(\$dta_path,"read"));
+my \$dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(\$dta_path,"read"));
 
 foreach my \$dta_file (\@dtafiles)
 {	

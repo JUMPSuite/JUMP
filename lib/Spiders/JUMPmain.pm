@@ -38,6 +38,7 @@ use Parallel::ForkManager;
 use Spiders::MassCorrection;
 use Spiders::Dtas;
 use Spiders::FsDtasBackend;
+use Spiders::IdxDtasBackend;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -261,7 +262,7 @@ sub main
 		$job->set_library_path($library);		
 		$job->set_dta_path("$dta_path");
 		$job->set_pip($PIPref);
-		my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new($dta_path,"read"));
+		my $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new($dta_path,"read"));
 		my @file_array = @{$dtas->list_dta()};#splitall(glob("$dta_path/*.dta"));
 		my $random = int(rand(100));
 		if($params->{'second_search'} == 0)
@@ -276,6 +277,7 @@ sub main
 		{
 			print "  Please specify a right second_search parameter!!\n";
 		}
+
 		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'});
 		my $rerunN=0;
 		my $orig_cluster=$params->{'cluster'};
