@@ -1,0 +1,19 @@
+#!/bin/bash
+
+
+
+case $1 in 
+search)
+	echo jump_sj.pl "${@:2}" ;;
+filter)
+	echo jump_f.pl "${@:2}" ;;
+quant*)
+	echo jump_q.pl "${@:2}" ;;
+-h)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"search\", \"filter\" or \"quantification\"";;
+*)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"search\", \"filter\" or \"quantification\"";
+	exit 1;;
+esac
