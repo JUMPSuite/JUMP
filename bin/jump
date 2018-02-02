@@ -3,11 +3,11 @@
 
 
 case $1 in 
-search)
+s*)
 	jump_sj.pl "${@:2}" ;;
-filter)
+f*)
 	jump_f.pl "${@:2}" ;;
-quant*)
+qc*)
 	jump_q.pl "${@:2}" ;;
 -h)
 	echo "usage jump <mode> <arguments>";
