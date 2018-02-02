@@ -14,6 +14,6 @@ case $1 in
 	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";;
 *)
 	echo "usage jump <mode> <arguments>";
-	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";;
+	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";
 	exit 1;;
 esac
