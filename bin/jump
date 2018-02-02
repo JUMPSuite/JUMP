@@ -3,17 +3,17 @@
 
 
 case $1 in 
-s*)
-	jump_sj.pl "${@:2}" ;;
-f*)
+-s)
+	jump_sj.pl -p "${@:2}" ;;
+-f)
 	jump_f.pl "${@:2}" ;;
-qc*)
+-q)
 	jump_q.pl "${@:2}" ;;
 -h)
 	echo "usage jump <mode> <arguments>";
-	echo "     mode is one of \"search\", \"filter\" or \"quantification\"";;
+	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";;
 *)
 	echo "usage jump <mode> <arguments>";
-	echo "     mode is one of \"search\", \"filter\" or \"quantification\"";
+	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";;
 	exit 1;;
 esac
