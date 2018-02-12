@@ -93,7 +93,7 @@ if ($params -> {'cluster'} eq '1') {
 		system(qq(mkdir $new_path >/dev/null 2>&1));
 		system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));	
 		my $jobName = "Extraction_".$nTotalJobs;
-		my$job = $queue->submit_job($new_path,$jobName,"perl /data1/pipeline/release/version12.1.0/JUMPl/Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n");
+		my$job = $queue->submit_job($new_path,$jobName,"Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n");
 
 		$jobIDs{$job} = 1;
 		$nTotalJobs++;
@@ -119,7 +119,7 @@ if ($params -> {'cluster'} eq '1') {
 		print JOB "#\$ -N $jobName\n";
 		print JOB "#\$ -e $new_path/$jobName.e\n";
 		print JOB "#\$ -o $new_path/$jobName.o\n";
-		print JOB "perl Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
+		print JOB "Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
 		close (JOB);
 		system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
 		$pm -> finish;
@@ -157,7 +157,7 @@ if ($params -> {'cluster'} eq '1') {
 				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-				$cmd .= "perl JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
+				$cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
 			}
 
 		        my $job = $queue->submit_job($new_path,$jobName,$cmd);
@@ -199,7 +199,7 @@ if ($params -> {'cluster'} eq '1') {
 				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-				print JOB "perl /data1/pipeline/release/version12.1.0/JUMPl/JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
+				print JOB "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
 			}
 			close (JOB);
 			system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
