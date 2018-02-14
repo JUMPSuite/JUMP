@@ -8,10 +8,20 @@ use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
 
-my ($help,$parameter,$raw_file,$nobatch);
-GetOptions('-help|h'=>\$help, '--no-batch'=>\$nobatch,
-			'-p=s'=>\$parameter,
-		);
+my ($help,$parameter,$raw_file,$dispatch);
+my %options;
+GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
+	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
+	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}
+    );
+
+unless(defined($dispatch)) {
+    $dispatch = "batch-interactive";
+}
+
+if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
+    ${$options{'--dtafile-location'}} = File::Spec->rel2abs(${$options{'--dtafile-location'}});
+}
 
 usage() if ($help || !defined($parameter));
 #check_input($raw_file,\$parameter);
@@ -35,22 +45,26 @@ print <<EOF;
 
 EOF
 
-unless( defined($nobatch) ) {
-    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter;
-    print "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --no-batch",'\n';
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --no-batch" );
-}
-else {
-    my @args;
-    foreach my $arg (@ARGV) {
-	unless( $arg =~ /--no-batch/ ) {
-	    push( @args, $arg );
-	}
+for my $k (keys(%options)) {
+    if(defined(${$options{$k}})) {
+	$options_str .= $k . "=" . ${$options{$k}} . " ";
     }
+}
+
+if( $dispatch eq "batch-interactive" ) {
+    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
+    print "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost","\n";
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+}
+elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
     my $main = new Spiders::JUMPmain();
     $main->set_library($library);
-    $main->main($parameter,\@args);
+    $main->main($parameter,\@ARGV,\%options);
+}
+else {
+    print "argument to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
+    exit -1;
 }
 sub usage {
 

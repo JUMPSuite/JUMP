@@ -107,6 +107,7 @@ use Getopt::Long;
 use Cwd 'abs_path';
 use Storable;
 use File::Basename;
+use File::Spec;
 use Spiders::Params;
 use Spiders::Deisotope;
 use Spiders::Consolidation;
@@ -152,7 +153,7 @@ my \$databasename = \$params->{'database_name'};
 
 my \$dynamic_mass_tolerance_hash = retrieve("\$dta_path\/\.dynamic_mass_tolerance") if(\$params->{'vary_tolerance'});
 my \$pip = retrieve("\$dta_path\/\.pip_hash");
-my \$dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(\$dta_path,"read"));
+my \$dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join(\$dta_path,"dta"),"read"));
 
 foreach my \$dta_file (\@dtafiles)
 {	

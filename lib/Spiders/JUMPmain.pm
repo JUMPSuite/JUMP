@@ -20,6 +20,7 @@ use Cwd 'abs_path';
 use Storable;
 use Carp;
 use File::Basename;
+use File::Spec;
 use Spiders::Params;
 use Spiders::ProcessingRAW;
 use Spiders::ProcessingMzXML;
@@ -39,6 +40,7 @@ use Spiders::MassCorrection;
 use Spiders::Dtas;
 use Spiders::FsDtasBackend;
 use Spiders::IdxDtasBackend;
+use Spiders::DtaDir;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -74,7 +76,7 @@ sub get_library
 
 sub main
 {
-	our ($self,$parameter,$rawfile_array) = @_;
+	our ($self,$parameter,$rawfile_array,$options) = @_;
 	our $library = $self->get_library();
 	
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time); 
@@ -99,6 +101,7 @@ sub main
 
 	## Create the path for multiple raw files
 	my %rawfile_hash;
+	my @dtadirs;
 	print "  Using the following rawfiles:\n";
 	foreach $arg (sort @$rawfile_array)
 	{
@@ -156,11 +159,14 @@ sub main
 			my $dir =  $path->basedir() . "/$newdir";
 			my $rawfile = $arg;
 			$rawfile_hash{$rawfile} = $dir;
-		system(qq(mkdir $dir/lsf >/dev/null 2>&1));
-		system(qq(mkdir $dir/log >/dev/null 2>&1));
-		system(qq(mkdir $dir/dta >/dev/null 2>&1));
-		system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
-		print LOC "$dir\n";
+			system(qq(mkdir $dir/lsf >/dev/null 2>&1));
+			system(qq(mkdir $dir/log >/dev/null 2>&1));
+#		system(qq(mkdir $dir/dta >/dev/null 2>&1));
+			push( @dtadirs, Spiders::DtaDir->new( File::Spec->join($dir,"dta"), 
+							      ${$options->{'--dtafile-location'}}, 
+							      ${$options->{'--keep-dtafiles'}} ) );
+			system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
+			print LOC "$dir\n";
 		}
 	}
 	close LOC;
@@ -262,7 +268,7 @@ sub main
 		$job->set_library_path($library);		
 		$job->set_dta_path("$dta_path");
 		$job->set_pip($PIPref);
-		my $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new($dta_path,"read"));
+		my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
 		my @file_array = @{$dtas->list_dta()};#splitall(glob("$dta_path/*.dta"));
 		my $random = int(rand(100));
 		if($params->{'second_search'} == 0)

@@ -22,6 +22,7 @@ package Spiders::PIP;
 use strict;
 use warnings;
 use File::Basename;
+use File::Spec;
 use Storable;
 use Spiders::Dta;
 use Spiders::Dtas;
@@ -645,7 +646,7 @@ sub changeMH_folder {
 	my $dtafile_basename = basename($dir);
 	$dtafile_basename =~s/(.*)\.(\d+)/$1/;
 	my $dtafile;
-	my $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new($newdir,"create"));
+	my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));
 
 	foreach my $scan (keys %{$PIP}) {
 		foreach my $order (keys %{$PIP->{$scan}}) {
