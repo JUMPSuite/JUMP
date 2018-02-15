@@ -53,8 +53,22 @@ for my $k (keys(%options)) {
 
 if( $dispatch eq "batch-interactive" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    print "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost","\n";
     system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+}
+elsif( $dispatch eq "batch" ) {
+    my $outname;
+    if( scalar(@ARGV) == 1 ) {
+	$outname = $ARGV[0];
+	print $outname =~ s/\.mzXML/.out/g;
+    }
+    else {
+	$outname = $ARGV[0];
+	$outname =~ s/\.mzXML//;
+	$outname .= '-' . $ARGV[$#ARGV];
+	$outname =~ s/\.mzXML/.out/;
+    }
+    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
