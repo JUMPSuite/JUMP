@@ -3,17 +3,27 @@
 my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
+use strict;
 use Spiders::JUMPmain;
 use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
 
-my ($help,$parameter,$raw_file,$dispatch);
+my ($help,$parameter,$raw_file,$dispatch,$queue);
 my %options;
 GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
-	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}
+	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
+	   '--queue=s'=>\$queue, '--dtas-backend=s'=>\${$options{'--dtas-backend'}}
     );
+
+unless(defined(${$options{'--dtas-backend'}})) {
+    ${$options{'--dtas-backend'}} = 'fs';
+}
+
+unless(defined($queue)) {
+    $queue = 'heavy_io';
+}
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
@@ -45,6 +55,7 @@ print <<EOF;
 
 EOF
 
+my $options_str;
 for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
 	$options_str .= $k . "=" . ${$options{$k}} . " ";
@@ -53,7 +64,14 @@ for my $k (keys(%options)) {
 
 if( $dispatch eq "batch-interactive" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+}
+elsif( $dispatch eq "batch-parallel" ) {
+    foreach my $arg (@ARGV) {
+	my $cmd = 'jump_sj.pl ' . $arg . " -p " . $parameter . " " . $options_str;
+	print "submitting job for $arg\n";
+	system( "$cmd --dispatch=batch --queue=$queue &> /dev/null" );
+    }
 }
 elsif( $dispatch eq "batch" ) {
     my $outname;
@@ -68,7 +86,7 @@ elsif( $dispatch eq "batch" ) {
 	$outname =~ s/\.mzXML/.out/;
     }
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
+    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
@@ -99,9 +117,9 @@ print <<"EOF";
 ################################################################
 
 
-Usage: $progname -p parameterfile rawfile.raw 
+Usage: $0 -p parameterfile rawfile.raw 
 	or
-       $progname -p parameterfile rawfile.mzXML
+       $0 -p parameterfile rawfile.mzXML
 	
 
 EOF

@@ -199,6 +199,9 @@ sub generate_hash_dta
 	my $found = 0;
 	my $cycle = 0;
 
+	$| = 1;
+	my $percent = 0;
+	print "  Processing MzXML ";
 	foreach (@$index_array)
 	{
 		my $index = $_;
@@ -208,7 +211,15 @@ sub generate_hash_dta
 
 		next if ($number<$parameter->{'first_scan_extraction'});	
 		next if ($number>$parameter->{'last_scan_extraction'});			
-		print "\r  Gathering scan information: $number of $last_scan scans          ";
+		if( ($number/$last_scan)*100 >= $percent ) {
+		    if( $percent % 25 == 0 ) {
+			print "${percent}%";
+		    }
+		    else {
+			print ".";
+		    }
+		    $percent += 5;
+		}
 		my ($rt) = $xml->get_RT(*XML, $index);
 
 		#($$msms_hash{$number}{'xml_mz'}, $$msms_hash{$number}{'xml_int'}, $$msms_hash{$number}{'xml_act'},$mslevel) = $xml->get_PrecursorMZINTACT(*XML, $index);
@@ -300,6 +311,8 @@ sub generate_hash_dta
 			$self->generate_ms3_file($scannum,$ms3_prec_mz,\@peaks_array);
 		}
 	}	
+	$| = 0;
+	print "\n";
 
 	$self->{'_mshash'} = $ms_hash;
 	$self->{'_msmshash'} = $msms_hash;

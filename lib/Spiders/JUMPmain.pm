@@ -258,7 +258,7 @@ sub main
 		$pip->set_dta_path($dta_path);	
 		my $PIPref = $pip->Calculate_PIP();
 
-		my ($charge_dist,$ppi_dist) = $pip->changeMH_folder($PIPref);
+		my ($charge_dist,$ppi_dist) = $pip->changeMH_folder($PIPref,${$options->{'--dtas-backend'}});
 
 
 		########################## Start Searching #######################################
@@ -268,16 +268,22 @@ sub main
 		$job->set_library_path($library);		
 		$job->set_dta_path("$dta_path");
 		$job->set_pip($PIPref);
-		my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
+		my $dtas;
+		if(${$options->{'--dtas-backend'}} eq 'fs' ) {
+		    $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
+		}
+		else {
+		    $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
+		}
 		my @file_array = @{$dtas->list_dta()};#splitall(glob("$dta_path/*.dta"));
 		my $random = int(rand(100));
 		if($params->{'second_search'} == 0)
 			{
-			$job->create_script(0);
+			$job->create_script(0,${$options->{'--dtas-backend'}});
 		}
 		elsif($params->{'second_search'} == 1)
 		{
-			$job->create_script(1);
+			$job->create_script(1,${$options->{'--dtas-backend'}});
 		}
 		else
 		{
@@ -1294,25 +1300,37 @@ sub make_tags
 	open(OUT,">$output");
         my $k=0;
         my $tt=scalar(@tagfile);
+	$| = 1;
+	my $percent = 0;
+	print "  collecting tag files ";
         foreach my $tag (@tagfile)
         {
-                $k++;
-                print "\r  collecting $k out of $tt tag files";
+	    $k++;
+	    if( ($k/$tt)*100 >= $percent ) {
+		if( $percent % 25 == 0 ) {
+		    print "${percent}%";
+		}
+		else {
+		    print '.';
+		}
+		$percent += 5;
+	    }
 
-                my @t=split /\//,$tag;
-                $tag=$t[$#t];
+	    my @t=split /\//,$tag;
+	    $tag=$t[$#t];
 
-                print OUT "$tag\n";
+	    print OUT "$tag\n";
 
-                my $fullpath="$dta_path\/$tag";
-                open(IN,$fullpath) or die "cannot open $fullpath";
-                my @lines=<IN>;
-                close IN;
+	    my $fullpath="$dta_path\/$tag";
+	    open(IN,$fullpath) or die "cannot open $fullpath";
+	    my @lines=<IN>;
+	    close IN;
 
-                for (my $i=0; $i<=$#lines;$i++) { print OUT "$lines[$i]"; }
+	    for (my $i=0; $i<=$#lines;$i++) { print OUT "$lines[$i]"; }
         }
         close OUT;
         print "\n";
+	$| = 0;
 }
 
 sub parse_bjobs_output {

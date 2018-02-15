@@ -88,7 +88,7 @@ sub get_library_path
 
 sub create_script
 {
-	my ($self,$search_flag)=@_;
+	my ($self,$search_flag,$dtas_backend)=@_;
 	my $dir = $self->get_dta_path();
 	my $lib = $self->get_library_path();
 	my $pip = $self->get_pip();
@@ -98,7 +98,14 @@ sub create_script
 	}
 	
 	store(\%$pip,"$dir/.pip_hash");
-	
+
+	my $backend_type;
+	if( $dtas_backend eq 'fs' ) {
+	    $backend_type = 'FsDtasBackend';
+	}
+	else {
+	    $backend_type = 'IdxDtasBackend';
+	}
 	open(RUNSHELL,">$dir/runsearch_shell.pl");
 print RUNSHELL <<EOF;	
 #!/usr/bin/perl  -I $lib
@@ -125,11 +132,12 @@ use Spiders::IdxDtasBackend;
 use Spiders::FsDtasBackend;
 use Storable;
 
-my (\$help,\$parameter,\$sim_path);
+my (\$help,\$parameter,\$sim_path,\$dta_backend);
 GetOptions('-help|h'=>\\\$help,
-		'-job_num=s'=>\\\$job_num,
-		'-param=s'=>\\\$parameter,
-		'-dta_path=s'=>\\\$dta_path,
+	   '-job_num=s'=>\\\$job_num,
+	   '-param=s'=>\\\$parameter,
+	   '-dta_path=s'=>\\\$dta_path,
+	   '--dta-backend=s'=>\\\$dta_backend
 		);
 my \@dtafiles = \@ARGV;		
 
@@ -153,7 +161,7 @@ my \$databasename = \$params->{'database_name'};
 
 my \$dynamic_mass_tolerance_hash = retrieve("\$dta_path\/\.dynamic_mass_tolerance") if(\$params->{'vary_tolerance'});
 my \$pip = retrieve("\$dta_path\/\.pip_hash");
-my \$dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join(\$dta_path,"dta"),"read"));
+my \$dtas = Spiders::Dtas->new(Spiders::$backend_type->new(File::Spec->join(\$dta_path,"dta"),"read"));
 
 foreach my \$dta_file (\@dtafiles)
 {	

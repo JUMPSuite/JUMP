@@ -94,100 +94,113 @@ sub parse_spOut_files_v5{
 	
 	my @files = glob("$folder/*.spout");
 	
+	my $fileno = 0;
+	my $percent = 0;
+	$| = 1;
+	print "\n  Reading SpOut files ";		
 	foreach my $spout (@files){
+	    ++$fileno;
+	    if( ($fileno/scalar(@files))*100 >= $percent ) {
+		if( $percent % 25 == 0 ) {
+		    print "${percent}%";
+		}
+		else {
+		    print '.';
+		}
+		$percent += 5;
+	    }
+	    open(INPUT,$spout) or die "Could open $spout. Error:!$\n";
+	    my @content = <INPUT>;		
+	    $spout = basename($spout);
+	    $spout =~ s/\.spout//;		
+	    
+	    if(scalar(@content)>0)
+	    { #if the file is not empty
+		#		($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"},$mainhash->{$spout}->{"outhash"}->{"Tag"},$mainhash->{$spout}->{"outhash"}->{"Tag_E_value"},$mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}) = grep(/Precursor mass\s*=/ || /Tag\s*=/ || /Tag E_value\s*=/ || /Tag Side Mass\s+=/,@content);
 
-		print "\r  Reading file $spout                   ";		
-		open(INPUT,$spout) or die "Could onpen $spout. Error:!$\n";
-		my @content = <INPUT>;		
-		$spout = basename($spout);
-		$spout =~ s/\.spout//;		
+		($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}) = grep(/Precursor mass\s*=/,@content);
+		($mainhash->{$spout}->{"outhash"}->{"TotalTagNum"}) = grep(/Tag number\s*=/,@content);
 		
-		if(scalar(@content)>0)
-		{ #if the file is not empty
-	#		($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"},$mainhash->{$spout}->{"outhash"}->{"Tag"},$mainhash->{$spout}->{"outhash"}->{"Tag_E_value"},$mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}) = grep(/Precursor mass\s*=/ || /Tag\s*=/ || /Tag E_value\s*=/ || /Tag Side Mass\s+=/,@content);
-
-			($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}) = grep(/Precursor mass\s*=/,@content);
-			($mainhash->{$spout}->{"outhash"}->{"TotalTagNum"}) = grep(/Tag number\s*=/,@content);
-								
-			chomp($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}); 
-			
-             if ($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} =~ /^Precursor mass\s*=\s*([0-9\.]+)[\s\t]+Percentage of precursor peak intensity\s*=\s*([\d\.\%]+)/)
-            {
-                        $mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} =$1;
-                        $mainhash->{$spout}->{"outhash"}->{"PPIpct"} =$2;
-            }
-            if ($mainhash->{$spout}->{"outhash"}->{"TotalTagNum"} =~ /^MS2 signal noise ratio\s*=\s*([0-9\.]+)[\,\s\t]+Tag number\s*=\s*([\d]+)/)
-            {
+		chomp($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}); 
+		
+		if ($mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} =~ /^Precursor mass\s*=\s*([0-9\.]+)[\s\t]+Percentage of precursor peak intensity\s*=\s*([\d\.\%]+)/)
+		{
+		    $mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} =$1;
+		    $mainhash->{$spout}->{"outhash"}->{"PPIpct"} =$2;
+		}
+		if ($mainhash->{$spout}->{"outhash"}->{"TotalTagNum"} =~ /^MS2 signal noise ratio\s*=\s*([0-9\.]+)[\,\s\t]+Tag number\s*=\s*([\d]+)/)
+		{
                     $mainhash->{$spout}->{"outhash"}->{"MS2SN"}=$1;
                     $mainhash->{$spout}->{"outhash"}->{"TotalTagNum"}=$2;
-            }				
-			
+		}				
+		
 		#	$mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}))[1];
 
 		#	$mainhash->{$spout}->{"outhash"}->{"PrecursorMass"} = (split(/\s+/,$mainhash->{$spout}->{"outhash"}->{"PrecursorMass"}))[1];
 		#	chomp($mainhash->{$spout}->{"outhash"}->{"TotalTagNum"}); $mainhash->{$spout}->{"outhash"}->{"TotalTagNum"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"TotalTagNum"}))[1];
-	#		chomp($mainhash->{$spout}->{"outhash"}->{"Tag_E_value"}); $mainhash->{$spout}->{"outhash"}->{"Tag_E_value"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"Tag_E_value"}))[1];
-	#		chomp($mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}); $mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}))[1];
+		#		chomp($mainhash->{$spout}->{"outhash"}->{"Tag_E_value"}); $mainhash->{$spout}->{"outhash"}->{"Tag_E_value"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"Tag_E_value"}))[1];
+		#		chomp($mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}); $mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"} = (split(/=/,$mainhash->{$spout}->{"outhash"}->{"Tag_Side_Mass"}))[1];
+		my $startIndex = first {$content[$_]=~/-+\n/} 0..$#content;
+
+		foreach my $i ($startIndex+1..$#content)
+		{	
+		    
+		    last if ($content[$i]=~/^\s*$/);
+		    last if ($content[$i]=~/All identified peptide/);
+		    chomp($content[$i]); #Remove return line
+		    $content[$i]=~ s/^\s+//; #Remove leading spaces
+		    my @vals = split /\s+/,$content[$i];
+		    if(scalar(@vals)==1)
+		    {
+			next;
+		    }
+		    if(scalar(@vals)==10)
+		    {
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"TagRank"} =0;
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"reference"}= $vals[8];	
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Weight_E_value"} = $vals[6];					
+		    }
+		    #	print $spout,"\t",scalar(@vals),"\n";
+		    elsif(scalar(@vals)==11){
+			#	die "Error parsing file $spout at l:qine: $i\n Some values are missing\n";
 			
-			my $startIndex = first {$content[$_]=~/-+\n/} 0..$#content;
-
-			foreach my $i ($startIndex+1..$#content)
-			{	
-				
-				last if ($content[$i]=~/^\s*$/);
-				last if ($content[$i]=~/All identified peptide/);
-				chomp($content[$i]); #Remove return line
-				$content[$i]=~ s/^\s+//; #Remove leading spaces
-				my @vals = split /\s+/,$content[$i];
-				if(scalar(@vals)==1)
-				{
-					next;
-				}
-				if(scalar(@vals)==10)
-				{
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"TagRank"} =0;
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"reference"}= $vals[8];	
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Weight_E_value"} = $vals[6];					
-				}
-			#	print $spout,"\t",scalar(@vals),"\n";
-				elsif(scalar(@vals)==11){
-				#	die "Error parsing file $spout at l:qine: $i\n Some values are missing\n";
-				
-				
-					if($vals[0]!~/\d+/){
-						next;
-					#	die "Error parsing file $spout at line $i\n The Oder field should be a numeric value\n";
-					}
-				#	last if ($vals[0]>$maxHitCondiered);
-				#	next if ($vals[9]=~/\@/);
-					
-					$self->checkParameters($i,@vals);
-					#print $spout,$vals[8],"\n"  if ($vals[8]<0.1);
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"MH"}= $vals[1];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"lsideMass"}= $vals[2];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"rsideMass"}= $vals[3];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"peptide_E_value"}= $vals[4];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Tag"} = $vals[5];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"TagRank"} = $vals[6];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Tag_num"} = $vals[7];				
-					
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Weight_E_value"} = $vals[8];
-
-								
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"reference"}= $vals[9];
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"peptide"}= $vals[10];
-
-					my $intpep = $vals[10];
-					$intpep =~ s/[A-Z\-]\.([A-Z\@\#\*]+)\.[A-Z\-]/$1/;
-					
-					$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"intpep"}= $intpep;
-									
-			#		$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"modification"}= $vals[7];
-				}
+			
+			if($vals[0]!~/\d+/){
+			    next;
+			    #	die "Error parsing file $spout at line $i\n The Oder field should be a numeric value\n";
 			}
-		}	 
-		close($spout);		
+			#	last if ($vals[0]>$maxHitCondiered);
+			#	next if ($vals[9]=~/\@/);
+			
+			$self->checkParameters($i,@vals);
+			#print $spout,$vals[8],"\n"  if ($vals[8]<0.1);
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"MH"}= $vals[1];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"lsideMass"}= $vals[2];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"rsideMass"}= $vals[3];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"peptide_E_value"}= $vals[4];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Tag"} = $vals[5];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"TagRank"} = $vals[6];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Tag_num"} = $vals[7];				
+			
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"Weight_E_value"} = $vals[8];
+
+			
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"reference"}= $vals[9];
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"peptide"}= $vals[10];
+
+			my $intpep = $vals[10];
+			$intpep =~ s/[A-Z\-]\.([A-Z\@\#\*]+)\.[A-Z\-]/$1/;
+			
+			$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"intpep"}= $intpep;
+			
+			#		$mainhash->{$spout}->{"outhash"}->{"Order"}->{"$vals[0]"}->{"modification"}= $vals[7];
+		    }
+		}
+	    }	 
+	    close($spout);		
 	}
+	print "\n";
+	$| = 0;
 
 	return $mainhash;
 }

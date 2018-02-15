@@ -627,7 +627,7 @@ sub changeMH_folder {
 	######################################################
 	## Entire routine modified by JCho on 10/10/2014	##
 	######################################################
-	my ($self,$PIP) = @_;
+	my ($self,$PIP,$dtas_backend) = @_;
 	my $dir = $self->get_dta_path();
 	my $H = $self->get_H_value();
 	my $parameter = $self->get_parameter();
@@ -646,7 +646,13 @@ sub changeMH_folder {
 	my $dtafile_basename = basename($dir);
 	$dtafile_basename =~s/(.*)\.(\d+)/$1/;
 	my $dtafile;
-	my $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));
+	my $dtas;
+	if( $dtas_backend eq 'fs' ) {
+	    $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));
+	}
+	else {
+	    $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));	    
+	}
 
 	foreach my $scan (keys %{$PIP}) {
 		foreach my $order (keys %{$PIP->{$scan}}) {
