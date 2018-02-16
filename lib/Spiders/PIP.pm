@@ -28,6 +28,7 @@ use Spiders::Dta;
 use Spiders::Dtas;
 use Spiders::FsDtasBackend;
 use Spiders::IdxDtasBackend;
+use Spiders::ProgressBar;
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 2.01;
@@ -654,7 +655,9 @@ sub changeMH_folder {
 	    $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));	    
 	}
 
+	my $progressBar = Spiders::ProgressBar->new(scalar(%$PIP));
 	foreach my $scan (keys %{$PIP}) {
+       	        $progressBar->incr();
 		foreach my $order (keys %{$PIP->{$scan}}) {
 			my $prec_mz =  $PIP->{$scan}->{$order}->{'mono_mz'};
 			my $prec_mz_array =  $PIP->{$scan}->{$order}->{'mono_mz_array'};

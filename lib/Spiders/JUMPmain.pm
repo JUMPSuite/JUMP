@@ -452,6 +452,7 @@ sub runjobs
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
+			print JOB "#BSUB -R \"select[ibnsd_in > 0]\"\n";
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
 			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
 			foreach (@dta_file_arrays) {
