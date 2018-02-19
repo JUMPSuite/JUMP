@@ -235,7 +235,7 @@ sub main
 		%msms_hash = %$msms_hash_corrected;
 		@mz_array = @$mz_array_corrected;
 
-		print "\n  Decharging scans\n";
+		print "\n  Decharging scans ";
 		my $pip = new Spiders::PIP;
 		$pip->set_parameter($params);
 		$pip->set_origmz_array(\@mz_array);
@@ -452,7 +452,6 @@ sub runjobs
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-			print JOB "#BSUB -R \"select[ibnsd_in > 0]\"\n";
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
 			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
 			foreach (@dta_file_arrays) {

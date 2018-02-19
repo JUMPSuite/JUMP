@@ -655,7 +655,7 @@ sub changeMH_folder {
 	    $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(File::Spec->join($newdir,"dta"),"create"));	    
 	}
 
-	my $progressBar = Spiders::ProgressBar->new(scalar(%$PIP));
+	my $progressBar = Spiders::ProgressBar->new(scalar(keys(%{$PIP})));
 	foreach my $scan (keys %{$PIP}) {
        	        $progressBar->incr();
 		foreach my $order (keys %{$PIP->{$scan}}) {

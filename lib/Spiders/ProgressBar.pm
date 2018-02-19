@@ -37,16 +37,18 @@ sub incr {
     my $self = shift;
     my $amt = shift || 1;
     $self->{"counter"} += $amt;
-    if( ($self->{"counter"}/$self->{"ntot"})*100 > $self->{"curPercent"} ) {
+    if( ($self->{"counter"}/$self->{"ntot"})*100 >= $self->{"curPercent"} ) {
 	$| = 1;
-	if( $self->{"curPercent"} % self->{"majorTicks"} == 0 ) {
+	if( $self->{"curPercent"} % $self->{"majorTicks"} == 0 ) {
 	    print $self->{"curPercent"},"%";
 	    if( $self->{"curPercent"} == 100 ) { print "\n"; }
 	}
 	else {
 	    print ".";
 	}
-	self->{"curPercent"} += self->{"minorTicks"};
+	$self->{"curPercent"} += $self->{"minorTicks"};
 	$| = 0;
     }
 }
+
+1;
