@@ -218,11 +218,11 @@ sub CheckJobStat {
 	my ($username) = getpwuid($<);
 	$| = 1;
 	while($jobInfo) {
-		my @jobStatusArray = $queue->get_running_jobs($jobIDs);#split(/\n/,$jobStatus);
+		my @jobStatusArray = @{$queue->get_running_jobs($jobIDs)};#split(/\n/,$jobStatus);
 		if (@jobStatusArray) {	# i.e. There are some jobs in the queue (may include other jobs like searching)
 			my @jobIDsInQueue;
 			foreach (@jobStatusArray) {
-				my ($jobID) = ($_ =~ /([0-9]+)\s/);
+				my ($jobID) = ($_ =~ /([0-9]+)\s*/);
 				if (defined $$jobIDs{$jobID}) {
 					push (@jobIDsInQueue, $jobID);
 				}

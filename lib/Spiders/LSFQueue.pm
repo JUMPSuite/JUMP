@@ -40,7 +40,6 @@ sub get_running_jobs {
     my $command =  "bjobs -noheader";
     my $jobStatus = qx[$command];
     my @lines = split( /\n/, $jobStatus );
-    shift @lines;
     my @retval;
     foreach my $l (@lines) {
 	my @toks = split( /\s+/, $l );
