@@ -4,7 +4,7 @@
 
 case $1 in 
 -s)
-	jump_sj.pl -p "${@:2}" ;;
+	jump_sj.pl "${@:2}" ;;
 -f)
 	jump_f.pl "${@:2}" ;;
 -q)
