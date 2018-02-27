@@ -1,0 +1,4 @@
+jump -d initialized
+
+Cannot open /data1/pipeline/release/version12.1.0/JUMPd/jump.params
+Please check the path for "jump.params" in the builddb.params file carefully
