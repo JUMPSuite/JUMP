@@ -31,7 +31,7 @@ if(!defined($queue) && !defined($mem)) {
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 
-    print "\t--mem cannot be used without --queue.";
+    print "\t--mem cannot be used without --queue\n";
     exit(1);
 }
 elsif(!defined($mem)) {
