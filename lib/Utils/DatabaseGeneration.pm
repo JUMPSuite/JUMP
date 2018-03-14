@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 package Utils::DatabaseGeneration;
 use strict;

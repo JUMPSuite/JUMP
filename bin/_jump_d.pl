@@ -1,4 +1,4 @@
-#!/usr/bin/perl 
+#!/bin/env perl
 
 ##################################################
 ## Generation of JUMP/SEQUEST search databases	##
@@ -8,8 +8,7 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
-use FindBin qw($Bin);
-use lib "$Bin";
+use lib $ENV{"JUMP_D_LIB"};
 use Utils::DatabaseUtils;
 use Utils::DatabaseGeneration;
 
