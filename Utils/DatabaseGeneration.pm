@@ -27,8 +27,8 @@ sub generateDb {
 		generateJumpParams($jumpParams, $dbName, $log);
 		print "JUMP search database is being generated\n";
 		print $log "JUMP search database is being generated\n";
-		system("perl /data1/pipeline/release/version1.13.0/JUMPsj/jump_sj.pl -p jumpdb.params");
-		system("rm jumpdb.params");
+		system("jump_sj.pl -p jumpdb.params");
+#		system("rm jumpdb.params");
 		my $generatedDb = $dbName.".fasta.mdx";
 		if (!-e $generatedDb) {
 			print "Problem in generating a JUMP database $generatedDb\n";

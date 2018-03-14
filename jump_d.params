@@ -4,24 +4,24 @@
 # All the modification information for the database also depends on the "jump.params" file
 
 # Parameters for generating a new database ######################################################################################################################################
-input_database1 = /hpcf/restricted_apps/proteomics_apps/pipeline/release/version12.1.0/SampleData/TMThh/sum_HH_tmt10_human_jump/misc/all_prot_1FDR.fasta 						# Absolute path of input_database1 (i.e. .fasta file)
-												# More databases can be used (e.g. input_database3 = /data1/database/ECOLI.fasta)
+input_database1 = /hpcf/authorized_apps/proteomics_apps/database/20150201/HUMAN.fasta						# Absolute path of input_database1 (i.e. .fasta file)
+												# More databases can be used (e.g. input_database3 = /hpcf/authorized_apps/proteomics_apps/database/20150201/ECOLI.fasta)
 output_prefix = human										# Prefix for a new database (and .pit) file
 include_contaminants = 1									# 0 = do not include contaminants; 1 = include contaminants
-input_contaminants = /data1/database/contaminants.fasta						# Absolute path of a .fasta file containing contaminants
+input_contaminants = /hpcf/authorized_apps/proteomics_apps/database/contaminants.fasta						# Absolute path of a .fasta file containing contaminants
 decoy_generation = 1										# 0 = do not include decoys; 1 = include decoys
 decoy_generation_method = 1									# 1 = reverse; 2 = reverse and switch every K/R with its preceding AA
-jump.params = /data1/pipeline/release/version12.1.0/JUMPd/jump.params				# Only search engine and modification information will be obtained from the file
+jump.params = /home/abreuer/tmp/Jump-database/jump_s.params				# Only search engine and modification information will be obtained from the file
 												# "database_name" in a jump.params file will be ignored
 bypass_db_generation = 0									# 0 = generate database, 1 = bypass the generation of database (only pit will be generated)
 
 # Parameters for generating a protein inference table (PIT) (keep the prefix "list_") ###########################################################################################
-#list_protein_abundance1 = /data1/database/KnowledgeTables/ProteinAbundance/Mouse_Abundance_emPAI.txt	# Absolute path of a file containing protein abundance information
+#list_protein_abundance1 = /hpcf/authorized_apps/proteomics_apps/database/20150201/KnowledgeTables/ProteinAbundance/Mouse_Abundance_emPAI.txt	# Absolute path of a file containing protein abundance information
 												# More abundance information can be used
-												# (e.g. list_protein_abundance2 = /data1/database/Rat_Abundance.txt)
-list_TFs = /data1/database/KnowledgeTables/TFs/tfs_from_TRANSFAC.txt				# Absolute path of a file containing protein annotation information, TFs (transcription factors)
-list_oncogenes = /data1/database/KnowledgeTables/Oncogenes/oncogenes_from_literatures.txt	# Absolute path of a file containing protein annotation information, oncogenes
-list_kinases = /data1/database/KnowledgeTables/Kinases/kinases_from_pkinfam.txt			# Absolute path of a file containing protein annotation information, kinases
-list_GPCRs = /data1/database/KnowledgeTables/GPCRs/gpcrs.txt					# Absolute path of a file containing protein annotation information, GPCRs
-ist_epigenetic_factors = /data1/database/KnowledgeTables/EpigeneticRegulators/epigenetic_regulators.txt
-list_spliceosomal_proteins = /data1/database/KnowledgeTables/SpliceosomalProteins/spliceosomal_proteins.txt
+												# (e.g. list_protein_abundance2 = /hpcf/authorized_apps/proteomics_apps/database/20150201/Rat_Abundance.txt)
+list_TFs = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/TFs/tfs_from_TRANSFAC.txt				# Absolute path of a file containing protein annotation information, TFs (transcription factors)
+list_oncogenes = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/Oncogenes/oncogenes_from_literatures.txt	# Absolute path of a file containing protein annotation information, oncogenes
+list_kinases = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/Kinases/kinases_from_pkinfam.txt			# Absolute path of a file containing protein annotation information, kinases
+list_GPCRs = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/GPCRs/gpcrs.txt					# Absolute path of a file containing protein annotation information, GPCRs
+ist_epigenetic_factors = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/EpigeneticRegulators/epigenetic_regulators.txt
+list_spliceosomal_proteins = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/SpliceosomalProteins/spliceosomal_proteins.txt
