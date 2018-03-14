@@ -33,7 +33,6 @@ my $mem;
 GetOptions('-help|h'=>\$help,
 	   '-p=s'=>\$parameter,
 	   '--queue=s'=>\$queue, '--memory=s'=>\$mem);
-);
 
 if(!defined($queue) && !defined($mem)) {
     $queue = 'normal';
