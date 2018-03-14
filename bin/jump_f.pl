@@ -26,12 +26,16 @@ my $queue;
 my $mem;
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem);
 
-if(defined($queue) && !defined($mem)) {
-    $mem = 262144;
+if(!defined($queue) && !defined($mem)) {
+    $queue = 'normal';
+    $mem = 200000;
 }
-elsif(!defined($queue)) { 
-    $queue = 'large_mem';
-    $mem = 2097152;
+elsif(!defined($queue) && defined($mem)) { 
+    print "\t--mem cannot be used without --queue.";
+    exit(1);
+}
+elsif(!defined($mem)) {
+    $mem = 200000;
 }
 
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
