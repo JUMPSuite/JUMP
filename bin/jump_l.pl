@@ -28,11 +28,26 @@ EOF
 use Getopt::Long;
 
 my ($help,$parameter,$raw_file);
+my $queue;
+my $mem;
 GetOptions('-help|h'=>\$help,
-	'-p=s'=>\$parameter,
+	   '-p=s'=>\$parameter,
+	   '--queue=s'=>\$queue, '--memory=s'=>\$mem);
 );
+
+if(!defined($queue) && !defined($mem)) {
+    $queue = 'normal';
+    $mem = 200000;
+}
+elsif(!defined($queue) && defined($mem)) { 
+    print "\t--mem cannot be used without --queue\n";
+    exit(1);
+}
+elsif(!defined($mem)) {
+    $mem = 200000;
+}
 
 usage() if ($help || !defined($parameter));
 
-my $cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip _jump_l.pl" . " -p " . $parameter;
+my $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_l.pl" . " -p " . $parameter;
 system($cmd);
