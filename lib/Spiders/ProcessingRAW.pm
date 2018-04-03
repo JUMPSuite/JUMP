@@ -84,8 +84,8 @@ sub set_converter
 sub get_converter
 {
 	my $self=shift;
-	if(!defined($self->{_converter}) && defined($ENV{"JUMP_REDAW_EXE"})) {
-	    $self->{_converter} = "$ENV{'JUMP_REDAW_EXE'} --mzXML -c";
+	if(!defined($self->{_converter}) && defined($ENV{"JUMP_READW_EXE"})) {
+	    $self->{_converter} = "$ENV{'JUMP_READW_EXE'} --mzXML -c";
 	}
 	elsif(!defined($self->{_converter})) {
 	{
