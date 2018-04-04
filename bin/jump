@@ -9,11 +9,15 @@ case $1 in
 	jump_f.pl "${@:2}" ;;
 -q)
 	jump_q.pl "${@:2}" ;;
+-l)
+	jump_l.pl "${@:2}" ;;
+-d)
+	jump_d.pl "${@:2}" ;;
 -h)
 	echo "usage jump <mode> <arguments>";
-	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";;
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";;
 *)
 	echo "usage jump <mode> <arguments>";
-	echo "     mode is one of \"-s\", \"-f\" or \"-q\"";
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";;
 	exit 1;;
 esac
