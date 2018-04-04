@@ -12,7 +12,9 @@ my ($help,$parameter,$raw_file,$dispatch);
 my %options;
 GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
-	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}
+	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}},
+	   '--queue=s'=>\$queue, 
+	   '--preserve-input'=>\${$options{'--preserve-input'}}
     );
 
 unless(defined($dispatch)) {
