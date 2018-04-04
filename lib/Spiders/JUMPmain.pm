@@ -593,7 +593,7 @@ sub runjobs
 sub LuchParallelJob{
 	
 	my($FileName,$cmd,$GridType,$outputName,$dta_path)= @_;
-	
+	my $retval;
 	open(JOB,">$FileName") || die "can not open $FileName\n";
 	if($GridType eq 'LSF')
 	{	
@@ -606,7 +606,16 @@ sub LuchParallelJob{
 			print JOB "#BSUB -oo $dta_path/$outputName.o\n";
 			print JOB $cmd;		
 			close(JOB);
-			system(qq(bsub <$FileName >/dev/null 2>&1));	
+			my $cmd = "bsub <$FileName";	
+			my $job = qx[$cmd];
+			chomp $job;
+			if($job=~/Job \<(\d*)\>/)
+			{
+			    $retval=$1;
+			}
+			else {
+			    croak "could not parse job id $job";
+			}
 	}
 	if($GridType eq 'SGE')
 	{
@@ -639,7 +648,8 @@ sub LuchParallelJob{
 		close(JOB);
 		system(qq(qsub -cwd $FileName >/dev/null 2>&1));
 	}
-	close(JOB);
+        close(JOB);
+        return $retval;
 }
 
 sub MergeFile
@@ -956,7 +966,7 @@ sub database_creation
 				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";
 				print JOB "#BSUB -oo $tmp_database_path/$i.o\n";
 				print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename}\n";
-				print JOB "rm -f $tmp_database_path/temp_${i}_${database_basename}";
+#				print JOB "rm -f $tmp_database_path/temp_${i}_${database_basename}";
 				close(JOB);
 				#system(qq(cd $tmp_database_path && bsub <job_db_$i.sh >/dev/null 2>&1));	
 				
@@ -981,18 +991,40 @@ sub database_creation
 
 		my ($MAX_PROCESSES);
 
+
 		# submit jobs
+                my %jobhash;
 		if($params->{'cluster'} eq '1') {
 			if($params->{'Job_Management_System'} eq 'LSF') {
+			    for( my $i = 1; $i <= $job_num; $i += 1 ) {
+				my $cmd = "cd $tmp_database_path && bsub < job_db_$i.sh";
+				my $job = qx[$cmd];
+				chomp $job;
+				my $job_id=0;
+				if($job=~/Job \<(\d*)\>/)
+				{
+					$job_id=$1;
+				}
+				else {
+				    croak "could not parse job id $job";
+				}
+				$jobhash{$job_id}=1;
+								
+			    }
 			} elsif($params->{'Job_Management_System'} eq 'SGE') {
 				for($i=1;$i<=$job_num;$i++) {
 					system(qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$tmp_database_path/job_db_$i.sh" >/dev/null 2>&1));
 				}
 			}
 		
-		print "  You submit $job_num jobs for creating index files\n";
-		
-		Check_Job_stat("job_db_",$job_num);
+			print "  You submit $job_num jobs for creating index files\n";
+
+			if($params->{'Job_Management_System'} eq 'LSF') {
+			    Check_Job_stat("job_db_",$job_num,$tmp_database_path,\%jobhash);
+			}
+			else {
+			    Check_Job_stat("job_db_",$job_num);
+			}
 		} elsif($params->{'cluster'} eq '0') {
 			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
 			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
@@ -1051,15 +1083,29 @@ sub database_creation
 			open(JOB,">$FileName") || die "can not open $FileName\n";
 
 			if ($params->{'cluster'} eq '1') {
-				if($params->{'Job_Management_System'} eq 'LSF') {
-				} elsif($params->{'Job_Management_System'} eq 'SGE') {
-					print JOB "#!/bin/bash\n";
-					print JOB "#\$ \-S /bin/bash\n";
-					print JOB "#\$ \-N $outputName\n";
-					print JOB "#\$ \-e $dta_path/$outputName.e\n";
-					print JOB "#\$ \-o $dta_path/$outputName.o\n";
-					print JOB $cmd;
+			    if($params->{'Job_Management_System'} eq 'LSF') {
+				print JOB "#BSUB -P prot\n";
+				if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
+				    print JOB "#BSUB -q large_mem\n";
+				    print JOB "#BSUB -M 100000\n";
+				    print JOB "#BSUB -R \"rusage[mem=100000]\"\n";			
 				}
+				else {
+				    print JOB "#BSUB -q normal\n";
+				    print JOB "#BSUB -M 200000\n";
+				    print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
+				}
+				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
+				print JOB "#BSUB -oo $dta_path/$outputName.o\n";
+				print JOB $cmd;
+			    } elsif($params->{'Job_Management_System'} eq 'SGE') {
+				print JOB "#!/bin/bash\n";
+				print JOB "#\$ \-S /bin/bash\n";
+				print JOB "#\$ \-N $outputName\n";
+				print JOB "#\$ \-e $dta_path/$outputName.e\n";
+				print JOB "#\$ \-o $dta_path/$outputName.o\n";
+				print JOB $cmd;
+			    }
 			} elsif($params->{'cluster'} eq '0') {
 				print JOB "#!/bin/bash\n";
 				print JOB "$cmd >$dta_path/$outputName.o 2>$dta_path/$outputName.e";
@@ -1068,9 +1114,25 @@ sub database_creation
 			close JOB;
 		}
 
+                %jobhash = ();
 		if ($params->{'cluster'} eq '1') {
 
 			if($params->{'Job_Management_System'} eq 'LSF') {
+			    for(my $i=0;$i<$num_mass_region;$i += 1) {
+				my $job_name = "sort_db_${i}.sh";
+				$command_line = qq(cd $tmp_database_path && bsub < $job_name);
+				my $job=qx[$command_line];
+				chomp $job;
+				my $job_id=0;
+				if($job=~/Job \<(\d*)\>/)
+				{
+					$job_id=$1;
+				}
+				else {
+				    croak "could not parse job id $job";
+				}				
+				$jobhash{$job_id}=1;
+			    }	
 			} elsif($params->{'Job_Management_System'} eq 'SGE') {
 				for($m=0;$m<$num_mass_region;$m++) {
 					my $dta_path=$tmp_database_path;
@@ -1085,7 +1147,12 @@ sub database_creation
 
 			print "  You submit $num_mass_region jobs for sorting index files\n";
 			
-			Check_Job_stat("sort_",$num_mass_region);
+			if($params->{'Job_Management_System'} eq 'LSF') {
+			    Check_Job_stat("sort_",$num_mass_region,$dta_path,\%jobhash);
+			}
+			else {
+			    Check_Job_stat("sort_",$num_mass_region);
+			}
 		} elsif($params->{'cluster'} eq '0') {
 			my $pm;
 			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
@@ -1110,13 +1177,20 @@ sub database_creation
 		print "\n  Mergering files\n";
 		my $merge_job_num = $num_mass_region-1;
 		my $dta_path=$tmp_database_path;
+                %jobhash = ();
 		if ($params->{'cluster'} eq '1') {
 			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
-			LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
+			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
+			if(defined($job)) {
+			    $jobhash{$job} = 1;
+			}
 			$cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
 			$FileName = "$tmp_database_path/merge_peptide_index.sh";
-			LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
+			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
+			if(defined($job)) {
+			    $jobhash{$job} = 1;
+			}
 		} elsif($params->{'cluster'} eq '0') {
 			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
@@ -1191,7 +1265,12 @@ sub database_creation
 
 	####################################################	
 		print "  You submit 2 jobs for merging index files\n";
-		Check_Job_stat("merge_","2");		
+                if(scalar(%jobhash) > 0) {
+		    Check_Job_stat("merge_mass_index_",2,$dta_path,\%jobhash);			    
+		}
+                else {
+		    Check_Job_stat("merge_","2");		
+		}
 		print "  2 jobs finished";			
 		#Clean Temporary files
 		print "\n  Removing temporary files\n";
