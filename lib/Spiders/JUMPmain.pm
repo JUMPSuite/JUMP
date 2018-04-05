@@ -21,6 +21,7 @@ use Storable;
 use Carp;
 use File::Basename;
 use File::Spec;
+use File::Copy;
 use Spiders::Params;
 use Spiders::ProcessingRAW;
 use Spiders::ProcessingMzXML;
@@ -188,6 +189,7 @@ sub main
 		
 		my $curr_dir = getcwd;
 		my $dta_path = $rawfile_hash{$raw_file};
+		my $input_file = $raw_file;
 		  
 		if($raw_file =~/\.mzXML/)
 		{
@@ -375,8 +377,10 @@ sub main
 		print "  Date: ";
 		printf "%4d-%02d-%02d %02d:%02d:%02d\n\n",$year+1900,$mon+1,$mday,$hour,$min,$sec;	
 
+		unless(defined(${$options->{'--preserve-input'}})) {
+		    unlink($input_file);
+		}
 	}
-
 	print "  Search finished\n\n";
 }
 			

@@ -11,10 +11,14 @@ our $VERSION = 1.13.0;
 
 my ($help,$parameter,$raw_file,$dispatch,$queue);
 my %options;
-GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
-	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
+GetOptions('-help|h'=>\$help, 
+	   '--dispatch=s'=>\$dispatch,
+	   '-p=s'=>\$parameter, 
+	   '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
 	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
-	   '--queue=s'=>\$queue, '--dtas-backend=s'=>\${$options{'--dtas-backend'}}
+	   '--queue=s'=>\$queue, 
+	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}}
+	   '--preserve-input'=>\${$options{'--preserve-input'}}
     );
 
 unless(defined(${$options{'--dtas-backend'}})) {
