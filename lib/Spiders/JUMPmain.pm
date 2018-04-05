@@ -73,7 +73,7 @@ sub get_library
 
 sub main
 {
-	our ($self,$parameter,$rawfile_array) = @_;
+	our ($self,$parameter,$rawfile_array,$options) = @_;
 	our $library = $self->get_library();
 	
 	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time); 

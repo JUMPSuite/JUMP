@@ -76,7 +76,7 @@ elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
     my $main = new Spiders::JUMPmain();
     $main->set_library($library);
-    $main->main($parameter,\@ARGV);
+    $main->main($parameter,\@ARGV,\%options);
 }
 else {
     print "argument to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
