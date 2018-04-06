@@ -122,6 +122,7 @@ latex_toplevel_sectioning = 'chapter'
 latex_elements = {
     'fontpkg': r'''
     \usepackage{fourier}
+    \usepackage{ClearSans}
     \usepackage{draftwatermark}
     \SetWatermarkText{DRAFT}
     \SetWatermarkScale{1}    

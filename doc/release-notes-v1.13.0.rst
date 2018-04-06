@@ -107,12 +107,47 @@ JUMP quantification, use::
 
   jump -q jump.params
 
+For
+JUMP localization, use::
+
+  jump -l jump.params
+
+For
+JUMP database, use::
+
+  jump -d jump.params  
+
+Automatic log file generation
+++++++++++++++++++++++++++++++++++++++++++++++++++
+The individual tools will automatically create log files that contain
+their standard output and standard error.  The log files are created
+in the directory in which the jump tool is invoked.  They are given
+names based on the names of the input files that are passed to JUMP.
+
+JUMP search creates log file names based on the mzXML or RAW input
+file names; the input file names are concatenated together, ".out"
+is appended to that concatenation, and the local date and time are
+prepended to that.  For example, if one had invoked::
+
+  jump -s jump.params data1.raw data2.mxXML
+
+on 4/2/2016 at 13:45:47, then the log file will be named ``4-2-2016_13:45:47_data1-data2.out``.
+
+The remaining JUMP tools will create a log file based on the name of
+the parameter file.  If ``jump.params`` is passed in, then the log
+file will be named ``4-2-2016_13:45:47_jump.params.out``.
+
+.. attention:: The log files produced by JUMP may be large.  The user
+	       should excercise care and delete those that are not
+	       necessary in order to avoid storage chargebacks.
+
 The individual JUMP tools
 --------------------------------------------------
 For each option of the top-level JUMP command, there is an individual
 jump command.  ``jump_sj.pl`` is the same as ``jump -s``,
-``jump_f.pl`` is the same as ``jump -f`` and ``jump_q.pl`` is the same
-as ``jump -q``.
+``jump_f.pl`` is the same as ``jump -f``, ``jump_q.pl`` is the same
+as ``jump -q``, ``jump_d.pl`` is the same as ``jump -d``, and
+``jump_l.pl`` is the same as ``jump -l.``
 
 
 Expert-level JUMP usage
@@ -202,6 +237,44 @@ use::
 	       spontaneously terminated.
 	       
  
+JUMP search and HPC queues
+++++++++++++++++++++++++++++++++++++++++++++++++++
+By default, JUMP will dispatch to the ``heavy_io`` queue, which is
+optimzed for input/output operations.  During periods of high load,
+this may cause a nontivial wait time for dispatch.  One can specify
+an alternate queue; for example, using::
+
+  jump_sj.pl -p jump.params data.mzXML --queue=normal
+
+will dispatch to the ``normal`` queue.  The HPC cluster has several
+queues, which one may view with ``bqueues``.  Notice that some queues
+require special access.  We recommend using either the ``normal`` or
+``heavy_io`` queues.
+
+
+Expert-level use of the JUMP localization and filter tools
+--------------------------------------------------
+JUMP filter and localization both may require several gigabytes of
+memory to run. To manage resource usage, both JUMP filter and
+localization present advanced options to control the resources they
+request.  The first option is the ``--queue`` option, analagous to
+JUMP search's ``--queue`` option, and the second is the ``--mem``
+option.  By default, JUMP filter and localization dispatch to the
+``normal`` queue, and request 200G of memory.
+
+The ``mem`` option requires use of the ``queue`` option, and it is
+incumbent on the user to make sure that the queue selected for
+dispatch can also support the memory request.  For example, if one
+wants to request 2TB of memory, one must use the ``large_mem`` queue
+as::
+
+  jump_f.pl jump.params --queue=large_mem --mem=2000000
+
+For JUMP localization, the invocation is the same::
+
+  jump_l.pl jump.params --queue=large_mem --mem=2000000
+
+  
 Software Carpentry
 **************************************************
 The ``module`` tools combined with version control [#f1]_ give some basic
