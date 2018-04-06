@@ -117,6 +117,30 @@ JUMP database, use::
 
   jump -d jump.params  
 
+Automatic log file generation
+++++++++++++++++++++++++++++++++++++++++++++++++++
+The individual tools will automatically create log files that contain
+their standard output and standard error.  The log files are created
+in the directory in which the jump tool is invoked.  They are given
+names based on the names of the input files that are passed to JUMP.
+
+JUMP search creates log file names based on the mzXML or RAW input
+file names; the input file names are concatenated together, ".out"
+is appended to that concatenation, and the local date and time are
+prepended to that.  For example, if one had invoked::
+
+  jump -s jump.params data1.raw data2.mxXML
+
+on 4/2/2016 at 13:45:47, then the log file will be named ``4-2-2016_13:45:47_data1-data2.out``.
+
+The remaining JUMP tools will create a log file based on the name of
+the parameter file.  If ``jump.params`` is passed in, then the log
+file will be named ``4-2-2016_13:45:47_jump.params.out``.
+
+.. attention:: The log files produced by JUMP may be large.  The user
+	       should excercise care and delete those that are not
+	       necessary in order to avoid storage chargebacks.
+
 The individual JUMP tools
 --------------------------------------------------
 For each option of the top-level JUMP command, there is an individual
