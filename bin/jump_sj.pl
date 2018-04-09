@@ -53,22 +53,26 @@ for my $k (keys(%options)) {
     }
 }
 
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time); 
+my $outname = sprintf("%4d-%02d-%02d_%02d:%02d:%02d_",$year+1900,$mon+1,$mday,$hour,$min,$sec);	
+if( scalar(@ARGV) == 1 ) {
+    $outname .= $ARGV[0];
+    $outname =~ s/\.mzXML$/.out/ig;
+    $outname =~ s/\.raw$/.out/ig;
+}
+else {
+    $outname .= join( '-', @ARGV );
+    $outname =~ s/\.mzXML-/-/i;
+    $outname =~ s/\.raw-/-/i;
+    $outname =~ s/\.mzXML$/.out/ig;
+    $outname =~ s/\.raw$/.out/ig;
+}
+
 if( $dispatch eq "batch-interactive" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost 2>&1 | tee $outname" );
 }
 elsif( $dispatch eq "batch" ) {
-    my $outname;
-    if( scalar(@ARGV) == 1 ) {
-	$outname = $ARGV[0];
-	print $outname =~ s/\.mzXML/.out/g;
-    }
-    else {
-	$outname = $ARGV[0];
-	$outname =~ s/\.mzXML//;
-	$outname .= '-' . $ARGV[$#ARGV];
-	$outname =~ s/\.mzXML/.out/;
-    }
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
     system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
 }
