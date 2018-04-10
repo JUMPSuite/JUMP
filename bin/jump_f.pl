@@ -38,6 +38,10 @@ elsif(!defined($mem)) {
     $mem = 200000;
 }
 
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time); 
+my $outname = sprintf("%4d-%02d-%02d_%02d:%02d:%02d_",$year+1900,$mon+1,$mday,$hour,$min,$sec);	
+$outname .= $ARGV[0] . ".out";
+
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
-$cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_f.pl" . " " . $ARGV[0];
+$cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_f.pl" . " " . $ARGV[0] . " 2>&1 | tee $outname";
 system($cmd);
