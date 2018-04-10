@@ -1072,16 +1072,9 @@ sub database_creation
 			if ($params->{'cluster'} eq '1') {
 			    if($params->{'Job_Management_System'} eq 'LSF') {
 				print JOB "#BSUB -P prot\n";
-				if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-				    print JOB "#BSUB -q large_mem\n";
-				    print JOB "#BSUB -M 100000\n";
-				    print JOB "#BSUB -R \"rusage[mem=100000]\"\n";			
-				}
-				else {
-				    print JOB "#BSUB -q normal\n";
-				    print JOB "#BSUB -M 200000\n";
-				    print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-				}
+				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -M 200000\n";
+				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
 				print JOB "#BSUB -oo $dta_path/$outputName.o\n";
 				print JOB $cmd;
