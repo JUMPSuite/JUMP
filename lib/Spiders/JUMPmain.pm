@@ -150,7 +150,7 @@ sub main
 			# 	$newdir = $path->ask("  Choose a .out file directory",$newdir);
 			# }
 			# }
-			print "  Using: $newdir\n";
+			print "  Using: " . File::Spec->abs2rel($path->basedir()) . "/$newdir\n";
 			$path->add_subdir($newdir);
 			my $dir =  $path->basedir() . "/$newdir";
 			my $rawfile = $arg;

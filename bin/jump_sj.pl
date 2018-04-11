@@ -4,6 +4,7 @@ my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
 use Spiders::JUMPmain;
+use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
@@ -53,28 +54,14 @@ for my $k (keys(%options)) {
     }
 }
 
-my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst)=localtime(time); 
-my $outname = sprintf("%4d-%02d-%02d_%02d:%02d:%02d_",$year+1900,$mon+1,$mday,$hour,$min,$sec);	
-if( scalar(@ARGV) == 1 ) {
-    $outname .= $ARGV[0];
-    $outname =~ s/\.mzXML$/.out/ig;
-    $outname =~ s/\.raw$/.out/ig;
-}
-else {
-    $outname .= join( '-', @ARGV );
-    $outname =~ s/\.mzXML-/-/i;
-    $outname =~ s/\.raw-/-/i;
-    $outname =~ s/\.mzXML$/.out/ig;
-    $outname =~ s/\.raw$/.out/ig;
-}
-
 if( $dispatch eq "batch-interactive" ) {
+    my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost 2>&1 | tee $outname" );
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
