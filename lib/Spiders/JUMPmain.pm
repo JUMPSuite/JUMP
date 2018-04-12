@@ -476,7 +476,7 @@ sub runjobs
 		{
 			for(my $i=0;$i<$job_num;$i++)
 			{
-				$command_line = qq(cd $dta_path && bsub <lsf/${job_name}_${i}.sh);
+				$command_line = qq(cd $dta_path && LSB_JOB_REPORT_MAIL=N bsub <lsf/${job_name}_${i}.sh);
 				my $job=qx[$command_line];
 				while( $? != 0 ) {
 				    sleep(1);
@@ -984,7 +984,7 @@ sub database_creation
 		if($params->{'cluster'} eq '1') {
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for( my $i = 1; $i <= $job_num; $i += 1 ) {
-				my $cmd = "cd $tmp_database_path && bsub < job_db_$i.sh";
+				my $cmd = "cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < job_db_$i.sh";
 				my $job = qx[$cmd];
 				chomp $job;
 				my $job_id=0;
@@ -1100,7 +1100,7 @@ sub database_creation
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for(my $i=0;$i<$num_mass_region;$i += 1) {
 				my $job_name = "sort_db_${i}.sh";
-				$command_line = qq(cd $tmp_database_path && bsub < $job_name);
+				$command_line = qq(cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < $job_name);
 				my $job=qx[$command_line];
 				chomp $job;
 				my $job_id=0;
