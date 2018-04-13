@@ -22,7 +22,24 @@ print <<EOF;
 ################################################################
 EOF
     unless( scalar(@ARGV) > 0 ) { help(); }
-$cmd="bsub -P prot -q large_mem -R \"rusage[mem=2097152]\" -Ip _jump_q.pl" . " " . $ARGV[0];
+
+my $queue;
+my $mem;
+GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem);
+
+if(!defined($queue) && !defined($mem)) {
+    $queue = 'normal';
+    $mem = 200000;
+}
+elsif(!defined($queue) && defined($mem)) { 
+    print "\t--mem cannot be used without --queue\n";
+    exit(1);
+}
+elsif(!defined($mem)) {
+    $mem = 200000;
+}
+
+$cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_q.pl" . " " . $ARGV[0];
 system($cmd);
 
 sub help {
