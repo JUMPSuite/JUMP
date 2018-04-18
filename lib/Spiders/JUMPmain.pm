@@ -206,6 +206,11 @@ sub main
 		print "  Converting .raw into .mzXML file\n";
 
 		my $mzXML = $proc_raw->raw2mzXML();
+		my ($vol,$dir,$f) = File::Spec->splitpath($dta_path);
+		my @dirs = File::Spec->splitdir($dir);
+		pop(@dirs);
+		($vol,$dir,$f) = File::Spec->splitpath($mzXML);
+		link($mzXML,File::Spec->join(File::Spec->join(@dirs),$f));
 		##################### Linux part ############################
 		print "  Extracting peaks from .mzXML\n";
 		my $proc_xml = new Spiders::ProcessingMzXML();
