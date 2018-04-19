@@ -95,8 +95,8 @@ sub parse_spOut_files_v5{
 	my @files = glob("$folder/*.spout");
 	
 	foreach my $spout (@files){
-
-		print "\r  Reading file $spout                   ";		
+	        my $relname = File::Spec->abs2rel($spout);
+		print "\r  Reading file $relname ";		
 		open(INPUT,$spout) or die "Could onpen $spout. Error:!$\n";
 		my @content = <INPUT>;		
 		$spout = basename($spout);
