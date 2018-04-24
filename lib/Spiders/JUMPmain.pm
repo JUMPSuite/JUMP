@@ -18,6 +18,7 @@ package Spiders::JUMPmain;
 use Cwd;
 use Cwd 'abs_path';
 use Storable;
+use Clone qw(clone);
 use Carp;
 use File::Basename;
 use File::Spec;
@@ -155,7 +156,7 @@ sub main
 			# 	$newdir = $path->ask("  Choose a .out file directory",$newdir);
 			# }
 			# }
-			print "  Using: $newdir\n";
+			print "  Using: " . File::Spec->abs2rel($path->basedir()) . "/$newdir\n";
 			$path->add_subdir($newdir);
 			my $dir =  $path->basedir() . "/$newdir";
 			my $rawfile = $arg;
@@ -214,6 +215,11 @@ sub main
 		print "  Converting .raw into .mzXML file\n";
 
 		my $mzXML = $proc_raw->raw2mzXML();
+		my ($vol,$dir,$f) = File::Spec->splitpath($dta_path);
+		my @dirs = File::Spec->splitdir($dir);
+		pop(@dirs);
+		($vol,$dir,$f) = File::Spec->splitpath($mzXML);
+		link($mzXML,File::Spec->join(File::Spec->join(@dirs),$f));
 		##################### Linux part ############################
 		print "  Extracting peaks from .mzXML\n";
 		my $proc_xml = new Spiders::ProcessingMzXML();
@@ -420,7 +426,8 @@ sub runjobs
 	#my $dta_num_per_file = 200/($num_dynamic_mod*2);
 	#my $job_num=int($#file_array/$dta_num_per_file)+1;
 	#$job_num = $#$file_array+1 if($#$file_array<$job_num);
- 
+
+	my %job2dtaMap;
 	for(my $i = 0; $i < $job_num; $i++)
 	{	
 		if (($i * $dta_num_per_file) > $#$file_array) {
@@ -461,6 +468,7 @@ sub runjobs
 			foreach (@dta_file_arrays) {
 			    print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";
 			}
+			$job2dtaMap{$i} = clone(\@dta_file_arrays);
 		}
 		elsif($params->{'Job_Management_System'} eq 'SGE')
 		{
@@ -492,7 +500,7 @@ sub runjobs
 		{
 			for(my $i=0;$i<$job_num;$i++)
 			{
-				$command_line = qq(cd $dta_path && bsub <lsf/${job_name}_${i}.sh);
+				$command_line = qq(cd $dta_path && LSB_JOB_REPORT_MAIL=N bsub <lsf/${job_name}_${i}.sh);
 				my $job=qx[$command_line];
 				while( $? != 0 ) {
 				    sleep(1);
@@ -507,7 +515,8 @@ sub runjobs
 				else {
 				    croak "could not parse job id $job";
 				}
-				$job_list->{$job_id}=1;
+				$job_list->{$job_id}= $i;
+				
 			}
 		}
 		elsif($params->{'Job_Management_System'} eq 'SGE')
@@ -552,8 +561,27 @@ sub runjobs
 #=head
 	#### checking whether all dta files has been searched  
 	my $temp_file_array;
-	for(my $k=0;$k<=$#$file_array;$k++)
-	{
+	if($params->{'Job_Management_System'} eq 'LSF') {
+	    # check all job statuses
+	    foreach my $id (keys(%$job_list)) {
+		my $cmd = "bjobs -noheader $id";
+		my $result = qx[$cmd];
+		chomp($result);
+		my @tokens = split(/\s+/,$result);
+		unless( $tokens[2] eq "DONE" ) {
+		    foreach my $dta (@{$job2dtaMap{$job_list->{$id}}}) {
+			my $out_file = $dta;
+			$out_file =~ s/\.dta$/\.spout/;
+			if( ! -e $out_file ) {
+			    push (@{$temp_file_array},$data_file);
+			}
+		    }
+		}
+	    }
+	}
+	else {
+	    for(my $k=0;$k<=$#$file_array;$k++)
+	    {
 		my $data_file = $file_array->[$k];
 		my $out_file = $data_file;
 		#$out_file =~ s/\.dta$/\.out/;
@@ -561,8 +589,9 @@ sub runjobs
 		$out_file = File::Spec->join($dta_path,$out_file);
 		if(!-e $out_file)
 		{
-			push (@{$temp_file_array},$data_file);
+		    push (@{$temp_file_array},$data_file);
 		}
+	    }
 	}
 	return $temp_file_array;
 =head
@@ -1001,7 +1030,7 @@ sub database_creation
 		if($params->{'cluster'} eq '1') {
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for( my $i = 1; $i <= $job_num; $i += 1 ) {
-				my $cmd = "cd $tmp_database_path && bsub < job_db_$i.sh";
+				my $cmd = "cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < job_db_$i.sh";
 				my $job = qx[$cmd];
 				chomp $job;
 				my $job_id=0;
@@ -1089,16 +1118,9 @@ sub database_creation
 			if ($params->{'cluster'} eq '1') {
 			    if($params->{'Job_Management_System'} eq 'LSF') {
 				print JOB "#BSUB -P prot\n";
-				if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-				    print JOB "#BSUB -q large_mem\n";
-				    print JOB "#BSUB -M 100000\n";
-				    print JOB "#BSUB -R \"rusage[mem=100000]\"\n";			
-				}
-				else {
-				    print JOB "#BSUB -q normal\n";
-				    print JOB "#BSUB -M 200000\n";
-				    print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-				}
+				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -M 200000\n";
+				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
 				print JOB "#BSUB -oo $dta_path/$outputName.o\n";
 				print JOB $cmd;
@@ -1124,7 +1146,7 @@ sub database_creation
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for(my $i=0;$i<$num_mass_region;$i += 1) {
 				my $job_name = "sort_db_${i}.sh";
-				$command_line = qq(cd $tmp_database_path && bsub < $job_name);
+				$command_line = qq(cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < $job_name);
 				my $job=qx[$command_line];
 				chomp $job;
 				my $job_id=0;

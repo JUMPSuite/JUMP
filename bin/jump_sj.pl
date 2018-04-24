@@ -5,6 +5,7 @@ use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
 use strict;
 use Spiders::JUMPmain;
+use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
@@ -17,12 +18,12 @@ GetOptions('-help|h'=>\$help,
 	   '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
 	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
 	   '--queue=s'=>\$queue, 
-	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}}
+	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}},
 	   '--preserve-input'=>\${$options{'--preserve-input'}}
     );
 
 unless(defined(${$options{'--dtas-backend'}})) {
-    ${$options{'--dtas-backend'}} = 'fs';
+    ${$options{'--dtas-backend'}} = 'idx';
 }
 
 unless(defined($queue)) {
@@ -67,8 +68,9 @@ for my $k (keys(%options)) {
 }
 
 if( $dispatch eq "batch-interactive" ) {
+    my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" -Is $cmd --dispatch=localhost" );
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch-parallel" ) {
     foreach my $arg (@ARGV) {
@@ -78,19 +80,8 @@ elsif( $dispatch eq "batch-parallel" ) {
     }
 }
 elsif( $dispatch eq "batch" ) {
-    my $outname;
-    if( scalar(@ARGV) == 1 ) {
-	$outname = $ARGV[0];
-	print $outname =~ s/\.mzXML/.out/g;
-    }
-    else {
-	$outname = $ARGV[0];
-	$outname =~ s/\.mzXML//;
-	$outname .= '-' . $ARGV[$#ARGV];
-	$outname =~ s/\.mzXML/.out/;
-    }
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost &> $outname\"" );
+    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
