@@ -529,7 +529,7 @@ sub runjobs
         {
             $pm->start and next;
 			my $job_name = "${job_name}_${i}.sh";			
-            system("cd $dta_path && sh $job_name >/dev/null 2>&1");
+            system("cd $dta_path && sh lsf/$job_name >/dev/null 2>&1");
 			print "\r  $i jobs were submitted";	
 			Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);				
 			
