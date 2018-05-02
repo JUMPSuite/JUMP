@@ -1,0 +1,62 @@
+# JUMP localization parameter file (Version: 12.1.0, Date: 10/07/2015)
+# JUMPl identifies (localizes) the modification sites (e.g. phosphorylation)
+
+# Input and output settings
+IDmod = /hpcf/restricted_apps/proteomics_apps/pipeline/release/version12.0.0/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt
+
+# Preprocessing parameters
+peptide_score_tolerance = 10							# tolerance for peptide localization score (percentage)
+mass_correction = 2								# 0 = no correction, 1 = MS1-based, 2 = MS2-based, 3 = manual correction
+isolation_window = 1.2								# +/- (isolation_window)/2 based on MS2 isolation window (e.g. 1.2 m/z)
+first_scan_extraction = 5000							# the first scan number for search
+last_scan_extraction = 10000							# the last scan number for search, use a large number (e.g. 10E6) for full scans
+MS2_deisotope = 1								# 0 = disable; 1 = enable
+ppm = 10									# mass tolerance for MS2 decharging and deisotoping
+ms2_consolidation = 30								# maximal number of peaks retained within each 100-Da window
+
+# Peptide selection and scoring options
+ion_series = 0 1 0 0 0 0 0 1 0							# a, b, c, d, v, w, x, y and z ions, respectively
+ion_losses_MS2 = 1 0 0 0							# 0 = disable; 1 = enable neutral loss of H2O, HPO3, H3PO4 and NH3, respectively
+frag_mass_tolerance = 10							# mass tolerance for MS2 ion matching
+frag_mass_tolerance_unit = 2							# 1 = Da; 2 = PPM;
+
+# Dynamic modifications
+dynamic_M = 15.99492								# add each dynamic modification by one line, starting with dynamic_AA
+dynamic_S = 79.96633
+dynamic_T = 79.96633
+dynamic_Y = 79.96633
+max_modif_num = 3
+
+# Static Modification
+add_Nterm_peptide = 229.1629321							# TMT modification or other amine labeling
+add_Cterm_peptide = 0.0000
+add_A_Alanine = 0.0000
+add_B_avg_NandD = 0.0000
+add_C_Cysteine = 0.0000								# Cys alkylation
+add_D_Aspartic_Acid = 0.0000
+add_E_Glutamic_Acid = 0.0000
+add_F_Phenylalanine = 0.0000
+add_G_Glycine = 0.0000
+add_H_Histidine = 0.0000
+add_I_Isoleucine = 0.0000
+add_J_user_amino_acid = 0.0000
+add_K_Lysine = 229.1629321							# TMT modification or other amine labeling
+add_L_Leucine = 0.0000
+add_M_Methionine = 0.0000
+add_N_Asparagine = 0.0000
+add_O_Ornithine = 0.0000
+add_P_Proline = 0.0000
+add_Q_Glutamine = 0.0000
+add_R_Arginine = 0.0000
+add_S_Serine = 0.0000
+add_T_Threonine = 0.0000
+add_U_user_amino_acid = 0.0000
+add_V_Valine = 0.0000
+add_W_Tryptophan = 0.0000
+add_X_LorI = 0.0000
+add_Y_Tyrosine = 0.0000
+add_Z_avg_QandE = 0.0000
+
+# Other parameters
+cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster
+cluster_type = LSF
