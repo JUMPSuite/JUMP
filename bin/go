@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+this_scripts_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#dtn=`date +%Y%m%d.%N`
+pwd="$(pwd)"
+#
+
+#
+echo "start (go)" $this_scripts_dir
+echo "pwd" $pwd
+echo "submitting... "
+bsub -q normal -cwd "${pwd}" \
+	-M 4000 \
+	-oo "${pwd}"/out.o \
+	-eo "${pwd}"/out.e \
+	< $this_scripts_dir/steps.sh
+echo "done (go)"
+#
+
