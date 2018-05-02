@@ -1,0 +1,40 @@
+#!/bin/bash
+
+case $1 in 
+-s)
+	arglist=''
+	for arg in "${@:2}" ; do 
+	    if [[ $(file $arg) =~ .*ASCII.*text.* ]] ; then
+		arglist="$arglist -p $arg"
+	    else
+		arglist="$arglist $arg";
+	    fi
+	done
+	jump_sj.pl $arglist ;; 
+-f)
+	jump_f.pl "${@:2}" ;;
+-q)
+	jump_q.pl "${@:2}" ;;
+-l)
+	arglist=''
+	for arg in "${@:2}" ; do 
+	    if [[ $(file $arg) =~ .*ASCII.*text.* ]] ; then
+		arglist="$arglist -p $arg"
+	    else
+		arglist="$arglist $arg";
+	    fi
+	done
+	jump_l.pl $arglist ;;
+-d)
+	jump_d.pl "${@:2}" ;;
+-params)
+	jump_params ;;
+-h)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";;
+*)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";
+	exit 1;;
+esac
+
