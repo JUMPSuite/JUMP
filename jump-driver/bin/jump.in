@@ -4,7 +4,7 @@ case $1 in
 -s)
 	arglist=''
 	for arg in "${@:2}" ; do 
-	    if [[ $(file $arg) =~ .*ASCII.*text.* ]] ; then
+	    if [[ ( ! $arg =~ --.* ) && $(file $arg) =~ .*ASCII.*text.* ]] ; then
 		arglist="$arglist -p $arg"
 	    else
 		arglist="$arglist $arg";
@@ -18,7 +18,7 @@ case $1 in
 -l)
 	arglist=''
 	for arg in "${@:2}" ; do 
-	    if [[ $(file $arg) =~ .*ASCII.*text.* ]] ; then
+	    if [[ ( ! $arg =~ --.* ) && $(file $arg) =~ .*ASCII.*text.* ]] ; then
 		arglist="$arglist -p $arg"
 	    else
 		arglist="$arglist $arg";

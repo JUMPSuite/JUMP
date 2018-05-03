@@ -6,7 +6,7 @@ use Cwd;
 use Cwd 'abs_path';
 use File::Basename;
 
-our $version = 1.13.0;
+our $VERSION = 1.13.0;
 
 my $Bin=$ENV{"JUMP_L_LIB"};
 use lib $ENV{"JUMP_L_LIB"};
