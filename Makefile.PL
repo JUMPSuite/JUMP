@@ -59,16 +59,23 @@ unless(defined($options{'WINE_ROOT'})) {
 }
 
 open( my $makefile, '>Makefile' );
+my $optstr = join( ' ', @ARGV );
 print $makefile <<EOF;
-all:
+all: Makefile
 \t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make && cd - ; done ; )
 
-install:
+install: Makefile
 \t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make install && cd - ; done ; )
 
-test:
+test: Makefile
 \t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make test && cd - ; done)
 
+Makefile: Makefile.PL
+\t\@echo 'Your Makefile is out-of-date with respect to Makefile.PL...reconfiguring'
+\tmv Makefile Makefile.old
+\t$Config{'perlpath'} Makefile.PL $optstr
+\t\@echo 'Your makefiles have been rebuilt. Please re-execute your make command.'
+\tfalse
 EOF
 
 my @subdirs = ('jump-database','jump-filter', 'jump-localization', 
