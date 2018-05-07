@@ -62,13 +62,13 @@ open( my $makefile, '>Makefile' );
 my $optstr = join( ' ', @ARGV );
 print $makefile <<EOF;
 all: Makefile
-\t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make && cd - ; done ; )
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make && cd - ; done ; )
 
 install: Makefile
-\t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make install && cd - ; done ; )
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make install && cd - ; done ; )
 
 test: Makefile
-\t(for i in jump-database jump-driver jump-filter jump-localization jump-quantification jump-search ; do cd \$\${i} && make test && cd - ; done)
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make test && cd - ; done)
 
 Makefile: Makefile.PL
 \t\@echo 'Your Makefile is out-of-date with respect to Makefile.PL...reconfiguring'
