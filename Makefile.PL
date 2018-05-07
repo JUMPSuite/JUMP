@@ -78,8 +78,8 @@ Makefile: Makefile.PL
 \tfalse
 EOF
 
-my @subdirs = ('jump-database','jump-filter', 'jump-localization', 
-	       'jump-quantification', 'jump-search');
+my @subdirs = ('JUMPd','JUMPf', 'JUMPl', 
+	       'JUMPq', 'JUMPsj');
 
 my $rootdir = getcwd();
 foreach my $dir (@subdirs) {
@@ -90,7 +90,7 @@ foreach my $dir (@subdirs) {
 
 
 configure_jump_driver(\%options);
-chdir('jump-driver');
+chdir('JUMP');
 system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
 chdir($rootdir);
 
