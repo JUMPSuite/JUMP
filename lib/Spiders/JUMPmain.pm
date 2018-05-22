@@ -281,14 +281,14 @@ sub main
 		{
 			print "  Please specify a right second_search parameter!!\n";
 		}
-		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'});
+		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'},${$options->{'--max-jobs'}});
 		my $rerunN=0;
 		my $orig_cluster=$params->{'cluster'};
 		while(scalar(@{$temp_file_array})>0 and $rerunN<3)
 		{
 			$rerunN++;
 			print "\n",scalar(@$temp_file_array)," .dta files not finished! Doing re-search (rerunN = $rerunN)\n";
-			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'});
+			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'},${$options->{'--max-jobs'}});
 
 			$temp_file_array=$remaining;
 		}
@@ -387,7 +387,7 @@ sub Create_Sort_BashFile
 
 sub runjobs
 {
-	my ($file_array,$dta_path,$job_name,$MAX_PROCESSES) = @_;
+	my ($file_array,$dta_path,$job_name,$MAX_PROCESSES,$max_jobs) = @_;
 	my $curr_dir = getcwd;
 	#my $MAX_PROCESSES = 32;	
 	$MAX_PROCESSES = defined($MAX_PROCESSES)?$MAX_PROCESSES:4;
@@ -395,8 +395,8 @@ sub runjobs
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
 	## Set the maximum number of jobs to 4000
-	if ($job_num > 512) {
-		$job_num = 512;
+	if ($job_num > $max_jobs) {
+		$job_num = $max_jobs;
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
 	}
 

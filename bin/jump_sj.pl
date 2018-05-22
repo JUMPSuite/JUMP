@@ -15,11 +15,16 @@ GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
 	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}},
 	   '--queue=s'=>\$queue, 
-	   '--preserve-input'=>\${$options{'--preserve-input'}}
+	   '--preserve-input'=>\${$options{'--preserve-input'}},
+	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
     );
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
+}
+
+unless(defined(${$options{'--max-jobs'}})) {
+    ${$options{'--max-jobs'}} = 512;
 }
 
 if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
