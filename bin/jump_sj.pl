@@ -73,11 +73,13 @@ if( $dispatch eq "batch-interactive" ) {
     system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch-parallel" ) {
-    foreach my $arg (@ARGV) {
-	my $cmd = 'jump_sj.pl ' . $arg . " -p " . $parameter . " " . $options_str;
-	print "submitting job for $arg\n";
-	system( "$cmd --dispatch=batch --queue=$queue &> /dev/null" );
-    }
+    # foreach my $arg (@ARGV) {
+    # 	my $cmd = 'jump_sj.pl ' . $arg . " -p " . $parameter . " " . $options_str;
+    # 	print "submitting job for $arg\n";
+    # 	system( "$cmd --dispatch=batch --queue=$queue &> /dev/null" );
+    # }
+    print "batch-parallel mode not yet supported\n";
+    exit -1;
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
