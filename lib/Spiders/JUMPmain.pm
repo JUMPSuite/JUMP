@@ -460,6 +460,7 @@ sub runjobs
 		if($params->{'Job_Management_System'} eq 'LSF')
 		{
 			print JOB "#BSUB -P prot\n";
+			print JOB "#BSUB -g /proteomics/jump/read-only\n";
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
@@ -631,6 +632,7 @@ sub LuchParallelJob{
 	if($GridType eq 'LSF')
 	{	
 			print JOB "#BSUB -P prot\n";
+			print JOB "#BSUB -g /proteomics/jump/read-only\n";
 			print JOB "#BSUB -q normal\n";
 			print JOB "#BSUB -M 20000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
@@ -993,6 +995,7 @@ sub database_creation
 			if($params->{'Job_Management_System'} eq 'LSF')
 			{
 				print JOB "#BSUB -P prot\n";
+				print JOB "#BSUB -g /proteomics/jump/read-only\n";
 				print JOB "#BSUB -q normal\n";
 				print JOB "#BSUB -M 20000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
@@ -1118,6 +1121,7 @@ sub database_creation
 			if ($params->{'cluster'} eq '1') {
 			    if($params->{'Job_Management_System'} eq 'LSF') {
 				print JOB "#BSUB -P prot\n";
+				print JOB "#BSUB -g /proteomics/jump/read-only\n";
 				print JOB "#BSUB -q normal\n";
 				print JOB "#BSUB -M 200000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
@@ -1469,6 +1473,7 @@ sub dispatch_batch_run {
     open( JOB, ">$dir/jump_dispatch.sh" );
     if($params->{'Job_Management_System'} eq 'LSF') {
 	print JOB "#BSUB -P prot\n";
+	print JOB "#BSUB -g /proteomics/jump/read-only\n";
 	print JOB "#BSUB -q normal\n";
 	print JOB "#BSUB -M 8192\n";
 	print JOB "#BSUB -oo $dir/jump.o\n";
