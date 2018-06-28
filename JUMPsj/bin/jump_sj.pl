@@ -15,11 +15,16 @@ GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
 	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}},
 	   '--queue=s'=>\$queue, 
-	   '--preserve-input'=>\${$options{'--preserve-input'}}
+	   '--preserve-input'=>\${$options{'--preserve-input'}},
+	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
     );
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
+}
+
+unless(defined(${$options{'--max-jobs'}})) {
+    ${$options{'--max-jobs'}} = 512;
 }
 
 if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
@@ -57,11 +62,11 @@ for my $k (keys(%options)) {
 if( $dispatch eq "batch-interactive" ) {
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
+    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
+    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
