@@ -6,7 +6,7 @@ use Config;
 sub configure_jump_driver {
     my %options = %{shift(@_)};
     my $fh;
-    open( $fh, '<'.File::Spec->join('jump-driver','bin','jump.in' ) );
+    open( $fh, '<'.File::Spec->join('JUMP','bin','jump.in' ) );
     my @lines;
     while(<$fh>) {
 	push( @lines, $_ );
@@ -21,19 +21,19 @@ sub configure_jump_driver {
 	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
 	     "export WINE_DIR=$options{'WINE_ROOT'}\n",
 	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
-	     "PATH=".File::Spec->join($options{'PREFIX'},'jump-database/bin').":\$PATH\n", 
-	     "PATH=".File::Spec->join($options{'PREFIX'},'jump-filter/bin').":\$PATH\n", 
-	     "PATH=".File::Spec->join($options{'PREFIX'},'jump-localization/bin').":\$PATH\n", 
-	     "PATH=".File::Spec->join($options{'PREFIX'},'jump-quantification/bin').":\$PATH\n", 
-	     "PATH=".File::Spec->join($options{'PREFIX'},'jump-search/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPf/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPl/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPq/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPsj/bin').":\$PATH\n", 
 
-	     "export JUMP_D_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'jump-database',$libpath))."\n", 
-	     "export JUMP_F_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'jump-filter',$libpath))."\n", 
-	     "export JUMP_L_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'jump-localization',$libpath))."\n", 
-	     "export JUMP_Q_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'jump-quantification',$libpath))."\n", 
-	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'jump-search',$libpath))."\n"
+	     "export JUMP_D_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPd',$libpath))."\n", 
+	     "export JUMP_F_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPf',$libpath))."\n", 
+	     "export JUMP_L_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPl',$libpath))."\n", 
+	     "export JUMP_Q_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPq',$libpath))."\n", 
+	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPsj',$libpath))."\n"
 	);
-    open( $fh, '>'.File::Spec->join('jump-driver','bin','jump' ) );
+    open( $fh, '>'.File::Spec->join('JUMP','bin','jump' ) );
     print $fh @lines;
     close( $fh );
 }
@@ -42,7 +42,8 @@ my %options;
 foreach my $arg (@ARGV) {
     if( $arg =~ /.*=.*/ ) {
 	my @kv = split('=',$arg);
-	$options{$kv[0]} = $kv[1];
+	my $k = shift(@kv);
+	$options{$k} = join( '=', @kv );
     }
 }
 
