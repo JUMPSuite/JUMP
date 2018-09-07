@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 ## Release date: 05/01/2015
 ## Release version: version 12.0.0
@@ -13,7 +13,7 @@ use vars qw($VERSION @ISA @EXPORT);
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
 @EXPORT      = ();
-my $JUMPscript="$ENV{JUMP_G_ROOT}/s/jump.pl";
+my $JUMPscript="$ENV{'JUMP_G_ROOT'}/programs/s/jump.pl";
 
 sub new {
 	my ($class, %arg)=@_;

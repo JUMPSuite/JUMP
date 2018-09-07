@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 use strict;
 use warnings;
@@ -10,7 +10,7 @@ if (scalar(@ARGV)!=1)
 }
 
 # code path
-my $code_path="$ENV{JUMP_G_ROOT}/c/customizedDB";
+my $code_path="$ENV{'JUMP_G_ROOT'}/programs/c/customizedDB";
 
 #initialization
 my (%parahash);

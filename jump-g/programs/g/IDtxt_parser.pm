@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 package IDtxt_parser;
 use strict;
 sub new

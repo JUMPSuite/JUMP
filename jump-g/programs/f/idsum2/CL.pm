@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/bin/env perl -w
 
 ## Release date: 11/01/2015
 ## Release version: version 12.1.0

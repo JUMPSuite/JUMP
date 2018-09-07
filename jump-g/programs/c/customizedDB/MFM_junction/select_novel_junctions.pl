@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 unless (scalar(@ARGV)==4)
 {

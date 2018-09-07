@@ -1,10 +1,10 @@
-#!/usr/env perl -I $JUMP_G_ROOT/g
+#!/bin/env perl 
+use lib "$ENV{'JUMP_G_ROOT'}/programs/g";
 
 ## Created: 08/14/2015
 my $VERSION='2.3.6';
 
 use strict;
-use lib "$ENV{'JUMP_G_ROOT'}/g";
 use warnings;
 use Cwd;
 use File::Basename;
@@ -1000,16 +1000,16 @@ sub set_program_paths
 	my ($parahash)=@_;
 
 	#my $path='/home/yli4/development/JUMPg/v2.0/programs/';
-	my $path="$ENV{JUMP_G_ROOT}";
+	my $path="$ENV{JUMP_G_ROOT}/programs";
 	$$parahash{'programs'}{params}="perl $path/params/jump_params.pl";
 	#$$parahash{'programs'}{params}="jump -params";
 	$$parahash{'programs'}{c}="perl $path/c/jump_c.pl";
 	#$$parahash{'programs'}{d}="perl $path/d/builddb.pl";
-	$$parahash{'programs'}{d}="jump -d";
+	$$parahash{'programs'}{d}="jump -d --dispatch=localhost";
 	#$$parahash{'programs'}{s}="perl $path/s/jump.pl -p";
-	$$parahash{'programs'}{s}="jump -s";
+	$$parahash{'programs'}{s}="jump -s --dispatch=localhost";
 	#$$parahash{'programs'}{f}="perl $path/f/jump_f.pl";
-	$$parahash{'programs'}{f}="jump -f";
+	$$parahash{'programs'}{f}="jump -f --dispatch=localhost";
 	$$parahash{'programs'}{qc}="perl $path/qc/spectrumQC.pl";
 	$$parahash{'programs'}{summary}="perl $path/summary/splitIDtxt.pl";
 	$$parahash{'programs'}{rundtas}="perl $path/rundtas/rundtas.pl";

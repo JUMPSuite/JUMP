@@ -1,4 +1,5 @@
-#!/usr/bin/perl  -I $JUMP_G_ROOT/s
+#!/bin/env perl  
+use lib "$ENV{'JUMP_G_ROOT'}/programs/s";
 use Getopt::Long;
 
 #use Cwd 'abs_path';

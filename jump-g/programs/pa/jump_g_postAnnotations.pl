@@ -1,4 +1,5 @@
-#!/usr/bin/perl -I $JUMP_G_ROOT/g
+#!/bin/env perl 
+use lib "$ENV{'JUMP_G_ROOT'}/programs/g";
 
 use strict;
 use warnings;
@@ -13,7 +14,7 @@ if (scalar(@ARGV)!=1)
 }
 
 # code path
-my $code_path="$ENV{JUMP_G_ROOT}/pa";
+my $code_path="$ENV{'JUMP_G_ROOT'}/programs/pa";
 #my $annotationFile2='/home/yli4/annotations/knownGenes_uniPro_012314.txt';
 
 #initialization

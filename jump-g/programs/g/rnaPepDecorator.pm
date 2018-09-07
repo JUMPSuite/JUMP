@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/JUMPg_v2.2.6/programs/g
+#!/bin/env perl -I /home/yli4/development/JUMPg/JUMPg_v2.2.6/programs/g
 package rnaPepDecorator;
 use strict;
 use PrimarySeq;

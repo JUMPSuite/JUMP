@@ -1,4 +1,4 @@
-#!/usr/bin/perl  -I /home/yli4/development/JUMPg/JUMPg_v2.3.5/programs/s
+#!/bin/env perl  -I /home/yli4/development/JUMPg/JUMPg_v2.3.5/programs/s
 
 ## Release date: 7/01/2016
 ## Release version: version 12.1.3

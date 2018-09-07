@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 ## example code
 ## Release date: 05/01/2015

@@ -1,7 +1,11 @@
-#!/usr/bin/perl -w -I $JUMP_G_ROOT/s 
+#!/bin/env perl  
+my $Bin=$ENV{"JUMP_G_LIB"};
+use lib "$ENV{'JUMP_G_ROOT'}/programs/s";
 
 use strict;
+use Carp;
 #use outFileParser;
+use File::Spec;
 use Spiders::SpoutParser;
 use Parallel::ForkManager;
 use Cwd;
@@ -15,7 +19,10 @@ if (scalar(@ARGV)!=2)
 # program path
 #my $currectDir=getcwd;
 #$runsearch_shell="$currectDir/runsearch_shell.pl";
-my $runsearch_shell="$ENV{JUMP_G_ROOT}/rundtas/runsearch_shell.pl";
+
+#------need to update this path---------------------------
+my $runsearch_shell=File::Spec->join($ENV{"JUMP_G_ROOT"},"programs","rundtas","runsearch_shell.pl");
+#----------------------------------------------------------
 
 #initialization
 my (%parahash);
@@ -524,10 +531,10 @@ sub runjobs
 	#{
 	        $dta_num_per_file = 10;
         	$job_num = int($#$file_array / $dta_num_per_file) + 1;
-	        ## Set the maximum number of jobs to 4000
-        	if ($job_num > 4000) 
+	        ## Set the maximum number of jobs to 512
+        	if ($job_num > 512) 
 		{
-	                $job_num = 4000;
+	                $job_num = 512;
                 	$dta_num_per_file = int($#$file_array / $job_num) + 1;
         	}
 	#}
@@ -552,6 +559,20 @@ sub runjobs
                 }
                 if($parahash{'Job_Management_System'} eq 'LSF')
                 {
+		    print JOB "#BSUB -P prot\n";
+		    print JOB "#BSUB -q normal\n";
+		    print JOB "#BSUB -M 2000\n";
+		    print JOB "#BSUB -g /proteomics/jump/read-only\n";		    
+		    print JOB "#BSUB -g /proteomics/jump/read-only\n";
+		    print JOB "#BSUB -R \"rusage[mem=20000]\"\n";
+		    print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
+		    print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
+                        foreach (@dta_file_arrays)
+                        {
+				my @t=split /\//,$_;
+                                #print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $dta_path/$parahash{search_params} -dta_path $dta_path $t[$#t]\n";
+                                print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $dta_path/jump.params -dta_path $dta_path $t[$#t]\n";
+                        }
                 }
                 elsif($parahash{'Job_Management_System'} eq 'SGE')
                 {
@@ -574,6 +595,26 @@ sub runjobs
         {
                 if($parahash{'Job_Management_System'} eq 'LSF')
                 {
+			for(my $i=0;$i<$job_num;$i++)
+			{
+			        my $command_line = qq(cd $dta_path && LSB_JOB_REPORT_MAIL=N bsub < ${job_name}_${i}.sh);
+				my $job=qx[$command_line];
+				while( $? != 0 ) {
+				    sleep(1);
+				    my $job=qx[$command_line];
+				}
+				chomp $job;
+				my $job_id=0;
+				if($job=~/Job \<(\d*)\>/)
+				{
+					$job_id=$1;
+				}
+				else {
+				    croak "could not parse job id $job";
+				}
+				$job_list->{$job_id}= $i;
+				
+			}
                 }
                 elsif($parahash{'Job_Management_System'} eq 'SGE')
                 {
@@ -595,7 +636,7 @@ sub runjobs
                         }
                 }
                 print "\n  You submitted $job_num jobs for database search\n";
-                Check_Job_stat_jump("${job_name}_",$job_num,$dta_path);
+                Check_Job_stat_jump("${job_name}_",$job_num,$dta_path,$job_list);
         }
 	elsif($parahash{'cluster'} eq '0')
 	{
@@ -635,7 +676,7 @@ sub runjobs
 sub Check_Job_stat_jump
 {
 	# test whether the job is finished for JUMP search
-	my ($jobs_prefix,$job_num,$dta_path) = @_;
+	my ($jobs_prefix,$job_num,$dta_path,$jobs_hashref) = @_;
         my $job_info=1;
     my ($username) = getpwuid($<);
         my $command_line="";
@@ -644,7 +685,7 @@ sub Check_Job_stat_jump
         {
                 if($parahash{'Job_Management_System'} eq 'LSF')
                 {
-                        $command_line =  "bjobs -u $username";
+                        $command_line =  "bjobs -noheader -u $username";
                 }
                 elsif($parahash{'Job_Management_System'} eq 'SGE')
                 {
@@ -658,6 +699,27 @@ sub Check_Job_stat_jump
                 #Consider only the one that we submitted
                 if($parahash{'Job_Management_System'} eq 'LSF')
                 {
+			my $job_status=qx[$command_line 2> /dev/null];
+			my $running_jobs = set_intersection( $jobs_hashref, parse_bjobs_output($job_status) );
+			my @job_status_array=split(/\n/,$job_status);
+			my $job_number = $job_num - scalar(@$running_jobs);
+			if(scalar (@$running_jobs) == 0)
+			{
+				print "\r  $job_num jobs finished          ";
+			}
+			else
+			{
+				print "\r  $job_number jobs finished          ";
+			}
+			if(scalar(@$running_jobs)>0)
+			{
+				$job_info=1;				
+			}
+			else
+			{
+				$job_info=0;		
+			}			
+			sleep(5);
                 }
                 elsif($parahash{'Job_Management_System'} eq 'SGE')
                 {
@@ -763,12 +825,13 @@ my $sequest28single='/data/bin/sequest28single';
                           }
                 }
 =cut
+		
 		if ($$parahash{Job_Management_System} eq 'LSF')
 		{
                         print JOB "#BSUB -P prot\n";
                         print JOB "#BSUB -q normal\n";
-        #               print JOB "#BSUB -M 2000\n";
-        #               print JOB "#BSUB -R \"rusage[mem=20000]\"\n";
+			print JOB "#BSUB -M 2000\n";
+			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";
                         print JOB "#BSUB -eo $run/$i.e\n";
                         print JOB "#BSUB -oo $run/$i.o\n";
  		}
@@ -966,3 +1029,24 @@ sub Check_Job_stat
 		}
 	}
 }
+
+sub parse_bjobs_output {
+    my $output = shift;
+    my @arr = ($output =~ /^(\d+).*$/mg);
+    my %rv;
+    @rv{@arr} = @arr;
+    return \%rv;
+}
+
+sub set_intersection {
+    my ($s1,$s2) = @_;
+    my @rv;
+    foreach my $i1 (keys(%$s1)) {
+	if(defined($s2->{$i1})) {
+	    push( @rv, $i1 );
+	}
+    }
+    return \@rv;
+}
+
+

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /data1/pipeline/release/version12.0.0/JUMPd/
+#!/bin/env perl -I /data1/pipeline/release/version12.0.0/JUMPd/
 
 ## Release date: 05/01/2015
 ## Release version: version 12.0.0

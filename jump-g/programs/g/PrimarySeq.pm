@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/bin/env perl -wT
 package PrimarySeq;
 use strict;
 use vars qw(@NAMES @TABLES %IUPAC_DNA $CODONS $TRCOL);

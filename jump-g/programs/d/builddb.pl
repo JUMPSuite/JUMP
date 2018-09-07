@@ -1,4 +1,5 @@
-#!/usr/bin/perl -I $JUMP_G_ROOT/d
+#!/bin/env perl 
+use lib "$ENV{'JUMP_G_ROOT'}/programs/d";
 
 ## Release date: 05/01/2015
 ## Release version: version 12.0.0

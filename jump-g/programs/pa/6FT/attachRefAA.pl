@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/lib/perl5
+#!/bin/env perl -I /home/yli4/lib/perl5
 
 use PrimarySeq;
 

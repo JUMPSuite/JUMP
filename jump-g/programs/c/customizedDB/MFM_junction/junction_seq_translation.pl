@@ -1,4 +1,5 @@
-#!/usr/bin/perl -w -I $JUMP_G_ROOT/g
+#!/bin/env perl -w 
+use lib "$ENV{'JUMP_G_ROOT'}/programs/g";
 
 use strict;
 use PrimarySeq;

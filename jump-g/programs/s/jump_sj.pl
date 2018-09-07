@@ -1,4 +1,4 @@
-#!/usr/bin/perl  -I /data1/pipeline/release/version12.1.0/JUMPsj/
+#!/bin/env perl  -I /data1/pipeline/release/version12.1.0/JUMPsj/
 
 ## Release date: 7/01/2016
 ## Release version: version 12.1.3

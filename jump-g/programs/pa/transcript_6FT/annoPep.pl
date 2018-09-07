@@ -1,4 +1,5 @@
-#!/usr/bin/perl -I $JUMP_G_ROOT/g
+#!/bin/env perl 
+use lib "$ENV{'JUMP_G_ROOT'}/programs/g";
 
 use warnings;
 use strict;

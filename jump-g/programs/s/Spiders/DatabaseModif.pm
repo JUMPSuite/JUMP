@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 ## Release date: 11/01/2015
 ## Release version: version 12.1.0
@@ -19,7 +19,7 @@
 
 ###### The package of task1 has been renamed because there is same fuction in Algorithm::Combinatorics. 
 ###### USAGE: my %result = changeValues(\%Motif, $comb_num, \%massHash);
-#!/usr/bin/perl -I /home/xwang4/scripts
+#!/bin/env perl -I /home/xwang4/scripts
 ########################### Example #################################
 #use strict;
 #use warnings;

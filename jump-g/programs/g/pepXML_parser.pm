@@ -1,4 +1,4 @@
-#!/usr/bin/perl -wT
+#!/bin/env perl -wT
 package pepXML_parser;
 use strict;
 use vars qw($Hydrogen_mass $HydrogenMinus_mass $Cterm_mass);
