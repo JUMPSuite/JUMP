@@ -26,7 +26,8 @@ EOF
 
 my $queue;
 my $mem;
-GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem);
+my $dispatch;
+GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch'=>\$dispatch);
 
 if(!defined($queue) && !defined($mem)) {
     $queue = 'normal';
@@ -40,7 +41,13 @@ elsif(!defined($mem)) {
     $mem = 200000;
 }
 
-$cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_q.pl" . " " . $ARGV[0];
+my $cmd;
+unless(defined($dispatch) && $dispatch eq 'localhost') {
+    $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_q.pl" . " " . $ARGV[0];
+}
+else {
+    $cmd="_jump_q.pl " . $ARGV[0];
+}
 system($cmd);
 
 sub help {
