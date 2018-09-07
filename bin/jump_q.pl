@@ -27,7 +27,7 @@ EOF
 my $queue;
 my $mem;
 my $dispatch;
-GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch'=>\$dispatch);
+GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
 if(!defined($queue) && !defined($mem)) {
     $queue = 'normal';
