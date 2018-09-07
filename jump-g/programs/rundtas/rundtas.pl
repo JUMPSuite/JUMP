@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w -I /home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/s 
+#!/usr/bin/perl -w -I $JUMP_G_ROOT/s 
 
 use strict;
 #use outFileParser;
@@ -15,7 +15,7 @@ if (scalar(@ARGV)!=2)
 # program path
 #my $currectDir=getcwd;
 #$runsearch_shell="$currectDir/runsearch_shell.pl";
-my $runsearch_shell="/home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/rundtas/runsearch_shell.pl";
+my $runsearch_shell="$ENV{JUMP_G_ROOT}/rundtas/runsearch_shell.pl";
 
 #initialization
 my (%parahash);

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/f
+#!/usr/bin/perl -I $JUMP_G_ROOT/f
 
 ## Release date: 11/01/2015
 ## Release version: version 12.1.0

@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/g
+#!/usr/bin/perl -I $JUMP_G_ROOT/g
 
 use strict;
 use warnings;
@@ -13,7 +13,7 @@ if (scalar(@ARGV)!=1)
 }
 
 # code path
-my $code_path="/home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/pa";
+my $code_path="$ENV{JUMP_G_ROOT}/pa";
 #my $annotationFile2='/home/yli4/annotations/knownGenes_uniPro_012314.txt';
 
 #initialization

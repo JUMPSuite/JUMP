@@ -1,4 +1,4 @@
-#!/usr/bin/perl -I /home/yli4/development/JUMPg/HPC_version/090118_fullversion/programs/g
+#!/usr/bin/perl -I $JUMP_G_ROOT/g
 
 use warnings;
 use strict;
