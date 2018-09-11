@@ -26,12 +26,17 @@ sub configure_jump_driver {
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPl/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPq/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPsj/bin').":\$PATH\n", 
-
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPi/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPv/bin').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPg/programs').":\$PATH\n", 
 	     "export JUMP_D_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPd',$libpath))."\n", 
 	     "export JUMP_F_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPf',$libpath))."\n", 
 	     "export JUMP_L_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPl',$libpath))."\n", 
 	     "export JUMP_Q_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPq',$libpath))."\n", 
-	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPsj',$libpath))."\n"
+	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPsj',$libpath))."\n",
+	     "export JUMP_I_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPi',$libpath))."\n",
+	     "export JUMP_V_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPv',$libpath))."\n",
+	     "export JUMP_G_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPg',$libpath))."\n"
 	);
     open( $fh, '>'.File::Spec->join('JUMP','bin','jump' ) );
     print $fh @lines;
@@ -63,13 +68,13 @@ open( my $makefile, '>Makefile' );
 my $optstr = join( ' ', @ARGV );
 print $makefile <<EOF;
 all: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make && cd - ; done ; )
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make && cd - ; done ; )
 
 install: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make install && cd - ; done ; )
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make install && cd - ; done ; )
 
 test: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj ; do cd \$\${i} && make test && cd - ; done)
+\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make test && cd - ; done)
 
 Makefile: Makefile.PL
 \t\@echo 'Your Makefile is out-of-date with respect to Makefile.PL...reconfiguring'
@@ -80,7 +85,8 @@ Makefile: Makefile.PL
 EOF
 
 my @subdirs = ('JUMPd','JUMPf', 'JUMPl', 
-	       'JUMPq', 'JUMPsj');
+	       'JUMPq', 'JUMPsj', 'JUMPi',
+	       'JUMPv', 'JUMPaq', 'JUMPg');
 
 my $rootdir = getcwd();
 foreach my $dir (@subdirs) {

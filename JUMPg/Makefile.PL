@@ -15,6 +15,8 @@ if(defined($options{'PREFIX'})) {
     $PREFIX=$options{'PREFIX'};
 }
 
+print "Writing Makefile for JUMPg\n";
+
 open( my $makefile, '>Makefile' );
 print $makefile <<EOF
 all: 
