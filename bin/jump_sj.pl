@@ -3,21 +3,37 @@
 my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
+use strict;
 use Spiders::JUMPmain;
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
 our $VERSION = 1.13.0;
 
-my ($help,$parameter,$raw_file,$dispatch);
+my ($help,$parameter,$raw_file,$dispatch,$queue);
 my %options;
-GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
-	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
-	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}},
+GetOptions('-help|h'=>\$help, 
+	   '--dispatch=s'=>\$dispatch,
+	   '-p=s'=>\$parameter, 
+	   '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
+	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
 	   '--queue=s'=>\$queue, 
+<<<<<<< HEAD
 	   '--preserve-input'=>\${$options{'--preserve-input'}},
 	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
+=======
+	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}},
+	   '--preserve-input'=>\${$options{'--preserve-input'}}
+>>>>>>> hpc-optimization
     );
+
+unless(defined(${$options{'--dtas-backend'}})) {
+    ${$options{'--dtas-backend'}} = 'idx';
+}
+
+unless(defined($queue)) {
+    $queue = 'heavy_io';
+}
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
@@ -53,6 +69,7 @@ print <<EOF;
 
 EOF
 
+my $options_str;
 for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
 	$options_str .= $k . "=" . ${$options{$k}} . " ";
@@ -63,6 +80,15 @@ if( $dispatch eq "batch-interactive" ) {
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
     system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
+}
+elsif( $dispatch eq "batch-parallel" ) {
+    # foreach my $arg (@ARGV) {
+    # 	my $cmd = 'jump_sj.pl ' . $arg . " -p " . $parameter . " " . $options_str;
+    # 	print "submitting job for $arg\n";
+    # 	system( "$cmd --dispatch=batch --queue=$queue &> /dev/null" );
+    # }
+    print "batch-parallel mode not yet supported\n";
+    exit -1;
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
@@ -97,9 +123,9 @@ print <<"EOF";
 ################################################################
 
 
-Usage: $progname -p parameterfile rawfile.raw 
+Usage: $0 -p parameterfile rawfile.raw 
 	or
-       $progname -p parameterfile rawfile.mzXML
+       $0 -p parameterfile rawfile.mzXML
 	
 
 EOF
