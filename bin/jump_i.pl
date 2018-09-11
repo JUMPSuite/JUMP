@@ -1,8 +1,10 @@
-#!/usr/bin/perl
+#!/bin/env perl
 
 use strict;
 use Clone 'clone';
 use Statistics::R;
+
+our $VERSION = "1.13.0";
 
 if (scalar(@ARGV)!=1)
 {
