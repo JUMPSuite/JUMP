@@ -11,7 +11,7 @@ include_contaminants = 1									# 0 = do not include contaminants; 1 = include 
 input_contaminants = /hpcf/authorized_apps/proteomics_apps/database/contaminants.fasta						# Absolute path of a .fasta file containing contaminants
 decoy_generation = 1										# 0 = do not include decoys; 1 = include decoys
 decoy_generation_method = 1									# 1 = reverse; 2 = reverse and switch every K/R with its preceding AA
-jump.params = /home/abreuer/projects/jump/jump-database/jump_s.params				# Only search engine and modification information will be obtained from the file
+jump.params = /home/abreuer/tmp/demo/jump_s.params				# Only search engine and modification information will be obtained from the file
 												# "database_name" in a jump.params file will be ignored
 bypass_db_generation = 0									# 0 = generate database, 1 = bypass the generation of database (only pit will be generated)
 
