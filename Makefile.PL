@@ -20,6 +20,7 @@ sub configure_jump_driver {
     unshift( @lines, $header,
 	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
 	     "export WINE_DIR=$options{'WINE_ROOT'}\n",
+	     "export PERL5LIB=$PERL5LIB:join($options{'PREFIX'},'lib')",
 	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPf/bin').":\$PATH\n", 

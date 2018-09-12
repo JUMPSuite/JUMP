@@ -27,6 +27,14 @@ case $1 in
 	jump_l.pl $arglist ;;
 -d)
 	jump_d.pl "${@:2}" ;;
+-i)
+	jump_i.pl "${@:2}" ;;
+-v)
+	jump_v.pl "${@:2}" ;;
+-aq)
+	jump_aq.pl "${@:2}" ;;
+-g)
+	jump_g.pl "${@:2}" ;;
 -params)
 	jump_params ;;
 -h)
