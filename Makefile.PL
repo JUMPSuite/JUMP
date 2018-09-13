@@ -20,7 +20,7 @@ sub configure_jump_driver {
     unshift( @lines, $header,
 	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
 	     "export WINE_DIR=$options{'WINE_ROOT'}\n",
-	     "export PERL5LIB=$PERL5LIB:join($options{'PREFIX'},'lib')",
+	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
 	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPf/bin').":\$PATH\n", 
@@ -44,6 +44,10 @@ sub configure_jump_driver {
     close( $fh );
 }
 
+my @subdirs = ('JUMPd','JUMPf', 'JUMPl', 
+	       'JUMPq', 'JUMPsj', 'JUMPi',
+	       'JUMPv', 'JUMPaq', 'JUMPg',
+	       'common' );
 my %options;
 foreach my $arg (@ARGV) {
     if( $arg =~ /.*=.*/ ) {
@@ -65,17 +69,18 @@ unless(defined($options{'WINE_ROOT'})) {
     warn "without specifying WINE_ROOT, you will not be able to process RAW files.";
 }
 
+my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 open( my $makefile, '>Makefile' );
 my $optstr = join( ' ', @ARGV );
 print $makefile <<EOF;
 all: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make && cd - ; done ; )
+\t(for i in $subdirstr ; do cd \$\${i} && make && cd - ; done ; )
 
 install: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make install && cd - ; done ; )
+\t(for i in $subdirstr ; do cd \$\${i} && make install && cd - ; done ; )
 
 test: Makefile
-\t(for i in JUMPd JUMP JUMPf JUMPl JUMPq JUMPsj JUMPi JUMPv JUMPaq JUMPg ; do cd \$\${i} && make test && cd - ; done)
+\t(for i in $subdirstr ; do cd \$\${i} && make test && cd - ; done)
 
 Makefile: Makefile.PL
 \t\@echo 'Your Makefile is out-of-date with respect to Makefile.PL...reconfiguring'
@@ -84,10 +89,6 @@ Makefile: Makefile.PL
 \t\@echo 'Your makefiles have been rebuilt. Please re-execute your make command.'
 \tfalse
 EOF
-
-my @subdirs = ('JUMPd','JUMPf', 'JUMPl', 
-	       'JUMPq', 'JUMPsj', 'JUMPi',
-	       'JUMPv', 'JUMPaq', 'JUMPg');
 
 my $rootdir = getcwd();
 foreach my $dir (@subdirs) {

@@ -18,13 +18,9 @@ GetOptions('-help|h'=>\$help,
 	   '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
 	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
 	   '--queue=s'=>\$queue, 
-<<<<<<< HEAD
 	   '--preserve-input'=>\${$options{'--preserve-input'}},
-	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
-=======
+	   '--max-jobs=s'=>\${$options{'--max-jobs'}},
 	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}},
-	   '--preserve-input'=>\${$options{'--preserve-input'}}
->>>>>>> hpc-optimization
     );
 
 unless(defined(${$options{'--dtas-backend'}})) {

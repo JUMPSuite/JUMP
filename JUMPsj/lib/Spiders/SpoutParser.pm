@@ -181,14 +181,26 @@ sub parseSpout {
     genParOut( $seqParaHash, $run, $out[0] );
 
     my %temphash;    # used for checking duplications
-                     #read outfiles
+
+    #read outfiles
+    my $percent = 0;
+    $| = 1;
+    print "  Gathering information from outfiles ";
     for my $outfile (@out) {
         $count++;
-        print "\r  Gathering information from $count of $orignum outfiles     ";
-
+	if( ($count/$orignum)*100 >= $percent ) {
+	    if( $percent % 25 == 0 ) {
+		print "${percent}%";
+	    }
+	    else {
+		print '.';
+	    }
+	    $percent += 5;
+	}
         readOutfile( $seqParaHash, $outInforHash, $run, $outfile, \%temphash );
     }
-
+    print "\n";
+    $| = 0;
 }
 
 sub genParOut {
