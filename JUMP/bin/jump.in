@@ -32,7 +32,7 @@ case $1 in
 -v)
 	jump_v.pl "${@:2}" ;;
 -aq)
-	jump_aq.pl "${@:2}" ;;
+	jump_aq.pl -p "${@:2}" ;;
 -g)
 	jump_g.pl "${@:2}" ;;
 -params)
