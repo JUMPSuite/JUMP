@@ -216,10 +216,20 @@ sub main
 
 		my $mzXML = $proc_raw->raw2mzXML();
 		my ($vol,$dir,$f) = File::Spec->splitpath($dta_path);
-		my @dirs = File::Spec->splitdir($dir);
-		pop(@dirs);
-		($vol,$dir,$f) = File::Spec->splitpath($mzXML);
-		link($mzXML,File::Spec->join(File::Spec->join(@dirs),$f));
+		if( length($f) == 0 ) {
+		    my @dirs = File::Spec->splitdir($dir);
+		    pop(@dirs);
+		    ($vol,$dir,$f) = File::Spec->splitpath($mzXML);
+		    if( ! -e File::Spec->join(File::Spec->join(@dirs),$mzXML) ) {
+			link($mzXML,File::Spec->join(File::Spec->join(@dirs),$mzXML));
+		    }
+		}
+		else {
+		    if( ! -e File::Spec->join($dir,$mzXML) ) {
+			link($mzXML,File::Spec->join($dir,$mzXML));
+		    }
+		}
+
 		##################### Linux part ############################
 		print "  Extracting peaks from .mzXML\n";
 		my $proc_xml = new Spiders::ProcessingMzXML();
