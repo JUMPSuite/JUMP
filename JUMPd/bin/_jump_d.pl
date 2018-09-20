@@ -13,6 +13,7 @@ use Utils::DatabaseUtils;
 use Utils::DatabaseGeneration;
 
 our $VERSION = 1.13.0;
+
 ######################
 ## Initialization	##
 ######################
@@ -55,6 +56,14 @@ my $dbName = $$params{'output_prefix'}."_".$dbSuffix;
 print "\n";
 print $log "\n";
 
+# check whether mda or hdr file already exist
+if ($jumpParams->{search_engine} eq 'JUMP' and -e "$dbName.fasta.mdx"
+or $jumpParams->{search_engine} eq 'SEQUEST' and -e "$dbName.fasta.hdr")
+{ 
+	print "mdx/hdr file already generated. skipped the database generation\n"; 
+	exit;
+}
+
 ##################################################################################
 ## Read input .fasta file(s) and 						##
 ## generate a new .fasta file and the corresponding .pit file for the database	##
@@ -75,6 +84,13 @@ if ($$params{'bypass_db_generation'} == 1) {
 	print $log "\n";
 }
 close ($log);
+
+# print $dbName to a temparoray file so that -s knows 
+open(OUT,">\.jump_d_tmp");
+my $currentpath=getcwd;
+print OUT "$currentpath\/$dbName\.fasta\.mdx\n";
+print OUT "$currentpath\/$dbName\.pit\n";
+close OUT;
 
 ##################
 ## Subroutine	##
