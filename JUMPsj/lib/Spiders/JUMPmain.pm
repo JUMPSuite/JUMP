@@ -98,6 +98,11 @@ sub main
 	$params->{'pho_neutral_loss'} = 0;
 	#$params->{'cluster'} = 1;
 	#$params->{'Job_Management_System'} = SGE;
+
+	#### apply param patches
+	if(defined(${$options->{'--param-patches'}})) {
+	    $params = $p->apply_patches(File::Spec->rel2abs(${$options->{'--param-patches'}}));
+	}
 		
 	database_creation($params);
 
