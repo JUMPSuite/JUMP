@@ -17,6 +17,12 @@ sub configure_jump_driver {
     $libpath =~ s/$Config{'installprefix'}/$options{'prefix'}/g;
     
     my $header = shift(@lines);
+    my @jump_g_lib_dirs = ('c','f','g','s');
+    my $jump_g_lib_path;
+    foreach my $d (@jump_g_lib_dirs) {
+	$jump_g_lib_path = $jump_g_lib_path . (length($jump_g_lib_path) == 0 ? '' : ':') . File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$d))
+
+    }
     unshift( @lines, $header,
 	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
 	     "export WINE_DIR=$options{'WINE_ROOT'}\n",
@@ -37,7 +43,7 @@ sub configure_jump_driver {
 	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPsj',$libpath))."\n",
 	     "export JUMP_I_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPi',$libpath))."\n",
 	     "export JUMP_V_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPv',$libpath))."\n",
-	     "export JUMP_G_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPg',$libpath))."\n"
+	     "export JUMP_G_LIB=".$jump_g_lib_path."\n"
 	);
     open( $fh, '>'.File::Spec->join('JUMP','bin','jump' ) );
     print $fh @lines;

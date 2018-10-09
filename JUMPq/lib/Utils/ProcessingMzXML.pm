@@ -130,6 +130,21 @@ sub massCorrection {
 		my $nFiltered = int(0.2 * $nMassShifts);
 		splice (@massShifts, 0, $nFiltered);	## Remove the lowest mass shifts
 		splice (@massShifts, $nMassShifts - $nFiltered, $nFiltered);	## Remove the highest mass shifts		
+	
+		## Calculate a global "correction factor" by taking the mean value of
+		## mass shifts calculated from MS2 scans (i.e. mean of @massShifts)
+		my $meanMassShift = mean(\@massShifts);
+		my $stdMassShift = stdev(\@massShifts);
+		printf "    Calculated mass-shift: mean = %.4f ppm and SD = %.4f ppm\n", $meanMassShift, $stdMassShift; 
+		printf $logFile "    Calculated mass-shift: mean = %.4f ppm and SD = %.4f ppm\n", $meanMassShift, $stdMassShift;
+		my $correctionFactor = mean(\@massShifts);
+		
+		## Mass-shift correction of all MS2 spectra using the correction factor
+		foreach my $scan (keys %$ms2Hash) {
+			for (my $i = 0; $i < scalar(@{$$ms2Hash{$scan}{'mz'}}); $i++) {
+				$$ms2Hash{$scan}{'mz'}[$i] = $$ms2Hash{$scan}{'mz'}[$i] / (1 + $correctionFactor / 1e6);
+			}
+		}
 	} else {
 		print "    WARNING\n";
 		printf("    Only %.2f%% of spectra (%d of %d effective MS2) is used to calculate mass shifts\n", 
@@ -137,20 +152,6 @@ sub massCorrection {
 		print "    Mass correction will not be performed when less than 50% of spectra is used\n";
 	}	
 
-	## Calculate a global "correction factor" by taking the mean value of
-	## mass shifts calculated from MS2 scans (i.e. mean of @massShifts)
-	my $meanMassShift = mean(\@massShifts);
-	my $stdMassShift = stdev(\@massShifts);
-	printf "    Calculated mass-shift: mean = %.4f ppm and SD = %.4f ppm\n", $meanMassShift, $stdMassShift; 
-	printf $logFile "    Calculated mass-shift: mean = %.4f ppm and SD = %.4f ppm\n", $meanMassShift, $stdMassShift;
-	my $correctionFactor = mean(\@massShifts);
-		
-	## Mass-shift correction of all MS2 spectra using the correction factor
-	foreach my $scan (keys %$ms2Hash) {
-		for (my $i = 0; $i < scalar(@{$$ms2Hash{$scan}{'mz'}}); $i++) {
-			$$ms2Hash{$scan}{'mz'}[$i] = $$ms2Hash{$scan}{'mz'}[$i] / (1 + $correctionFactor / 1e6);
-		}
-	}
 }
 
 sub getObservedMass {
