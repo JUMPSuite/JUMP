@@ -1,5 +1,4 @@
 #!/bin/env perl  
-my $Bin=$ENV{"JUMP_G_LIB"};
 use lib "$ENV{'JUMP_G_ROOT'}/programs/s";
 
 use strict;

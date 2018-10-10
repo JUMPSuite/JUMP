@@ -3,6 +3,11 @@ use Cwd;
 use strict;
 use Config;
 
+sub get_etc_path {
+    my %options = %{shift(@_)};
+    return File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'etc'));
+}
+
 sub configure_jump_driver {
     my %options = %{shift(@_)};
     my $fh;
@@ -18,14 +23,10 @@ sub configure_jump_driver {
     
     my $header = shift(@lines);
     my @jump_g_lib_dirs = ('c','f','g','s');
-    my $jump_g_lib_path;
-    foreach my $d (@jump_g_lib_dirs) {
-	$jump_g_lib_path = $jump_g_lib_path . (length($jump_g_lib_path) == 0 ? '' : ':') . File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$d))
-
-    }
-    unshift( @lines, $header,
+    my $jump_g_root = File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPg'));
+    my $etcPath = get_etc_path(\%options);
+    unshift( @lines, 
 	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
-	     "export WINE_DIR=$options{'WINE_ROOT'}\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
 	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
@@ -43,8 +44,16 @@ sub configure_jump_driver {
 	     "export JUMP_SJ_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPsj',$libpath))."\n",
 	     "export JUMP_I_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPi',$libpath))."\n",
 	     "export JUMP_V_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPv',$libpath))."\n",
-	     "export JUMP_G_LIB=".$jump_g_lib_path."\n"
+	     "export JUMP_G_ROOT=".$jump_g_root."\n",
+	     "export JUMP_CONFIG_PATH=".File::Spec->join($etcPath,'cfg.bin')."\n"
 	);
+
+    if(defined($options{'ENVIRONMENT'})) {
+	while( my ($k,$v) = each %{$options{'ENVIRONMENT'}} ) {
+	    unshift( @lines, "export $k=$v\n" )
+	} 
+    }
+    unshift( @lines, $header );
     open( $fh, '>'.File::Spec->join('JUMP','bin','jump' ) );
     print $fh @lines;
     close( $fh );
@@ -54,26 +63,43 @@ my @subdirs = ('JUMPd','JUMPf', 'JUMPl',
 	       'JUMPq', 'JUMPsj', 'JUMPi',
 	       'JUMPv', 'JUMPaq', 'JUMPg',
 	       'common' );
+my %kwargs;
 my %options;
 foreach my $arg (@ARGV) {
     if( $arg =~ /.*=.*/ ) {
 	my @kv = split('=',$arg);
 	my $k = shift(@kv);
-	$options{$k} = join( '=', @kv );
+	$kwargs{$k} = join( '=', @kv );
     }
 }
 
-unless(defined($options{'PREFIX'})) {
+unless(defined($kwargs{'PREFIX'})) {
     $options{'PREFIX'} = $Config{'installprefix'};
 }
+else {
+    $options{'PREFIX'} = $kwargs{'PREFIX'};
+    delete $kwargs{'PREFIX'};
+}
 
-unless(defined($options{'READW_EXE'})) {
+unless(defined($kwargs{'READW_EXE'})) {
     $options{'READW_EXE'} = 'ReAdW.exe';
 }
-
-unless(defined($options{'WINE_ROOT'})) {
-    warn "without specifying WINE_ROOT, you will not be able to process RAW files.";
+else {
+    $options{'READW_EXE'} = $kwargs{'READW_EXE'};
+    delete $kwargs{'READW_EXE'};
 }
+
+$options{'ENVIRONMENT'} = \%kwargs;
+
+my $etcPath = get_etc_path(\%options);
+my $cfgFile = File::Spec->join($etcPath,'cfg.bin');
+my $jumpPath = File::Spec->join($options{'PREFIX'},'bin','jump');
+open( my $genSiteConfigFile, '>gen-site-config.sh' );
+print $genSiteConfigFile <<EOF;
+if [ ! -d $etcPath ] ; then mkdir $etcPath ; fi
+perl -e "use Storable; my %h; store(\\%h,'$cfgFile');"
+$jumpPath -config install good
+EOF
 
 my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 open( my $makefile, '>Makefile' );
@@ -83,7 +109,7 @@ all: Makefile
 \t(for i in $subdirstr ; do cd \$\${i} && make && cd - ; done ; )
 
 install: Makefile
-\t(for i in $subdirstr ; do cd \$\${i} && make install && cd - ; done ; )
+\t(for i in $subdirstr ; do cd \$\${i} && make install && cd - ; done ; sh gen-site-config.sh )
 
 test: Makefile
 \t(for i in $subdirstr ; do cd \$\${i} && make test && cd - ; done)

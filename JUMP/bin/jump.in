@@ -36,10 +36,12 @@ case $1 in
 -g)
 	jump_g.pl "${@:2}" ;;
 -params)
-	jump_params ;;
+	jump_params "${@:2}" ;;
 -h)
 	echo "usage jump <mode> <arguments>";
 	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";;
+-config)
+	jump_config "${@:2}" ;;
 *)
 	echo "usage jump <mode> <arguments>";
 	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";
