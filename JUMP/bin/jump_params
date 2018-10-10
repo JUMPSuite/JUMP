@@ -4,20 +4,38 @@ use strict;
 use warnings;
 use Cwd;
 use File::Basename;
+use File::Spec;
 
+## search engine & condition information
+my @searchEngines;
+my @conditions;
 ## Directory information
-my $currDir = getcwd()."/ParameterFiles";
-if (!-e $currDir) {
+my $currDir;
+unless(scalar(@ARGV) > 0) {
+    @searchEngines = ("JUMP", "SEQUEST");
+    @conditions = ("HH", "HL", "TMThh", "TMThhpho");
+
+    $currDir = File::Spec->join(getcwd(),"ParameterFiles");
+    if (!-e $currDir) {
 	system ("mkdir $currDir");
+    }
+}
+elsif(scalar(@ARGV) == 1 && $ARGV[0] eq "-h" ) {
+    print "usage:\njump_params\n\tgenerate all possible default parameter files in \$PWD/ParameterFiles\n\njump_params [searchEngine-condition]* <directory>\n\tgenerate specified default parameter files in <directory>\n\n\tparameter files are defined by searchEngine-condition pairs\n\twhere condition is either \"JUMP\" or \"SEQUEST\"\n\tand condition is one of \"HH\",\"HL\",\"TMThh\",\"TMThhpho\"\n";
+    exit 1;
+}
+else {
+    for( my $i = 0; $i < scalar(@ARGV) - 1; $i += 1 ) {
+	my @engineCond = split(/-/,$ARGV[$i]);
+	push( @searchEngines, $engineCond[0] );
+	push( @conditions, $engineCond[1] );
+    }
+    $currDir = $ARGV[scalar(@ARGV) - 1];
 }
 
 ## Version information
 my $version = "1.13.0";
 my $releaseDate = "11/01/2017";
-
-## Search engines/Conditions
-my @searchEngines = ("JUMP", "SEQUEST");
-my @conditions  = ("HH", "HL", "TMThh", "TMThhpho");
 
 ##################################################
 ## Search parameter file generation (jump -s)	##
