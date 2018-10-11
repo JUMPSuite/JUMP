@@ -26,7 +26,7 @@ sub configure_jump_driver {
     my $jump_g_root = File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPg'));
     my $etcPath = get_etc_path(\%options);
     unshift( @lines, 
-	     "export JUMP_READW_EXE=$options{'READW_EXE'}\n",
+	     "export JUMP_READW_EXE=$options{'RAWFILE_CONVERTER'}\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
 	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
@@ -73,20 +73,42 @@ foreach my $arg (@ARGV) {
     }
 }
 
-unless(defined($kwargs{'PREFIX'})) {
-    $options{'PREFIX'} = $Config{'installprefix'};
+my @defaultParamKeys = ('PREFIX','RAWFILE_CONVERTER','DEFAULT_DB_DIR');
+my @defaultParamValues = ($Config{'installprefix'},'ReAdW.exe','/etc/jump');
+my @defaultParamHelp = ('Installation prefix','command for Rawfile to mzXML converter','location to install default databases');
+my %defaultParams;
+my %defaultParamHelp;
+@defaultParams{@defaultParamKeys} = @defaultParamValues;
+@defaultParamHelp{@defaultParamKeys} = @defaultParamHelp;
+
+if( grep( /^-h$/, @ARGV ) ) {
+    print <<EOF;
+usage: perl Makefile.PL <configuration key=value pairs>
+\tconfiguration script for JUMP suite
+    
+Some influmential configuration key=value pairs:
+
+EOF
+
+    while( my ($k,$v) = each %defaultParams ) {
+	print "\t$k=$defaultParamHelp{$k}\tdefault:$v\n\n";
 }
-else {
-    $options{'PREFIX'} = $kwargs{'PREFIX'};
-    delete $kwargs{'PREFIX'};
+    print <<EOF;
+You may pass any key=value pair to Makefile.PL.  Any key=value pair not
+listed above will be added as an environment variable for JUMP to use.
+EOF
+
+    exit 1;
 }
 
-unless(defined($kwargs{'READW_EXE'})) {
-    $options{'READW_EXE'} = 'ReAdW.exe';
-}
-else {
-    $options{'READW_EXE'} = $kwargs{'READW_EXE'};
-    delete $kwargs{'READW_EXE'};
+while( my ($k,$v) = each %defaultParams ) {
+    unless(defined($kwargs{$k})) {
+	$options{$k} = $defaultParams{$k};
+    }
+    else {
+	$options{$k} = $kwargs{$k};
+	delete $kwargs{$k};
+    }
 }
 
 $options{'ENVIRONMENT'} = \%kwargs;
