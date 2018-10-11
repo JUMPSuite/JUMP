@@ -92,9 +92,9 @@ my @defaultParamValues = ($Config{'installprefix'},
 			  '',
 			  '',
 			  '',
-			  '',
-			  '',
-			  '');
+			  'inf',
+			  'inf',
+			  'inf');
 my @defaultParamHelp = ('installation prefix',
 			'command for Rawfile to mzXML converter',
 			'location to install default databases',
