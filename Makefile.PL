@@ -73,9 +73,39 @@ foreach my $arg (@ARGV) {
     }
 }
 
-my @defaultParamKeys = ('PREFIX','RAWFILE_CONVERTER','DEFAULT_DB_DIR');
-my @defaultParamValues = ($Config{'installprefix'},'ReAdW.exe','/etc/jump');
-my @defaultParamHelp = ('Installation prefix','command for Rawfile to mzXML converter','location to install default databases');
+my @defaultParamKeys = ('PREFIX',
+			'RAWFILE_CONVERTER',
+			'DEFAULT_DB_DIR',
+			'BOOTSTRAP_DBS',
+			'USE_BATCH_SYSTEM',
+			'NORMAL_QUEUE',
+			'LARGE_MEM_QUEUE',
+			'ALLOCATION_PROJECT',
+			'MAX_TIME',
+			'MAX_NORMAL_MEMORY',
+			'MAX_LARGE_MEMORY');
+my @defaultParamValues = ($Config{'installprefix'},
+			  'ReAdW.exe',
+			  '/etc/jump',
+			  'human,mouse',
+			  'no-batch',
+			  '',
+			  '',
+			  '',
+			  '',
+			  '',
+			  '');
+my @defaultParamHelp = ('installation prefix',
+			'command for Rawfile to mzXML converter',
+			'location to install default databases',
+			'download & bootstrap default databases for all species in this comma-separated list',
+			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF,slurm)',
+			'queue for jobs that have no special resource needs (only if USE_BATCH_SYSTEM != no-batch)',
+			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
+			'batch system project id to use for allocation charges (only if USE_BATCH_SYSTEM != no-batch)',
+			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
+			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
+			'maximum memory to request for jobs in the LARGE_MEM_QUEUE(only if USE_BATCH_SYSTEM != no-batch)');
 my %defaultParams;
 my %defaultParamHelp;
 @defaultParams{@defaultParamKeys} = @defaultParamValues;
@@ -90,8 +120,14 @@ Some influmential configuration key=value pairs:
 
 EOF
 
-    while( my ($k,$v) = each %defaultParams ) {
-	print "\t$k=$defaultParamHelp{$k}\tdefault:$v\n\n";
+foreach my $k (@defaultParamKeys) {
+    my $v = $defaultParams{$k};
+    if( $v eq '' ) {
+	print "\t$k=$defaultParamHelp{$k}\n\t\tno default value\n\n";
+    }
+    else {
+	print "\t$k=$defaultParamHelp{$k}\n\t\tdefault:$v\n\n";
+    }
 }
     print <<EOF;
 You may pass any key=value pair to Makefile.PL.  Any key=value pair not
@@ -108,6 +144,20 @@ while( my ($k,$v) = each %defaultParams ) {
     else {
 	$options{$k} = $kwargs{$k};
 	delete $kwargs{$k};
+    }
+}
+
+if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
+    my $batch_complete = 1;
+    foreach my $k ('NORMAL_QUEUE','LARGE_MEM_QUEUE','ALLOCATION_PROJECT',
+		   'MAX_TIME','MAX_NORMAL_MEMORY','MAX_LARGE_MEMORY') {
+	if($options{$k} eq '') {
+	    print "You must define $k since you have selected USE_BATCH_SYSTEM=$options{'USE_BATCH_SYSTEM'}\n";
+	    $batch_complete = 0;
+	}
+    }
+    if( ! $batch_complete ) {
+	exit -1;
     }
 }
 
