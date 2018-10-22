@@ -13,7 +13,7 @@ if (scalar(@ARGV) != 1) {
 
 my $cmd;
 unless(defined($dispatch) && $dispatch eq 'localhost') {
-    my $cmd = "bsub -P prot -q normal -R \"rusage[mem=20000]\" -Ip _jump_d.pl " . join(" ",@ARGV);
+    $cmd = "bsub -P prot -q normal -R \"rusage[mem=20000]\" -Ip _jump_d.pl " . join(" ",@ARGV);
 }
 else {
     $cmd="_jump_d.pl " . $ARGV[0];

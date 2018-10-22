@@ -87,7 +87,7 @@ my @defaultParamKeys = ('PREFIX',
 my @defaultParamValues = ($Config{'installprefix'},
 			  'ReAdW.exe',
 			  '/etc/jump',
-			  'human,mouse',
+			  'UP000005640_9606,UP000000589_10090',
 			  'no-batch',
 			  '',
 			  '',
@@ -98,14 +98,14 @@ my @defaultParamValues = ($Config{'installprefix'},
 my @defaultParamHelp = ('installation prefix',
 			'command for Rawfile to mzXML converter',
 			'location to install default databases',
-			'download & bootstrap default databases for all species in this comma-separated list',
+			'download & bootstrap default databases from UniProt for all species in this comma-separated list',
 			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF,slurm)',
 			'queue for jobs that have no special resource needs (only if USE_BATCH_SYSTEM != no-batch)',
 			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
 			'batch system project id to use for allocation charges (only if USE_BATCH_SYSTEM != no-batch)',
 			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
 			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
-			'maximum memory to request for jobs in the LARGE_MEM_QUEUE(only if USE_BATCH_SYSTEM != no-batch)');
+			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)');
 my %defaultParams;
 my %defaultParamHelp;
 @defaultParams{@defaultParamKeys} = @defaultParamValues;

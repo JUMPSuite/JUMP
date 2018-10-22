@@ -1,0 +1,35 @@
+#!/bin/env perl
+
+use Storable;
+use strict;
+
+my $configHash = retrieve($ENV{'JUMP_CONFIG_PATH'});
+my $usage = "usage:\njump_config\n\tprint out contents of site configuration\njump_config -h\n\tprint out this message\njump_params <key>\n\tprint out the value assigned to <key> in the site configuration\njump_config <key> <value>\n\tset the value of <key> to <value>\n";
+
+if(scalar(@ARGV) == 0) {
+    while( my ($k,$v) = each %$configHash ) {
+	print "$k = $v\n";
+    }
+}
+elsif(scalar(@ARGV) == 1 && $ARGV[0] eq '-h') {
+    print $usage;
+    exit 1;
+}
+elsif(scalar(@ARGV) == 1 && defined($configHash->{$ARGV[0]})) {
+    print "$configHash->{$ARGV[0]}\n";
+}
+elsif(scalar(@ARGV) == 1 ) {
+    print "key \"$ARGV[0]\" not defined in site config\n";
+    exit 2;
+}
+elsif(scalar(@ARGV) == 2) {
+    print "setting $ARGV[0] = $ARGV[1]\n";
+    $configHash->{$ARGV[0]} = $ARGV[1];
+    store($configHash,$ENV{'JUMP_CONFIG_PATH'});
+}
+else {
+    print "error in arguments\n";
+    print $usage;
+    exit -1;
+}
+exit 0;
