@@ -8,11 +8,8 @@ use Spiders::JUMPmain;
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
-use Spiders::JobManager;
-use Spiders::Config;
 our $VERSION = 1.13.0;
 
-my $config = new Spiders::Config();
 my ($help,$parameter,$raw_file,$dispatch,$queue);
 my %options;
 GetOptions('-help|h'=>\$help, 
@@ -32,7 +29,7 @@ unless(defined(${$options{'--dtas-backend'}})) {
 }
 
 unless(defined($queue)) {
-    $queue = $config->get('normal_queue');
+    $queue = 'heavy_io';
 }
 
 unless(defined($dispatch)) {
@@ -76,17 +73,10 @@ for my $k (keys(%options)) {
     }
 }
 
-my $config = new Spiders::Config();
-my $batchSystem = $config->get('use_batch_system');
-chomp($batchSystem);
-my $job_manager = new Spiders::JobManager($batchSystem);
-
 if( $dispatch eq "batch-interactive" ) {
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-#    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
-    $job_manager->submitInteractive("\"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"",
-				    {'queue' => $queue} );
+    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch-parallel" ) {
     # foreach my $arg (@ARGV) {
@@ -99,8 +89,7 @@ elsif( $dispatch eq "batch-parallel" ) {
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-#    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
-    $job_manager->submitBatch("\"$cmd --dispatch=localhost | jump_sj_log.pl\"");
+    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
