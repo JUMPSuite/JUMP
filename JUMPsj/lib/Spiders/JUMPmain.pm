@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 
+
 ######### Job #################################################
 #                                                             #
 #       **************************************************    #  
@@ -43,6 +44,8 @@ use Spiders::Dtas;
 use Spiders::FsDtasBackend;
 use Spiders::IdxDtasBackend;
 use Spiders::DtaDir;
+use Spiders::Config;
+use Spiders::JobManager;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -57,8 +60,11 @@ $VERSION     = 1.03;
 sub new
 {
     my ($class,%arg) = @_;
+    my $config = new Spiders::Config(); 
     my $self = {
         _dta_path => undef,
+	'config' => $config,
+	'job_mamager' => new Spiders::JobManager($config->get('use_batch_system'))
     };
     bless $self, $class;
     return $self;
@@ -134,7 +140,7 @@ sub main
 		{	
 			my ($filename, $directory, $suffix) = fileparse($arg,@suffixlist);	
 			system(qq(mkdir $directory/$filename >/dev/null 2>&1));
-			system(qq(mkdir $directory/$filename/lsf >/dev/null 2>&1));
+			system(qq(mkdir $directory/$filename/scripts >/dev/null 2>&1));
 			system(qq(mkdir $directory/$filename/log >/dev/null 2>&1));
 			system(qq(mkdir $directory/$filename/dta >/dev/null 2>&1));
 			link($arg,File::Spec->join($directory,$filename,$filename . $suffix));
@@ -166,7 +172,7 @@ sub main
 			my $dir =  $path->basedir() . "/$newdir";
 			my $rawfile = $arg;
 			$rawfile_hash{$rawfile} = $dir;
-			system(qq(mkdir $dir/lsf >/dev/null 2>&1));
+			system(qq(mkdir $dir/scripts >/dev/null 2>&1));
 			system(qq(mkdir $dir/log >/dev/null 2>&1));
 #		system(qq(mkdir $dir/dta >/dev/null 2>&1));
 			push( @dtadirs, Spiders::DtaDir->new( File::Spec->join($dir,"dta"), 
@@ -312,14 +318,14 @@ sub main
 		{
 			print "  Please specify a right second_search parameter!!\n";
 		}
-		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'},${$options->{'--max-jobs'}});
+		my $temp_file_array=$self->runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'},${$options->{'--max-jobs'}});
 		my $rerunN=0;
 		my $orig_cluster=$params->{'cluster'};
 		while(scalar(@{$temp_file_array})>0 and $rerunN<3)
 		{
 			$rerunN++;
 			print "\n",scalar(@$temp_file_array)," .dta files not finished! Doing re-search (rerunN = $rerunN)\n";
-			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'},${$options->{'--max-jobs'}});
+			my $remaining=$self->runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'},${$options->{'--max-jobs'}});
 
 			$temp_file_array=$remaining;
 		}
@@ -418,7 +424,7 @@ sub Create_Sort_BashFile
 
 sub runjobs
 {
-	my ($file_array,$dta_path,$job_name,$MAX_PROCESSES,$max_jobs) = @_;
+	my ($self,$file_array,$dta_path,$job_name,$MAX_PROCESSES,$max_jobs) = @_;
 	my $curr_dir = getcwd;
 	#my $MAX_PROCESSES = 32;	
 	$MAX_PROCESSES = defined($MAX_PROCESSES)?$MAX_PROCESSES:4;
@@ -448,7 +454,7 @@ sub runjobs
 			$job_num = $i;
 			last;
 		}
-		open (JOB, ">", "$dta_path/lsf/${job_name}_${i}.sh") || die "can not open the job files\n";
+		open (JOB, ">", "$dta_path/scripts/${job_name}_${i}.sh") || die "can not open the job files\n";
 		my $dta_file_temp="";
 	#	my $dta_file_temp2="";
 		my @dta_file_arrays=();
@@ -471,109 +477,124 @@ sub runjobs
 				#}				
 			}
 		}
-		if($params->{'Job_Management_System'} eq 'LSF')
 		{
-			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -g /proteomics/jump/read-only\n";
-			print JOB "#BSUB -q normal\n";
-			print JOB "#BSUB -M 2000\n";
-			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
-			print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
+			# print JOB "#BSUB -P prot\n";
+			# print JOB "#BSUB -g /proteomics/jump/read-only\n";
+			# print JOB "#BSUB -q normal\n";
+			# print JOB "#BSUB -M 2000\n";
+			# print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
+			# print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
+			# print JOB "#BSUB -oo $dta_path/${job_name}_${i}.o\n";
 			foreach (@dta_file_arrays) {
 			    print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";
 			}
 			$job2dtaMap{$i} = clone(\@dta_file_arrays);
 		}
-		elsif($params->{'Job_Management_System'} eq 'SGE')
-		{
-			print JOB "#!/bin/bash\n";
-			print JOB "#\$ -N ${job_name}_${i}\n";
-			print JOB "#\$ -e $dta_path/${job_name}_${i}.e\n";
-			print JOB "#\$ -o $dta_path/${job_name}_${i}.o\n";
+	# 	elsif($params->{'Job_Management_System'} eq 'SGE')
+	# 	{
+	# 		print JOB "#!/bin/bash\n";
+	# 		print JOB "#\$ -N ${job_name}_${i}\n";
+	# 		print JOB "#\$ -e $dta_path/${job_name}_${i}.e\n";
+	# 		print JOB "#\$ -o $dta_path/${job_name}_${i}.o\n";
 			
 			
-	#		print JOB "perl $dta_path/runsearch_shell.pl -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";	
-			foreach (@dta_file_arrays)
-			{
-				print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";	
-			}
-		}
-		else
-		{
-			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";	
-		}
+	# #		print JOB "perl $dta_path/runsearch_shell.pl -param $curr_dir/$parameter -dta_path $dta_path $dta_file_temp\n";	
+	# 		foreach (@dta_file_arrays)
+	# 		{
+	# 			print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";	
+	# 		}
+	# 	}
+	# 	else
+	# 	{
+	# 		print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $dta_file_temp\n";	
+	# 	}
 		
 		close(JOB);
 	}
 
 	######### running jobs ######################### 
 	my $job_list;
-	if($params->{'cluster'} eq '1')
-	{
-		if($params->{'Job_Management_System'} eq 'LSF')
-		{
-			for(my $i=0;$i<$job_num;$i++)
-			{
-				$command_line = qq(cd $dta_path && LSB_JOB_REPORT_MAIL=N bsub <lsf/${job_name}_${i}.sh);
-				my $job=qx[$command_line];
-				while( $? != 0 ) {
-				    sleep(1);
-				    my $job=qx[$command_line];
-				}
-				chomp $job;
-				my $job_id=0;
-				if($job=~/Job \<(\d*)\>/)
-				{
-					$job_id=$1;
-				}
-				else {
-				    croak "could not parse job id $job";
-				}
-				$job_list->{$job_id}= $i;
-				
-			}
-		}
-		elsif($params->{'Job_Management_System'} eq 'SGE')
-		{
+	for(my $i=0;$i<$job_num;$i++) {
+	    $self->{'jobManager'}->submitBatch( "bash scripts/${job_name}_${i}.sh",
+						{'stderr' => "$dta_path/${job_name}_${i}.e",
+						 'stdout' => "$dta_path/${job_name}_${i}.o"} );
+	}
 
-			for(my $i=0;$i<$job_num;$i++)
-			{
-				my $job_name = "${job_name}_${i}.sh";
-				$command_line = qq(cd $dta_path && qsub -cwd $job_name);
-				my $job=qx[$command_line];
-				chomp $job;
-				my $job_id=0;
-				if($job=~/$job_name \<(\d*)\> is/)
-				{
-					$job_id=$1;
-				}
-				$job_list->{$job_id}=1;
-				my $count = $i+1;
-				print "\r  $count jobs were submitted";				
-			}	
-		}
-		print "\n  You submitted $job_num jobs for database search\n";
-		Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);		
+	print "\n  You submitted $job_num jobs for database search\n";	
+	    print "ass\n";
+	$| = 1;
+	while($self->{'jobManager'}->numRunning() > 0) {
+	    my $numFinished = $job_num - $self->{'jobManager'}->numRunning();
+	    print "\r $numFinished jobs finished";
+	    sleep( 30 );
 	}
-	elsif($params->{'cluster'} eq '0')
-	{
-		print "  Only use single server to run jobs (MAX_PROCESSES = $MAX_PROCESSES). Please be patient!\n";
-        my $pm = new Parallel::ForkManager($MAX_PROCESSES);
-        for my $i ( 0 .. $MAX_PROCESSES )
-        {
-            $pm->start and next;
-			my $job_name = "${job_name}_${i}.sh";			
-            system("cd $dta_path && sh lsf/$job_name >/dev/null 2>&1");
-			print "\r  $i jobs were submitted";	
-			Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);				
+	$| = 0;
+	print "All jobs finished.\n";
+	# if($params->{'cluster'} eq '1')
+	# {
+	# 	if($params->{'Job_Management_System'} eq 'LSF')
+	# 	{
+	# 		for(my $i=0;$i<$job_num;$i++)
+	# 		{
+	# 			$command_line = qq(cd $dta_path && LSB_JOB_REPORT_MAIL=N bsub <lsf/${job_name}_${i}.sh);
+	# 			my $job=qx[$command_line];
+	# 			while( $? != 0 ) {
+	# 			    sleep(1);
+	# 			    my $job=qx[$command_line];
+	# 			}
+	# 			chomp $job;
+	# 			my $job_id=0;
+	# 			if($job=~/Job \<(\d*)\>/)
+	# 			{
+	# 				$job_id=$1;
+	# 			}
+	# 			else {
+	# 			    croak "could not parse job id $job";
+	# 			}
+	# 			$job_list->{$job_id}= $i;
+				
+	# 		}
+	# 	}
+	# 	elsif($params->{'Job_Management_System'} eq 'SGE')
+	# 	{
+
+	# 		for(my $i=0;$i<$job_num;$i++)
+	# 		{
+	# 			my $job_name = "${job_name}_${i}.sh";
+	# 			$command_line = qq(cd $dta_path && qsub -cwd $job_name);
+	# 			my $job=qx[$command_line];
+	# 			chomp $job;
+	# 			my $job_id=0;
+	# 			if($job=~/$job_name \<(\d*)\> is/)
+	# 			{
+	# 				$job_id=$1;
+	# 			}
+	# 			$job_list->{$job_id}=1;
+	# 			my $count = $i+1;
+	# 			print "\r  $count jobs were submitted";				
+	# 		}	
+	# 	}
+	# 	print "\n  You submitted $job_num jobs for database search\n";
+	# 	Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);		
+	# }
+	# elsif($params->{'cluster'} eq '0')
+	# {
+	# 	print "  Only use single server to run jobs (MAX_PROCESSES = $MAX_PROCESSES). Please be patient!\n";
+        # my $pm = new Parallel::ForkManager($MAX_PROCESSES);
+        # for my $i ( 0 .. $MAX_PROCESSES )
+        # {
+        #     $pm->start and next;
+	# 		my $job_name = "${job_name}_${i}.sh";			
+        #     system("cd $dta_path && sh lsf/$job_name >/dev/null 2>&1");
+	# 		print "\r  $i jobs were submitted";	
+	# 		Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);				
 			
-            $pm->finish; # Terminates the child process
-        }
+        #     $pm->finish; # Terminates the child process
+        # }
 	
-        $pm->wait_all_children;		
-	}
-#=head
+        # $pm->wait_all_children;		
+	# }
+#=Head
 	#### checking whether all dta files has been searched  
 	my $temp_file_array;
 	if($params->{'Job_Management_System'} eq 'LSF') {

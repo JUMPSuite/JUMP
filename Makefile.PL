@@ -10,16 +10,17 @@ sub get_etc_path {
 
 sub configure_jump_driver {
     my %options = %{shift(@_)};
-    my $fh;
-    open( $fh, '<'.File::Spec->join('JUMP','bin','jump.in' ) );
     my @lines;
-    while(<$fh>) {
-	push( @lines, $_ );
+    my $libpath;
+    my $extra_jump_dir = '';
+    unless( $options{'INPLACE'} == 1 ) {
+	$libpath = $Config{'installsitelib'};
+	$libpath =~ s/$Config{'installprefix'}/$options{'prefix'}/g;
     }
-    close( $fh );
-
-    my $libpath = $Config{'installsitelib'};
-    $libpath =~ s/$Config{'installprefix'}/$options{'prefix'}/g;
+    else {
+	$libpath = 'lib';
+	$extra_jump_dir = 'JUMP';
+    }
     
     my $header = shift(@lines);
     my @jump_g_lib_dirs = ('c','f','g','s');
@@ -28,7 +29,7 @@ sub configure_jump_driver {
     unshift( @lines, 
 	     "export JUMP_READW_EXE=$options{'RAWFILE_CONVERTER'}\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
-	     "PATH=".File::Spec->join($options{'PREFIX'},'bin').":\$PATH\n", 
+	     "PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPf/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPl/bin').":\$PATH\n", 
@@ -54,9 +55,19 @@ sub configure_jump_driver {
 	} 
     }
     unshift( @lines, $header );
-    open( $fh, '>'.File::Spec->join('JUMP','bin','jump' ) );
+
+    open( my $fh, '>'.File::Spec->join('JUMP','bin','config.sh' ) );
     print $fh @lines;
     close( $fh );
+
+    open( $fh, '>'.File::Spec->join('JUMP','bin','jump') );
+    print $fh "#!/bin/bash\n"."PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n";
+    open( my $template, '<'.File::Spec->join('JUMP','bin','jump.in' ) );
+    while(<$template>) {
+	print $fh $_;
+    }
+    close( $fh );
+    close( $template );
 }
 
 my @subdirs = ('JUMPd','JUMPf', 'JUMPl', 
@@ -83,29 +94,39 @@ my @defaultParamKeys = ('PREFIX',
 			'ALLOCATION_PROJECT',
 			'MAX_TIME',
 			'MAX_NORMAL_MEMORY',
-			'MAX_LARGE_MEMORY');
+			'MAX_LARGE_MEMORY',
+			'EXTRA_READWRITE_JOB_FLAGS',
+			'EXTRA_READONLY_JOB_FLAGS',
+			'INPLACE');
 my @defaultParamValues = ($Config{'installprefix'},
 			  'ReAdW.exe',
 			  '/etc/jump',
-			  'UP000005640_9606,UP000000589_10090',
+#			  'UP000005640_9606,UP000000589_10090',
+			  '',
 			  'no-batch',
 			  '',
 			  '',
 			  '',
 			  'inf',
 			  'inf',
-			  'inf');
+			  'inf',
+			  '',
+			  '',
+			  '0');
 my @defaultParamHelp = ('installation prefix',
 			'command for Rawfile to mzXML converter',
 			'location to install default databases',
-			'download & bootstrap default databases from UniProt for all species in this comma-separated list',
+			'bootstrap databases for all FASTA files in this colon-separated list',
 			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF,slurm)',
 			'queue for jobs that have no special resource needs (only if USE_BATCH_SYSTEM != no-batch)',
 			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
 			'batch system project id to use for allocation charges (only if USE_BATCH_SYSTEM != no-batch)',
 			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
 			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
-			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)');
+			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
+			'extra flags for jobs that perform intense IO',
+			'extra flags for jobs that do not perform intense IO',
+			'perform an in-place configuration');
 my %defaultParams;
 my %defaultParamHelp;
 @defaultParams{@defaultParamKeys} = @defaultParamValues;
@@ -147,6 +168,11 @@ while( my ($k,$v) = each %defaultParams ) {
     }
 }
 
+my $rootdir = getcwd();
+if( $options{'INPLACE'} == 1 ) {
+    $options{'PREFIX'} = $rootdir;
+}
+
 if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     my $batch_complete = 1;
     foreach my $k ('NORMAL_QUEUE','LARGE_MEM_QUEUE','ALLOCATION_PROJECT',
@@ -161,17 +187,32 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     }
 }
 
-$options{'ENVIRONMENT'} = \%kwargs;
-
 my $etcPath = get_etc_path(\%options);
 my $cfgFile = File::Spec->join($etcPath,'cfg.bin');
-my $jumpPath = File::Spec->join($options{'PREFIX'},'bin','jump');
+my $jumpPath;
+if($options{'INPLACE'} == 0) {
+    $jumpPath = File::Spec->join($options{'PREFIX'},'bin','jump');
+}
+else {
+    $jumpPath = File::Spec->join($options{'PREFIX'},'JUMP','bin','jump');
+}
 open( my $genSiteConfigFile, '>gen-site-config.sh' );
 print $genSiteConfigFile <<EOF;
 if [ ! -d $etcPath ] ; then mkdir $etcPath ; fi
 perl -e "use Storable; my %h; store(\\%h,'$cfgFile');"
-$jumpPath -config install good
+$jumpPath -config use_batch_system "$options{'USE_BATCH_SYSTEM'}"
+$jumpPath -config normal_queue "$options{'NORMAL_QUEUE'}"
+$jumpPath -config large_mem_queue "$options{'LARGE_MEM_QUEUE'}"
+$jumpPath -config allocation_project "$options{'ALLOCATION_PROJECT'}"
+$jumpPath -config max_time "$options{'MAX_TIME'}"
+$jumpPath -config max_normal_memory "$options{'MAX_NORMAL_MEMORY'}"
+$jumpPath -config max_large_memory "$options{'MAX_LARGE_MEMORY'}"
+$jumpPath -config extra_readwrite_job_flags "$options{'EXTRA_READWRITE_JOB_FLAGS'}"
+$jumpPath -config extra_readonly_job_flags "$options{'EXTRA_READONLY_JOB_FLAGS'}"
 EOF
+
+
+$options{'ENVIRONMENT'} = \%kwargs;
 
 my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 open( my $makefile, '>Makefile' );
@@ -194,16 +235,20 @@ Makefile: Makefile.PL
 \tfalse
 EOF
 
-my $rootdir = getcwd();
-foreach my $dir (@subdirs) {
-    chdir($dir);
-    system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
+if($options{'INPLACE'} == 0) {
+    foreach my $dir (@subdirs) {
+	chdir($dir);
+	system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
+	chdir($rootdir);
+    }
+
+    configure_jump_driver(\%options);
+    chdir('JUMP');
+    system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
     chdir($rootdir);
 }
-
-
-configure_jump_driver(\%options);
-chdir('JUMP');
-system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
-chdir($rootdir);
+else {
+    configure_jump_driver(\%options);
+    system("sh gen-site-config.sh");
+}
 

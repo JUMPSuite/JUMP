@@ -1,4 +1,4 @@
-#!/bin/bash
+source config.sh
 
 case $1 in 
 -s)

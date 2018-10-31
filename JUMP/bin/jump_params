@@ -6,6 +6,58 @@ use Cwd;
 use File::Basename;
 use File::Spec;
 
+sub paramsFileName {
+    my ($searchEngine,$condition,$currDir,$sOrF) = @_;
+    my $paramsDir;
+    my $paramsName;
+
+    if ($searchEngine eq "JUMP") {
+	$paramsName = "jump_${sOrF}j_";
+    } else {
+	$paramsName = "jump_${sOrF}s_";
+    }
+    if ($condition eq "HH") {
+	$paramsName = $paramsName."HH_human.params";
+    } elsif ($condition eq "HL") {
+	$paramsName = $paramsName."HL_human.params";
+    } elsif ($condition eq "TMThh") {
+	$paramsName = $paramsName."HH_tmt10_human.params";
+    } elsif ($condition eq "TMThhpho") {
+	$paramsName = $paramsName."HH_pho_tmt10_human.params";
+    }
+    
+    ##########################
+    ## Print .params files	##
+    ##########################
+    if ($condition eq "HH") {
+	$paramsDir = $currDir."/HH";
+	if (!-e $paramsDir) {
+	    system("mkdir $paramsDir");
+	}
+	$paramsName = $paramsDir."/".$paramsName;
+    } elsif ($condition eq "HL") {
+	$paramsDir = $currDir."/HL";
+	if (!-e $paramsDir) {
+	    system("mkdir $paramsDir");
+	}
+	$paramsName = $paramsDir."/".$paramsName;			
+    } elsif ($condition eq "TMThh") {
+	$paramsDir = $currDir."/TMThh";
+	if (!-e $paramsDir) {
+	    system("mkdir $paramsDir");
+	}
+	$paramsName = $paramsDir."/".$paramsName;			
+    } else {
+	$paramsDir = $currDir."/TMThhpho";
+	if (!-e $paramsDir) {
+	    system("mkdir $paramsDir");
+	}
+	$paramsName = $paramsDir."/".$paramsName;			
+    }
+
+    return ($paramsName,$paramsDir);
+}
+
 ## search engine & condition information
 my @searchEngines;
 my @conditions;
@@ -168,49 +220,7 @@ foreach my $searchEngine (@searchEngines) {
 			$addKLysine = 229.162932;
 		}
 		## Params file name
-		if ($searchEngine eq "JUMP") {
-			$paramsName = "jump_sj_";
-		} else {
-			$paramsName = "jump_ss_";
-		}
-		if ($condition eq "HH") {
-			$paramsName = $paramsName."HH_human.params";
-		} elsif ($condition eq "HL") {
-			$paramsName = $paramsName."HL_human.params";
-		} elsif ($condition eq "TMThh") {
-			$paramsName = $paramsName."HH_tmt10_human.params";
-		} elsif ($condition eq "TMThhpho") {
-			$paramsName = $paramsName."HH_pho_tmt10_human.params";
-		}
-		
-		##########################
-		## Print .params files	##
-		##########################
-		if ($condition eq "HH") {
-			$paramsDir = $currDir."/HH";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;
-		} elsif ($condition eq "HL") {
-			$paramsDir = $currDir."/HL";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;			
-		} elsif ($condition eq "TMThh") {
-			$paramsDir = $currDir."/TMThh";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;			
-		} else {
-			$paramsDir = $currDir."/TMThhpho";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;			
-		}
+		($paramsName,$paramsDir) = paramsFileName( $searchEngine, $condition, $currDir, "s" );
 		open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 		print PARAMS "# JUMP search parameter file (Version: $version, Date: $releaseDate)\n";
 		print PARAMS "\n";
@@ -414,50 +424,52 @@ foreach my $searchEngine (@searchEngines) {
 		if ($condition eq "TMThh") {
 			$oneHitMinDcn = 0;
 		}
-		## Params file name
-		if ($searchEngine eq "JUMP") {
-			$paramsName = "jump_fj_";
-		} else {
-			$paramsName = "jump_fs_";
-		}
-		if ($condition eq "HH") {
-			$paramsName = $paramsName."HH_human.params";
-		} elsif ($condition eq "HL") {
-			$paramsName = $paramsName."HL_human.params";
-		} elsif ($condition eq "TMThh") {
-			$paramsName = $paramsName."HH_tmt10_human.params";
-		} elsif ($condition eq "TMThhpho") {
-			$paramsName = $paramsName."HH_pho_tmt10_human.params";
-		}
+		($paramsName,$paramsDir) = paramsFileName( $searchEngine, $condition, 
+							   $currDir, "f" );
+		# ## Params file name
+		# if ($searchEngine eq "JUMP") {
+		# 	$paramsName = "jump_fj_";
+		# } else {
+		# 	$paramsName = "jump_fs_";
+		# }
+		# if ($condition eq "HH") {
+		# 	$paramsName = $paramsName."HH_human.params";
+		# } elsif ($condition eq "HL") {
+		# 	$paramsName = $paramsName."HL_human.params";
+		# } elsif ($condition eq "TMThh") {
+		# 	$paramsName = $paramsName."HH_tmt10_human.params";
+		# } elsif ($condition eq "TMThhpho") {
+		# 	$paramsName = $paramsName."HH_pho_tmt10_human.params";
+		# }
 		
-		##########################
-		## Print .params files	##
-		##########################
-		if ($condition eq "HH") {
-			$paramsDir = $currDir."/HH";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;
-		} elsif ($condition eq "HL") {
-			$paramsDir = $currDir."/HL";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;
-		} elsif ($condition eq "TMThh") {
-			$paramsDir = $currDir."/TMThh";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;
-		} else {
-			$paramsDir = $currDir."/TMThhpho";
-			if (!-e $paramsDir) {
-				system("mkdir $paramsDir");
-			}
-			$paramsName = $paramsDir."/".$paramsName;
-		}
+		# ##########################
+		# ## Print .params files	##
+		# ##########################
+		# if ($condition eq "HH") {
+		# 	$paramsDir = $currDir."/HH";
+		# 	if (!-e $paramsDir) {
+		# 		system("mkdir $paramsDir");
+		# 	}
+		# 	$paramsName = $paramsDir."/".$paramsName;
+		# } elsif ($condition eq "HL") {
+		# 	$paramsDir = $currDir."/HL";
+		# 	if (!-e $paramsDir) {
+		# 		system("mkdir $paramsDir");
+		# 	}
+		# 	$paramsName = $paramsDir."/".$paramsName;
+		# } elsif ($condition eq "TMThh") {
+		# 	$paramsDir = $currDir."/TMThh";
+		# 	if (!-e $paramsDir) {
+		# 		system("mkdir $paramsDir");
+		# 	}
+		# 	$paramsName = $paramsDir."/".$paramsName;
+		# } else {
+		# 	$paramsDir = $currDir."/TMThhpho";
+		# 	if (!-e $paramsDir) {
+		# 		system("mkdir $paramsDir");
+		# 	}
+		# 	$paramsName = $paramsDir."/".$paramsName;
+		# }
 		open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 		print PARAMS "# JUMP filtering parameter file (Version: $version, Date: $releaseDate)\n";
 		print PARAMS "\n";
@@ -675,6 +687,7 @@ if (!-e $paramsDir) {
 	system ("mkdir $paramsDir");
 }
 my $paramsName = $paramsDir."/jump_d.params";
+my ($searchParamFile,$searchParamDir) = paramsFileName("JUMP","HH",$currDir,"s");
 open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 print PARAMS "# JUMP database generation parameter file (Version: $version, Date: $releaseDate)\n";
 print PARAMS "# JUMPd generates a search database and/or a protein inference table (PIT) using the input databases (.fasta files)\n";
@@ -690,7 +703,7 @@ print PARAMS "include_contaminants = 1									# 0 = do not include contaminants
 print PARAMS "input_contaminants = /hpcf/authorized_apps/proteomics_apps/database/contaminants.fasta						# Absolute path of a .fasta file containing contaminants\n";
 print PARAMS "decoy_generation = 1										# 0 = do not include decoys; 1 = include decoys\n";
 print PARAMS "decoy_generation_method = 1									# 1 = reverse; 2 = reverse and switch every K/R with its preceding AA\n";
-print PARAMS "jump.params = /usr/search/jump_search.params							# Only search engine and modification information will be obtained from the file\n";
+print PARAMS "jump.params = $searchParamFile							# Only search engine and modification information will be obtained from the file\n";
 print PARAMS "												# \"database_name\" in a jump.params file will be ignored\n";
 print PARAMS "bypass_db_generation = 0									# 0 = generate database, 1 = bypass the generation of database (only pit will be generated)\n";
 print PARAMS "\n";
