@@ -504,7 +504,7 @@ sub generateNormalizedFiles {
 			my @removedPsms = @psms[@indRemoved];
 			foreach my $psm (@removedPsms) {		
 				my @elems = split(/;/, $rawScan{$peptide}{$psm});
-				splice(@elems, 16 + $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
+				splice(@elems, scalar(@elems) - $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
 				print PSM2PEP_OUTLIER join(";", @elems), "\n";
 			}
 		}		
@@ -533,7 +533,7 @@ sub generateNormalizedFiles {
 		@psms = @psms[@indRetained];
 		foreach my $psm (@psms) {		
 			my @elems = split(/;/, $rawScan{$peptide}{$psm});
-			splice(@elems, 16 + $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
+			splice(@elems, scalar(@elems) - $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
 			print PSM2PEP join(";", @elems), "\n";
 		}
 	
@@ -605,7 +605,7 @@ sub generateNormalizedFiles {
 				my @removedPsms = @psms[@indRemoved];
 				foreach my $psm (@removedPsms) {		
 					my @elems = split(/;/, $rawScan{$psm2pep{$psm}}{$psm});
-					splice(@elems, 16 + $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
+					splice(@elems, scalar(@elems) - $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
 					print PSM2PROT_OUTLIER "$protein;$elems[0];" . join(";", @elems[2..$#elems]), "\n";
 				}
 			}
@@ -637,7 +637,7 @@ sub generateNormalizedFiles {
 			@psms = @psms[@indRetained];
 			foreach my $psm (@psms) {
 				my @elems = split(/;/, $rawScan{$psm2pep{$psm}}{$psm});
-				splice(@elems, 16 + $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
+				splice(@elems, scalar(@elems) - $nReporters, $nReporters, @{$normPsmIntensity{$psm}});
 				print PSM2PROT "$protein;$elems[0];" . join(";", @elems[2..$#elems]), "\n";
 			}
 		}
