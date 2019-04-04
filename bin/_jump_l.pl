@@ -61,10 +61,12 @@ print "  Initializing jump -l program\n\n";
 print LOGFILE "  Initializing jump -l program\n\n";
 
 my $queue;
-if( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+if( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "LSF" || 
+				  $params->{'Job_Management_System'} == "LSF" ) ) {
     $queue = Spiders::LSFQueue->new();
 }
-elsif( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+elsif( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "SGE" ||
+       				  $params->{'Job_Management_System'} == "SGE" ) ) {
     $queue = Spiders::SGEQueue->new();
 }
 else {
