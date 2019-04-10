@@ -30,7 +30,7 @@ my $dispatch;
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
 if(!defined($queue) && !defined($mem)) {
-    $queue = 'normal';
+    $queue = 'standard';
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 
