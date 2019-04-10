@@ -560,7 +560,7 @@ sub runjobs
                 if($parahash{'Job_Management_System'} eq 'LSF')
                 {
 		    print JOB "#BSUB -P prot\n";
-		    print JOB "#BSUB -q normal\n";
+		    print JOB "#BSUB -q standard\n";
 		    print JOB "#BSUB -M 2000\n";
 		    print JOB "#BSUB -g /proteomics/jump/read-only\n";		    
 		    print JOB "#BSUB -g /proteomics/jump/read-only\n";
@@ -829,7 +829,7 @@ my $sequest28single='/data/bin/sequest28single';
 		if ($$parahash{Job_Management_System} eq 'LSF')
 		{
                         print JOB "#BSUB -P prot\n";
-                        print JOB "#BSUB -q normal\n";
+                        print JOB "#BSUB -q standard\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";
                         print JOB "#BSUB -eo $run/$i.e\n";

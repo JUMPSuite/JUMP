@@ -27,7 +27,7 @@ my $mem;
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem);
 
 if(!defined($queue) && !defined($mem)) {
-    $queue = 'normal';
+    $queue = 'standard';
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 
@@ -39,5 +39,5 @@ elsif(!defined($mem)) {
 }
 
 unless( scalar(@ARGV) > 0 ) { print "\tUsage: perl rundtas rundtas.params qc_MSMS_input.txt\n"; }
-$cmd="bsub -env all -g /proteomics/jump/read-write -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip JUMPg_v2.3.pl " . join( " ", @ARGV );
+$cmd="bsub -env all d -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip JUMPg_v2.3.pl " . join( " ", @ARGV );
 system($cmd);

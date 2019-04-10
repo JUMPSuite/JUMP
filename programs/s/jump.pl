@@ -416,7 +416,7 @@ sub runjobs
 		if($params->{'Job_Management_System'} eq 'LSF')
 		{
 			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -q standard\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
@@ -555,7 +555,7 @@ sub LuchParallelJob{
 	if($GridType eq 'LSF')
 	{	
 			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -q standard\n";
 			print JOB "#BSUB -M 20000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			
@@ -907,7 +907,7 @@ sub database_creation
 			if($params->{'Job_Management_System'} eq 'LSF')
 			{
 				print JOB "#BSUB -P prot\n";
-				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -q standard\n";
 				print JOB "#BSUB -M 20000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";
