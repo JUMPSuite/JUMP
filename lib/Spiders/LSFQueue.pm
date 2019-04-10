@@ -17,7 +17,7 @@ sub submit_job {
     open (JOB, ">$file") or die "Cannot create a job file\n";
     print JOB "#!/bin/bash\n";
     print JOB "#BSUB -P prot\n";
-    print JOB "#BSUB -q normal\n";
+    print JOB "#BSUB -q standard\n";
     print JOB "#BSUB -R \"rusage[mem=20000]\"\n";
     print JOB "#BSUB -eo $path/$name.e\n";
     print JOB "#BSUB -oo $path/$name.o\n";
@@ -30,7 +30,7 @@ sub submit_job {
 	$job = $1;
     }
     else {
-	warn "could not parse bsub output";
+	warn "could not parse bsub output: $job";
     }
     return $job
 }

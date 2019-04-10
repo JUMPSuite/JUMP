@@ -154,7 +154,8 @@ if ($params -> {'cluster'} eq '1') {
 		for (my $i = 0; $i < $nJobs; $i++) {
 			my $jobName = "Job_PTM_".$nTotalJobs;
 			my $cmd = "";
-			for (my $j = 0; $j < $nEntriesPerJob; $j++) {
+			unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
+			for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0; $j++) {
 				my $k = $nEntriesPerJob * $i + $j;
 				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
