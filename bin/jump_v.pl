@@ -1,7 +1,7 @@
 #!/bin/env perl
 
 use Getopt::Long;
-our $VERSION = "1.13.0";
+our $VERSION = "1.13.001";
 
 my ($help,$parameter);
 GetOptions('-help|h'=>\$help,
