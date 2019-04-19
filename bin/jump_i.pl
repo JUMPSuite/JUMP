@@ -4,7 +4,7 @@ use strict;
 use Clone 'clone';
 use Statistics::R;
 
-our $VERSION = "1.13.0";
+our $VERSION = "1.13.001";
 
 if (scalar(@ARGV)!=1)
 {
