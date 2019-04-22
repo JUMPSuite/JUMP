@@ -3,33 +3,21 @@
 my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
-use strict;
 use Spiders::JUMPmain;
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
-our $VERSION = 1.13.0;
+our $VERSION = 1.13.001;
 
-my ($help,$parameter,$raw_file,$dispatch,$queue);
+my ($help,$parameter,$raw_file,$dispatch);
 my %options;
-GetOptions('-help|h'=>\$help, 
-	   '--dispatch=s'=>\$dispatch,
-	   '-p=s'=>\$parameter, 
-	   '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
-	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}}, 
-	   '--queue=s'=>\$queue, 
+GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
+	   '-p=s'=>\$parameter, '--dtafile-location=s'=>\${$options{'--dtafile-location'}},
+	   '--keep-dtafiles'=>\${$options{'--keep-dtafiles'}},
+	   '--queue=s'=>\${$options{'--queue'}},
 	   '--preserve-input'=>\${$options{'--preserve-input'}},
-	   '--max-jobs=s'=>\${$options{'--max-jobs'}},
-	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}},
+	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
     );
-
-unless(defined(${$options{'--dtas-backend'}})) {
-    ${$options{'--dtas-backend'}} = 'idx';
-}
-
-unless(defined($queue)) {
-    $queue = 'heavy_io';
-}
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
@@ -38,6 +26,13 @@ unless(defined($dispatch)) {
 unless(defined(${$options{'--max-jobs'}})) {
     ${$options{'--max-jobs'}} = 512;
 }
+
+
+unless(defined(${$options{'--queue'}})) {
+    ${$options{'--queue'}} = "standard";
+}
+my $queue = ${$options{'--queue'}};
+
 
 if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
     ${$options{'--dtafile-location'}} = File::Spec->rel2abs(${$options{'--dtafile-location'}});
@@ -53,7 +48,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.0                          ****     #
+#       ****  Version 1.13.001                      ****     #
 #       ****  Xusheng Wang / Junmin Peng              ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
@@ -65,7 +60,6 @@ print <<EOF;
 
 EOF
 
-my $options_str;
 for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
 	$options_str .= $k . "=" . ${$options{$k}} . " ";
@@ -75,20 +69,11 @@ for my $k (keys(%options)) {
 if( $dispatch eq "batch-interactive" ) {
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
-}
-elsif( $dispatch eq "batch-parallel" ) {
-    # foreach my $arg (@ARGV) {
-    # 	my $cmd = 'jump_sj.pl ' . $arg . " -p " . $parameter . " " . $options_str;
-    # 	print "submitting job for $arg\n";
-    # 	system( "$cmd --dispatch=batch --queue=$queue &> /dev/null" );
-    # }
-    print "batch-parallel mode not yet supported\n";
-    exit -1;
+    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
 elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -g /proteomics/jump/read-write -P prot -q normal -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
+    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
 elsif( $dispatch eq "localhost" ) {
     my $library = $Bin;
@@ -109,7 +94,7 @@ print <<"EOF";
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.0                          ****     #
+#       ****  Version 1.13.001                        ****     #
 #       ****  Xusheng Wang / Junmin Peng              ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
@@ -119,9 +104,9 @@ print <<"EOF";
 ################################################################
 
 
-Usage: $0 -p parameterfile rawfile.raw 
+Usage: $progname -p parameterfile rawfile.raw 
 	or
-       $0 -p parameterfile rawfile.mzXML
+       $progname -p parameterfile rawfile.mzXML
 	
 
 EOF

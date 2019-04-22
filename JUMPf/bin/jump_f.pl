@@ -14,7 +14,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump filter                             ****     #
-#       ****  Version 1.13.0                          ****     #
+#       ****  Version 1.13.001                        ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #
@@ -28,7 +28,7 @@ my $dispatch;
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
 if(!defined($queue) && !defined($mem)) {
-    $queue = 'normal';
+    $queue = 'standard';
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 

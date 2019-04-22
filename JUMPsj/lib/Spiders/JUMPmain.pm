@@ -18,7 +18,6 @@ package Spiders::JUMPmain;
 use Cwd;
 use Cwd 'abs_path';
 use Storable;
-use Clone qw(clone);
 use Carp;
 use File::Basename;
 use File::Spec;
@@ -39,10 +38,6 @@ use Spiders::RankHits;
 use Spiders::SpoutParser;
 use Parallel::ForkManager;
 use Spiders::MassCorrection;
-use Spiders::Dtas;
-use Spiders::FsDtasBackend;
-use Spiders::IdxDtasBackend;
-use Spiders::DtaDir;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -103,7 +98,6 @@ sub main
 
 	## Create the path for multiple raw files
 	my %rawfile_hash;
-	my @dtadirs;
 	print "  Using the following rawfiles:\n";
 	foreach $arg (sort @$rawfile_array)
 	{
@@ -161,14 +155,11 @@ sub main
 			my $dir =  $path->basedir() . "/$newdir";
 			my $rawfile = $arg;
 			$rawfile_hash{$rawfile} = $dir;
-			system(qq(mkdir $dir/lsf >/dev/null 2>&1));
-			system(qq(mkdir $dir/log >/dev/null 2>&1));
-#		system(qq(mkdir $dir/dta >/dev/null 2>&1));
-			push( @dtadirs, Spiders::DtaDir->new( File::Spec->join($dir,"dta"), 
-							      ${$options->{'--dtafile-location'}}, 
-							      ${$options->{'--keep-dtafiles'}} ) );
-			system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
-			print LOC "$dir\n";
+		system(qq(mkdir $dir/lsf >/dev/null 2>&1));
+		system(qq(mkdir $dir/log >/dev/null 2>&1));
+		system(qq(mkdir $dir/dta >/dev/null 2>&1));
+		system(qq(cp -rf $parameter "$dir/jump.params" >/dev/null 2>&1));
+		print LOC "$dir\n";
 		}
 	}
 	close LOC;
@@ -216,20 +207,10 @@ sub main
 
 		my $mzXML = $proc_raw->raw2mzXML();
 		my ($vol,$dir,$f) = File::Spec->splitpath($dta_path);
-		if( length($f) == 0 ) {
-		    my @dirs = File::Spec->splitdir($dir);
-		    pop(@dirs);
-		    ($vol,$dir,$f) = File::Spec->splitpath($mzXML);
-		    if( ! -e File::Spec->join(File::Spec->join(@dirs),$mzXML) ) {
-			link($mzXML,File::Spec->join(File::Spec->join(@dirs),$mzXML));
-		    }
-		}
-		else {
-		    if( ! -e File::Spec->join($dir,$mzXML) ) {
-			link($mzXML,File::Spec->join($dir,$mzXML));
-		    }
-		}
-
+		my @dirs = File::Spec->splitdir($dir);
+		pop(@dirs);
+		($vol,$dir,$f) = File::Spec->splitpath($mzXML);
+		link($mzXML,File::Spec->join(File::Spec->join(@dirs),$f));
 		##################### Linux part ############################
 		print "  Extracting peaks from .mzXML\n";
 		my $proc_xml = new Spiders::ProcessingMzXML();
@@ -253,7 +234,7 @@ sub main
 		%msms_hash = %$msms_hash_corrected;
 		@mz_array = @$mz_array_corrected;
 
-		print "\n  Decharging scans ";
+		print "\n  Decharging scans\n";
 		my $pip = new Spiders::PIP;
 		$pip->set_parameter($params);
 		$pip->set_origmz_array(\@mz_array);
@@ -276,7 +257,7 @@ sub main
 		$pip->set_dta_path($dta_path);	
 		my $PIPref = $pip->Calculate_PIP();
 
-		my ($charge_dist,$ppi_dist) = $pip->changeMH_folder($PIPref,${$options->{'--dtas-backend'}});
+		my ($charge_dist,$ppi_dist) = $pip->changeMH_folder($PIPref);
 
 
 		########################## Start Searching #######################################
@@ -286,22 +267,15 @@ sub main
 		$job->set_library_path($library);		
 		$job->set_dta_path("$dta_path");
 		$job->set_pip($PIPref);
-		my $dtas;
-		if(${$options->{'--dtas-backend'}} eq 'fs' ) {
-		    $dtas = Spiders::Dtas->new(Spiders::FsDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
-		}
-		else {
-		    $dtas = Spiders::Dtas->new(Spiders::IdxDtasBackend->new(File::Spec->join($dta_path,"dta"),"read"));
-		}
-		my @file_array = @{$dtas->list_dta()};#splitall(glob("$dta_path/*.dta"));
+		my @file_array = glob("$dta_path/*.dta");
 		my $random = int(rand(100));
 		if($params->{'second_search'} == 0)
 			{
-			$job->create_script(0,${$options->{'--dtas-backend'}});
+			$job->create_script(0);
 		}
 		elsif($params->{'second_search'} == 1)
 		{
-			$job->create_script(1,${$options->{'--dtas-backend'}});
+			$job->create_script(1);
 		}
 		else
 		{
@@ -435,8 +409,7 @@ sub runjobs
 	#my $dta_num_per_file = 200/($num_dynamic_mod*2);
 	#my $job_num=int($#file_array/$dta_num_per_file)+1;
 	#$job_num = $#$file_array+1 if($#$file_array<$job_num);
-
-	my %job2dtaMap;
+ 
 	for(my $i = 0; $i < $job_num; $i++)
 	{	
 		if (($i * $dta_num_per_file) > $#$file_array) {
@@ -470,7 +443,7 @@ sub runjobs
 		{
 			print JOB "#BSUB -P prot\n";
 			print JOB "#BSUB -g /proteomics/jump/read-only\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -q standard\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
@@ -478,7 +451,6 @@ sub runjobs
 			foreach (@dta_file_arrays) {
 			    print JOB "perl $dta_path/runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path $_\n";
 			}
-			$job2dtaMap{$i} = clone(\@dta_file_arrays);
 		}
 		elsif($params->{'Job_Management_System'} eq 'SGE')
 		{
@@ -525,8 +497,7 @@ sub runjobs
 				else {
 				    croak "could not parse job id $job";
 				}
-				$job_list->{$job_id}= $i;
-				
+				$job_list->{$job_id}=1;
 			}
 		}
 		elsif($params->{'Job_Management_System'} eq 'SGE')
@@ -571,37 +542,16 @@ sub runjobs
 #=head
 	#### checking whether all dta files has been searched  
 	my $temp_file_array;
-	if($params->{'Job_Management_System'} eq 'LSF') {
-	    # check all job statuses
-	    foreach my $id (keys(%$job_list)) {
-		my $cmd = "bjobs -noheader $id";
-		my $result = qx[$cmd];
-		chomp($result);
-		my @tokens = split(/\s+/,$result);
-		unless( $tokens[2] eq "DONE" ) {
-		    foreach my $dta (@{$job2dtaMap{$job_list->{$id}}}) {
-			my $out_file = $dta;
-			$out_file =~ s/\.dta$/\.spout/;
-			if( ! -e $out_file ) {
-			    push (@{$temp_file_array},$data_file);
-			}
-		    }
-		}
-	    }
-	}
-	else {
-	    for(my $k=0;$k<=$#$file_array;$k++)
-	    {
+	for(my $k=0;$k<=$#$file_array;$k++)
+	{
 		my $data_file = $file_array->[$k];
 		my $out_file = $data_file;
 		#$out_file =~ s/\.dta$/\.out/;
 		$out_file =~ s/\.dta$/\.spout/;
-		$out_file = File::Spec->join($dta_path,$out_file);
 		if(!-e $out_file)
 		{
-		    push (@{$temp_file_array},$data_file);
+			push (@{$temp_file_array},$data_file);
 		}
-	    }
 	}
 	return $temp_file_array;
 =head
@@ -642,7 +592,7 @@ sub LuchParallelJob{
 	{	
 			print JOB "#BSUB -P prot\n";
 			print JOB "#BSUB -g /proteomics/jump/read-only\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -q standard\n";
 			print JOB "#BSUB -M 20000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			
@@ -1005,7 +955,7 @@ sub database_creation
 			{
 				print JOB "#BSUB -P prot\n";
 				print JOB "#BSUB -g /proteomics/jump/read-only\n";
-				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -q standard\n";
 				print JOB "#BSUB -M 20000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";
@@ -1131,7 +1081,7 @@ sub database_creation
 			    if($params->{'Job_Management_System'} eq 'LSF') {
 				print JOB "#BSUB -P prot\n";
 				print JOB "#BSUB -g /proteomics/jump/read-only\n";
-				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -q standard\n";
 				print JOB "#BSUB -M 200000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
@@ -1418,37 +1368,25 @@ sub make_tags
 	open(OUT,">$output");
         my $k=0;
         my $tt=scalar(@tagfile);
-	$| = 1;
-	my $percent = 0;
-	print "  collecting tag files ";
         foreach my $tag (@tagfile)
         {
-	    $k++;
-	    if( ($k/$tt)*100 >= $percent ) {
-		if( $percent % 25 == 0 ) {
-		    print "${percent}%";
-		}
-		else {
-		    print '.';
-		}
-		$percent += 5;
-	    }
+                $k++;
+                print "\r  collecting $k out of $tt tag files";
 
-	    my @t=split /\//,$tag;
-	    $tag=$t[$#t];
+                my @t=split /\//,$tag;
+                $tag=$t[$#t];
 
-	    print OUT "$tag\n";
+                print OUT "$tag\n";
 
-	    my $fullpath="$dta_path\/$tag";
-	    open(IN,$fullpath) or die "cannot open $fullpath";
-	    my @lines=<IN>;
-	    close IN;
+                my $fullpath="$dta_path\/$tag";
+                open(IN,$fullpath) or die "cannot open $fullpath";
+                my @lines=<IN>;
+                close IN;
 
-	    for (my $i=0; $i<=$#lines;$i++) { print OUT "$lines[$i]"; }
+                for (my $i=0; $i<=$#lines;$i++) { print OUT "$lines[$i]"; }
         }
         close OUT;
         print "\n";
-	$| = 0;
 }
 
 sub parse_bjobs_output {
@@ -1483,7 +1421,7 @@ sub dispatch_batch_run {
     if($params->{'Job_Management_System'} eq 'LSF') {
 	print JOB "#BSUB -P prot\n";
 	print JOB "#BSUB -g /proteomics/jump/read-only\n";
-	print JOB "#BSUB -q normal\n";
+	print JOB "#BSUB -q standard\n";
 	print JOB "#BSUB -M 8192\n";
 	print JOB "#BSUB -oo $dir/jump.o\n";
 	print JOB "#BSUB -eo $dir/jump.e\n";

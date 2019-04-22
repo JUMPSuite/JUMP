@@ -6,7 +6,7 @@ use Cwd;
 use Cwd 'abs_path';
 use File::Basename;
 
-our $VERSION = 1.13.0;
+our $version = 1.13.001;
 
 my $Bin=$ENV{"JUMP_L_LIB"};
 use lib $ENV{"JUMP_L_LIB"};
@@ -61,10 +61,12 @@ print "  Initializing jump -l program\n\n";
 print LOGFILE "  Initializing jump -l program\n\n";
 
 my $queue;
-if( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+if( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "LSF" || 
+				  $params->{'Job_Management_System'} == "LSF" ) ) {
     $queue = Spiders::LSFQueue->new();
 }
-elsif( $params->{'cluster'} == 1 && $params->{'cluster_type'} == "LSF" ) {
+elsif( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "SGE" ||
+       				  $params->{'Job_Management_System'} == "SGE" ) ) {
     $queue = Spiders::SGEQueue->new();
 }
 else {
@@ -152,18 +154,20 @@ if ($params -> {'cluster'} eq '1') {
 		for (my $i = 0; $i < $nJobs; $i++) {
 			my $jobName = "Job_PTM_".$nTotalJobs;
 			my $cmd = "";
-			for (my $j = 0; $j < $nEntriesPerJob; $j++) {
+			unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
+			for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0 
+			     && $nEntriesPerJob * $i + $j < $nEntries; $j++) {
 				my $k = $nEntriesPerJob * $i + $j;
-				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
 				$cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
 			}
-
-		        my $job = $queue->submit_job($new_path,$jobName,$cmd);
-			$jobIDs{$job} = 1;
-			$nTotalJobs++;
-			print "\r  $nTotalJobs jobs are submitted";
+			if( $nEntries > 0 && $nEntriesPerJob * $i < $nEntries )  {
+			    my $job = $queue->submit_job($new_path,$jobName,$cmd);
+			    $jobIDs{$job} = 1;
+			    $nTotalJobs++;
+			    print "\r  $nTotalJobs jobs are submitted";
+			}
 		}
 	}
 	print "\n  You submitted $nTotalJobs job(s) for local scoring \n";

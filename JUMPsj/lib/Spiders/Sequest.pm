@@ -95,7 +95,7 @@ sub Run_Sequest
         }
 
         print JOB "#BSUB -P prot\n";
-        print JOB "#BSUB -q normal\n";
+        print JOB "#BSUB -q standard\n";
         print JOB "#BSUB -eo ./$i.e\n";
         print JOB "#BSUB -oo ./$i.o\n";
         print JOB "$dta_dir/sequest28single $dta_file_temp\n";
