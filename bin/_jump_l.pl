@@ -155,18 +155,19 @@ if ($params -> {'cluster'} eq '1') {
 			my $jobName = "Job_PTM_".$nTotalJobs;
 			my $cmd = "";
 			unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
-			for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0; $j++) {
+			for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0 
+			     && $nEntriesPerJob * $i + $j < $nEntries; $j++) {
 				my $k = $nEntriesPerJob * $i + $j;
-				last if ($k >= $nEntries);
 				my $queryOutfile =  $outfiles[$k];
 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
 				$cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
 			}
-
-		        my $job = $queue->submit_job($new_path,$jobName,$cmd);
-			$jobIDs{$job} = 1;
-			$nTotalJobs++;
-			print "\r  $nTotalJobs jobs are submitted";
+			if( $nEntries > 0 && $nEntriesPerJob * $i < $nEntries )  {
+			    my $job = $queue->submit_job($new_path,$jobName,$cmd);
+			    $jobIDs{$job} = 1;
+			    $nTotalJobs++;
+			    print "\r  $nTotalJobs jobs are submitted";
+			}
 		}
 	}
 	print "\n  You submitted $nTotalJobs job(s) for local scoring \n";
