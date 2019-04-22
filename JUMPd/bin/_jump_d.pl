@@ -12,7 +12,7 @@ use lib $ENV{"JUMP_D_LIB"};
 use Utils::DatabaseUtils;
 use Utils::DatabaseGeneration;
 
-our $VERSION = 1.13.0;
+our $VERSION = 1.13.1;
 
 ######################
 ## Initialization	##

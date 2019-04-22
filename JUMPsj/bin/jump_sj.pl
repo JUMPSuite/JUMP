@@ -7,7 +7,7 @@ use Spiders::JUMPmain;
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
-our $VERSION = 1.13.001;
+our $VERSION = 1.13.1;
 
 my ($help,$parameter,$raw_file,$dispatch);
 my %options;
@@ -18,6 +18,10 @@ GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '--preserve-input'=>\${$options{'--preserve-input'}},
 	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
     );
+
+unless(defined(${$options{'--dtas-backend'}})) {
+    ${$options{'--dtas-backend'}} = 'idx';
+}
 
 unless(defined($dispatch)) {
     $dispatch = "batch-interactive";
@@ -48,7 +52,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.001                      ****     #
+#       ****  Version 1.13.1                      ****     #
 #       ****  Xusheng Wang / Junmin Peng              ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
@@ -94,7 +98,7 @@ print <<"EOF";
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.001                        ****     #
+#       ****  Version 1.13.1                        ****     #
 #       ****  Xusheng Wang / Junmin Peng              ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #

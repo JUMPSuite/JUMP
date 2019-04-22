@@ -1,6 +1,6 @@
 #!/bin/env perl 
 
-our $VERSION = 1.13.001;
+our $VERSION = 1.13.1;
 
 use File::Basename;
 use Cwd 'abs_path';
@@ -14,7 +14,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump quantifiction                      ****     #
-#       ****  Version 1.13.001                        ****     #
+#       ****  Version 1.13.1                        ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #

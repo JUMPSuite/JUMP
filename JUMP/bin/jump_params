@@ -12,7 +12,7 @@ if (!-e $currDir) {
 }
 
 ## Version information
-my $version = "1.13.0";
+my $version = "1.13.1";
 my $releaseDate = "11/01/2017";
 
 ## Search engines/Conditions

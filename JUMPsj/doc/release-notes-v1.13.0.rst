@@ -16,7 +16,7 @@ Top Level
 
 Introduction
 **************************************************
-With the version 1.13.0 release, several of the key JUMP pipeline
+With the version 1.13.1 release, several of the key JUMP pipeline
 tools have been migrated to St. Jude's central HPC resources.  This
 allows for faster processing of shotgun mass spectrometry proteomics
 data, with tools to better support version management and, through
@@ -68,16 +68,16 @@ use::
   module list
 
 To switch between versions of JUMP, use the ``module swap`` command;
-for example, to switch from the alpha version to version 1.13.0,
+for example, to switch from the alpha version to version 1.13.1,
 use::
   
-  module swap jump/alpha jump/1.13.0
+  module swap jump/alpha jump/1.13.1
 
 The above command is equivalent to unloading the alpha version and
-loading version 1.13.0::
+loading version 1.13.1::
   
   module unload jump/alpha
-  module load jump/1.13.0
+  module load jump/1.13.1
 
 It is a good idea to create production scripts that incorporate module
 commands.  See `Software Carpentry` for more details.
@@ -163,7 +163,7 @@ The ``module`` tool and environment configuration
 --------------------------------------------------
 JUMP uses the ``module`` tool to manage versions and dependencies.  The
 `module` tools manipulate environment variables to do this.  Version
-1.13.0 of JUMP no longer uses ``FindBin`` to determine the location of
+1.13.1 of JUMP no longer uses ``FindBin`` to determine the location of
 JUMP's Spiders modules to provide more flexibility in how JUMP may be
 installed.  Instead, the module tools will set the environment variables
 ``JUMP_SJ_LIB``, ``JUMP_F_LIB``, and ``JUMP_Q_LIB`` to point to the
@@ -188,7 +188,7 @@ Expert-level use of the JUMP search tool
 --------------------------------------------------
 JUMP search is one of the most computationally expensive tool, and
 therefore has expert-level options for controlling how it runs on
-the HPC cluster.  The new feature introduced for JUMP 1.13.0 on the
+the HPC cluster.  The new feature introduced for JUMP 1.13.1 on the
 HPC lets it dispatch jobs on the HPC in several ways to cope with
 resource use limitations.
 
@@ -301,7 +301,7 @@ like
 		
    #!/bin/bash
    
-   module load jump/1.13.0
+   module load jump/1.13.1
    jump_sj.pl -p jump.params data.mzXML
 
 Once the parameters and data produce the result you want, do::

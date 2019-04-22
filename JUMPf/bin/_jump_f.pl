@@ -1,6 +1,6 @@
 #!/bin/env perl 
 
-our $VERSION = 1.13.0;
+our $VERSION = 1.13.1;
 use lib $ENV{"JUMP_F_LIB"};
 
 use strict;
@@ -69,7 +69,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump filter                             ****     #
-#       ****  Version 1.13.0                          ****     #
+#       ****  Version 1.13.1                          ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #

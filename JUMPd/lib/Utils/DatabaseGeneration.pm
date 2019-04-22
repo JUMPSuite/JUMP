@@ -59,7 +59,7 @@ sub generateDb {
 		}
 		## Test the generated database using SEQUEST
 		generateSequestParams($jumpParams, $generatedDb, $log);
-		system ("cp /data1/pipeline/release/version1.13.0/JUMPd/test.dta .");
+		system ("cp /data1/pipeline/release/version1.13.1/JUMPd/test.dta .");
 		my $sequestResult = `sequest28single -Psequest.params test.dta`;
 		system ("rm makedb.params sequest.params test.dta test.out");
 		if ($sequestResult =~ /Rank\/Sp/) {
