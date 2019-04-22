@@ -6,6 +6,6 @@ sub MY::jump {
 }
 
 WriteMakefile(
-    EXE_FILES => ["bin/jump", "bin/jump_params", "bin/jump_config", "bin/config.sh"],
+    EXE_FILES => ["bin/jump", "bin/jump_params"],
     NAME         => "JUMP",
 );

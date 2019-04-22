@@ -154,16 +154,6 @@ sub get_static_modification
 	return $static_modif;
 }
 	
-sub apply_patches {
-    my ($self,$patch_file) = @_;
-    my $patches = Spiders::Params->new('-path'=>$patch_file)->parse_param();
-    my $params = $self->{PARAMETERS};
-    while (my ($k,$v) = each %{$patches}) {
-	$params->{$k} = $v;
-    }
-    return $params;
-}
-
 sub parse_param {
   my($self) = @_;
   my $path = $self->{PATH};

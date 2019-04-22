@@ -27,7 +27,7 @@ sub generateDb {
 		generateJumpParams($jumpParams, $dbName, $log);
 		print "JUMP search database is being generated\n";
 		print $log "JUMP search database is being generated\n";
-		system("jump -s jumpdb.params --dispatch=localhost");
+		system("jump_sj.pl -p jumpdb.params");
 #		system("rm jumpdb.params");
 		my $generatedDb = $dbName.".fasta.mdx";
 		if (!-e $generatedDb) {

@@ -21,7 +21,6 @@ GetOptions('-help|h'=>\$help,
 	   '--preserve-input'=>\${$options{'--preserve-input'}},
 	   '--max-jobs=s'=>\${$options{'--max-jobs'}},
 	   '--dtas-backend=s'=>\${$options{'--dtas-backend'}},
-	   '--param-patches=s'=>\${$options{'--param-patches'}},
     );
 
 unless(defined(${$options{'--dtas-backend'}})) {

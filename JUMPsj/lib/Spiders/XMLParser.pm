@@ -199,39 +199,54 @@ sub get_PrecursorMZINTACT{
 	my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
 	my $mslevel=2;                                                                                                                            
 	seek (XML, $scan_index, 0);
-	while (<XML>)
-	{
-		if ((/filterLine/)) 
-		{
-			chomp;
-			if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
-			{
-					($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-					$mslevel =~ s/\s+//g;
-					$prec_mz =~ s/\s+//g;
-					$prec_act =~ tr/a-z/A-Z/;
-					last;
-			}
-			elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
-			{
-				($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-				$mslevel =~ s/\s+//g;
-				$prec_mz =~ s/\s+//g;
-				$prec_act =~ tr/a-z/A-Z/;
-				last;
-			}
-			elsif($_ =~ / ms \[\d+\./)
-			{
-				$mslevel=1;
-				$prec_mz = 0;
-				last;
-			}
-		}
-		elsif(//)
-		{
-		}
+	my $scan_entry;
+	do {
+	    chomp($_);
+	    $scan_entry .= $_;
+	} while (<XML>);
+	   
+	my $prec_entry = ($scan_entry =~ /<precursorMz.*\/precursorMz>/);
+	if( defined($prec_entry) ) {
+	    $prec_mz = ($prec_entry =~ m/.*>\s*(\w+)\s*</);
+	    $prec_int = ($prec_entry =~ m/\sprecursorIntensity="?(\w+)"?\s/);
+	    $prec_act = ($prec_entry =~ m/\sactivationMethod="?(\w+)"?\s/);
+	    $mslevel = ($scan_entry =~ m/\s+msLevel="(\d)".*/);
 	}
-
+	else {
+	    $mslevel = 1;
+	    $prec_mz = 0;
+	}
+	# 	if ((/filterLine/)) 
+	# 	{
+	# 		chomp;
+	# 		if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
+	# 		{
+	# 				($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+	# 				$mslevel =~ s/\s+//g;
+	# 				$prec_mz =~ s/\s+//g;
+	# 				$prec_act =~ tr/a-z/A-Z/;
+	# 				last;
+	# 		}
+	# 		elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
+	# 		{
+	# 			($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+	# 			$mslevel =~ s/\s+//g;
+	# 			$prec_mz =~ s/\s+//g;
+	# 			$prec_act =~ tr/a-z/A-Z/;
+	# 			last;
+	# 		}
+	# 		elsif($_ =~ / ms \[\d+\./)
+	# 		{
+	# 			$mslevel=1;
+	# 			$prec_mz = 0;
+	# 			last;
+	# 		}
+	# 	}
+	# 	elsif(//)
+	# 	{
+	# 	}
+	# }
+	    
 
   return ($prec_mz, $prec_int, $prec_act,$mslevel);
 }
