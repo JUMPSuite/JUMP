@@ -85,7 +85,7 @@ sub get_converter
 {
 	my $self=shift;
 	if(!defined($self->{_converter}) && defined($ENV{"JUMP_READW_EXE"})) {
-	    $self->{_converter} = "$ENV{'JUMP_READW_EXE'} --mzXML -c";
+	    $self->{_converter} = $ENV{'JUMP_READW_EXE'};
 	}
 	elsif(!defined($self->{_converter})) {
 	{
@@ -113,7 +113,7 @@ sub raw2mzXML
 	else
 	{
 		print "  Converting the RAW file to mzXML format\n";
-		system(qq($converter "$Rawfile" $mzXML >/dev/null 2>&1));
+		system(qq($converter "$Rawfile" --outfile $mzXML >/dev/null 2>&1));
 	}
 	$self->{_mzXML_file}=$mzXML;
 	return $mzXML;
