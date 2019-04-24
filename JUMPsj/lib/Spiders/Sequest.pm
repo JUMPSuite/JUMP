@@ -22,6 +22,8 @@ package Spiders::Sequest;
 use strict;
 use warnings;
 use vars qw($VERSION @ISA @EXPORT);
+use Spiders::Config;
+my $config = new Spiders::Config();
 
 $VERSION     = 1.00;
 @ISA	 = qw(Exporter);
@@ -94,8 +96,8 @@ sub Run_Sequest
             }
         }
 
-        print JOB "#BSUB -P prot\n";
-        print JOB "#BSUB -q standard\n";
+        print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+        print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
         print JOB "#BSUB -eo ./$i.e\n";
         print JOB "#BSUB -oo ./$i.o\n";
         print JOB "$dta_dir/sequest28single $dta_file_temp\n";

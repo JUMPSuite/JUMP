@@ -6,7 +6,7 @@ use File::Basename;
 use Cwd 'abs_path';
 use File::Spec;
 use Getopt::Long;
-
+use Spiders::Config;
 print <<EOF;
 
 ################################################################
@@ -25,10 +25,11 @@ EOF
 my $queue;
 my $mem;
 my $dispatch;
+my $config = new Spiders::Config();
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
 if(!defined($queue) && !defined($mem)) {
-    $queue = 'standard';
+    $queue = $config->get("normal_queue");
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 

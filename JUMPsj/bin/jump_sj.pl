@@ -7,6 +7,8 @@ use Spiders::JUMPmain;
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
+use Spiders::Config;
+my $config = new Spiders::Config();
 our $VERSION = 1.13.1;
 
 my ($help,$parameter,$raw_file,$dispatch);
@@ -33,7 +35,7 @@ unless(defined(${$options{'--max-jobs'}})) {
 
 
 unless(defined(${$options{'--queue'}})) {
-    ${$options{'--queue'}} = "standard";
+    ${$options{'--queue'}} = $config->get("normal_queue");
 }
 my $queue = ${$options{'--queue'}};
 

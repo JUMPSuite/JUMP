@@ -29,6 +29,8 @@ use Spiders::RankHits;
 use Spiders::SpoutParser;
 use Parallel::ForkManager;
 use Spiders::MassCorrection;
+use Spiders::Config;
+my $config = new Spiders::Config();
 
 my $library = $Bin;
 my $VERSION = 12.1.3;
@@ -415,8 +417,8 @@ sub runjobs
 		}
 		if($params->{'Job_Management_System'} eq 'LSF')
 		{
-			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -q standard\n";
+			print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+			print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
@@ -554,8 +556,8 @@ sub LuchParallelJob{
 	open(JOB,">$FileName") || die "can not open $FileName\n";
 	if($GridType eq 'LSF')
 	{	
-			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -q standard\n";
+			print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+			print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 			print JOB "#BSUB -M 20000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			
@@ -906,8 +908,8 @@ sub database_creation
 			if($params->{'cluster'} eq '1') {
 			if($params->{'Job_Management_System'} eq 'LSF')
 			{
-				print JOB "#BSUB -P prot\n";
-				print JOB "#BSUB -q standard\n";
+				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 				print JOB "#BSUB -M 20000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";

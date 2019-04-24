@@ -43,12 +43,13 @@ use Spiders::Dtas;
 use Spiders::FsDtasBackend;
 use Spiders::IdxDtasBackend;
 use Spiders::DtaDir;
+use Spiders::Config;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
 
 $VERSION     = 1.03;
-
+our $config = new Spiders::Config();
 
 @ISA	 = qw(Exporter);
 @EXPORT      = qw(new main Create_Sort_BashFile runjobs LuchParallelJob MergeFile Check_Job_stat check_input database_creation summary_db topMS2scans delete_run_dir make_tags);
@@ -468,9 +469,9 @@ sub runjobs
 		}
 		if($params->{'Job_Management_System'} eq 'LSF')
 		{
-			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -g /proteomics/jump/read-only\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+			print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+			print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 			print JOB "#BSUB -M 2000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			print JOB "#BSUB -eo $dta_path/${job_name}_${i}.e\n";
@@ -640,9 +641,9 @@ sub LuchParallelJob{
 	open(JOB,">$FileName") || die "can not open $FileName\n";
 	if($GridType eq 'LSF')
 	{	
-			print JOB "#BSUB -P prot\n";
-			print JOB "#BSUB -g /proteomics/jump/read-only\n";
-			print JOB "#BSUB -q normal\n";
+			print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+			print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+			print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 			print JOB "#BSUB -M 20000\n";
 			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			
@@ -1003,9 +1004,9 @@ sub database_creation
 			if($params->{'cluster'} eq '1') {
 			if($params->{'Job_Management_System'} eq 'LSF')
 			{
-				print JOB "#BSUB -P prot\n";
-				print JOB "#BSUB -g /proteomics/jump/read-only\n";
-				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 				print JOB "#BSUB -M 20000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";
@@ -1129,9 +1130,9 @@ sub database_creation
 
 			if ($params->{'cluster'} eq '1') {
 			    if($params->{'Job_Management_System'} eq 'LSF') {
-				print JOB "#BSUB -P prot\n";
-				print JOB "#BSUB -g /proteomics/jump/read-only\n";
-				print JOB "#BSUB -q normal\n";
+				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 				print JOB "#BSUB -M 200000\n";
 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
@@ -1481,9 +1482,9 @@ sub dispatch_batch_run {
     }
     open( JOB, ">$dir/jump_dispatch.sh" );
     if($params->{'Job_Management_System'} eq 'LSF') {
-	print JOB "#BSUB -P prot\n";
-	print JOB "#BSUB -g /proteomics/jump/read-only\n";
-	print JOB "#BSUB -q normal\n";
+	print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+	print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+	print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
 	print JOB "#BSUB -M 8192\n";
 	print JOB "#BSUB -oo $dir/jump.o\n";
 	print JOB "#BSUB -eo $dir/jump.e\n";
