@@ -168,7 +168,7 @@ while( my ($k,$v) = each %defaultParams ) {
     }
 }
 
-my $rootdir = getcwd();
+my $rootdir = $ENV{"PWD"};
 if( $options{'INPLACE'} == 1 ) {
     $options{'PREFIX'} = $rootdir;
 }
