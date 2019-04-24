@@ -27,7 +27,7 @@ sub configure_jump_driver {
     my $jump_g_root = File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPg'));
     my $etcPath = get_etc_path(\%options);
     unshift( @lines, 
-	     "export JUMP_READW_EXE=$options{'RAWFILE_CONVERTER'}\n",
+	     "export JUMP_READW_EXE=\"$options{'RAWFILE_CONVERTER'}\"\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
 	     "PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
