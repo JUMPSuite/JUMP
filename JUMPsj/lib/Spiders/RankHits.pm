@@ -25,6 +25,7 @@ require Exporter;
 @EXPORT = qw(get_mis_cleavage_number get_mod_site_number set_parameter get_parameter parse_spOut_files_v5 get_score_scans calculate_random_matching_score rerank_Jscore get_miscleavage_mod_spout calculate_best_weight parse_spOut_data get_db_mis_mod calculate_mass_shift calculate_FDR score_distribution checkParameters istryptic);
 use vars qw($VERSION @ISA @EXPORT);
 use strict; 
+use Spiders::ProgressBar;
 
 $VERSION     = 1.01;
 
@@ -98,17 +99,10 @@ sub parse_spOut_files_v5{
 	my $percent = 0;
 	$| = 1;
 	print "\n  Reading SpOut files ";		
+	my $progressBar = new Spiders::ProgressBar(scalar(@files));
 	foreach my $spout (@files){
 	    ++$fileno;
-	    if( ($fileno/scalar(@files))*100 >= $percent ) {
-		if( $percent % 25 == 0 ) {
-		    print "${percent}%";
-		}
-		else {
-		    print '.';
-		}
-		$percent += 5;
-	    }
+	    $progressBar->incr();
 	    open(INPUT,$spout) or die "Could open $spout. Error:!$\n";
 	    my @content = <INPUT>;		
 	    $spout = basename($spout);

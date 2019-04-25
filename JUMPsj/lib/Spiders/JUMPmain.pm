@@ -1419,22 +1419,13 @@ sub make_tags
 	open(OUT,">$output");
         my $k=0;
         my $tt=scalar(@tagfile);
-	$| = 1;
 	my $percent = 0;
 	print "  collecting tag files ";
+	my $progressBar = new Spiders::ProgressBar(scalar(@tagfile));
         foreach my $tag (@tagfile)
         {
 	    $k++;
-	    if( ($k/$tt)*100 >= $percent ) {
-		if( $percent % 25 == 0 ) {
-		    print "${percent}%";
-		}
-		else {
-		    print '.';
-		}
-		$percent += 5;
-	    }
-
+	    $progressBar->incr();
 	    my @t=split /\//,$tag;
 	    $tag=$t[$#t];
 
@@ -1449,7 +1440,6 @@ sub make_tags
         }
         close OUT;
         print "\n";
-	$| = 0;
 }
 
 sub parse_bjobs_output {

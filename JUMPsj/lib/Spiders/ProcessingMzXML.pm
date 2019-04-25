@@ -23,6 +23,7 @@ use strict;
 use warnings;
 use File::Basename;
 use Spiders::XMLParser;
+use Spiders::ProgressBar;
 
 use vars qw($VERSION @ISA @EXPORT);
 
@@ -199,8 +200,7 @@ sub generate_hash_dta
 	my $found = 0;
 	my $cycle = 0;
 
-	$| = 1;
-	my $percent = 0;
+	my $progressBar = new Spiders::ProgressBar(scalar(@$index_array));
 	print "  Processing MzXML ";
 	foreach (@$index_array)
 	{
@@ -211,15 +211,7 @@ sub generate_hash_dta
 
 		next if ($number<$parameter->{'first_scan_extraction'});	
 		next if ($number>$parameter->{'last_scan_extraction'});			
-		if( ($number/$last_scan)*100 >= $percent ) {
-		    if( $percent % 25 == 0 ) {
-			print "${percent}%";
-		    }
-		    else {
-			print ".";
-		    }
-		    $percent += 5;
-		}
+		$progressBar->incr();
 		my ($rt) = $xml->get_RT(*XML, $index);
 
 		#($$msms_hash{$number}{'xml_mz'}, $$msms_hash{$number}{'xml_int'}, $$msms_hash{$number}{'xml_act'},$mslevel) = $xml->get_PrecursorMZINTACT(*XML, $index);

@@ -11,6 +11,7 @@ use warnings;
 use Storable;
 use vars qw($VERSION @ISA @EXPORT);
 use Excel::Writer::XLSX;
+use Spiders::ProgressBar;
 
 $VERSION = 2.01;
 @ISA     = qw(Exporter);
@@ -184,19 +185,10 @@ sub parseSpout {
 
     #read outfiles
     my $percent = 0;
-    $| = 1;
     print "  Gathering information from outfiles ";
+    my $progressBar = new Spiders::ProgressBar(scalar(@out));
     for my $outfile (@out) {
-        $count++;
-	if( ($count/$orignum)*100 >= $percent ) {
-	    if( $percent % 25 == 0 ) {
-		print "${percent}%";
-	    }
-	    else {
-		print '.';
-	    }
-	    $percent += 5;
-	}
+	$progressBar->incr();
         readOutfile( $seqParaHash, $outInforHash, $run, $outfile, \%temphash );
     }
     print "\n";
