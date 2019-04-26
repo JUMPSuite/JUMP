@@ -54,7 +54,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.1                      ****     #
+#       ****  Version 1.13.1                          ****     #
 #       ****  Xusheng Wang / Junmin Peng              ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
