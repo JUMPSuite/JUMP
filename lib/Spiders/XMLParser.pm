@@ -205,29 +205,32 @@ sub get_PrecursorMZINTACT{
     next if (!/filterLine/);
 
     if ((/filterLine/)) {
-      chomp;
-        if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
-        {
-                ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-                $mslevel =~ s/\s+//g;
-                $prec_mz =~ s/\s+//g;
-                $prec_act =~ tr/a-z/A-Z/;
-                last;
-        }
+	chomp;
+	if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
+	{
+	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+	    $mslevel =~ s/\s+//g;
+	    $prec_mz =~ s/\s+//g;
+	    $prec_act =~ tr/a-z/A-Z/;
+	    last;
+	}
 	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
-      	{
-     	 	($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
- 	 	$mslevel =~ s/\s+//g;
-      	 	$prec_mz =~ s/\s+//g;
-      	 	$prec_act =~ tr/a-z/A-Z/;
-      	 	last;
+	{
+	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+	    $mslevel =~ s/\s+//g;
+	    $prec_mz =~ s/\s+//g;
+	    $prec_act =~ tr/a-z/A-Z/;
+	    last;
 	}
 	elsif($_ =~ / ms \[\d+\./)
 	{
-		$mslevel=1;
-		$prec_mz = 0;
-		last;
+	    $mslevel=1;
+	    $prec_mz = 0;
+	    last;
 	}
+    }
+    elsif(//)
+    {
     }
   }
 
