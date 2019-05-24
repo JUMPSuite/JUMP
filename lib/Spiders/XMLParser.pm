@@ -199,104 +199,121 @@ sub get_PrecursorMZINTACT{
   my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
   my $mslevel=2;                                                                                                                            
   seek (XML, $scan_index, 0);
-  while (<XML>){
-
-###### changed by yanji
-    next if (!/filterLine/);
-
-    if ((/filterLine/)) {
-	chomp;
-	if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
-	{
-	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-	    $mslevel =~ s/\s+//g;
-	    $prec_mz =~ s/\s+//g;
-	    $prec_act =~ tr/a-z/A-Z/;
-	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
-	    last;
-	}
-	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
-	{
-	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-	    $mslevel =~ s/\s+//g;
-	    $prec_mz =~ s/\s+//g;
-	    $prec_act =~ tr/a-z/A-Z/;
-	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
-	    last;
-	}
-	elsif($_ =~ / ms \[\d+\./)
-	{
-	    $mslevel=1;
-	    $prec_mz = 0;
-	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
-	    last;
-	}
-    }
-    elsif(//)
-    {
-    }
+  my $scan_entry;
+  do {
+      chomp($_);
+      $scan_entry .= $_;
+  } while (<XML>);
+  
+  my $prec_entry = ($scan_entry =~ /<precursorMz.*\/precursorMz>/);
+  if( defined($prec_entry) ) {
+      $prec_mz = ($prec_entry =~ m/.*>\s*(\w+)\s*</);
+      $prec_int = ($prec_entry =~ m/\sprecursorIntensity="?(\w+)"?\s/);
+      $prec_act = ($prec_entry =~ m/\sactivationMethod="?(\w+)"?\s/);
+      $mslevel = ($scan_entry =~ m/\s+msLevel="(\d)".*/);
   }
+  else {
+      $mslevel = 1;
+      $prec_mz = 0;
+  }
+#   while (<XML>){
 
-#    next if (!/<precursorMz/);
-#    if (/<\/precursorMz>/){
-#      chomp;
-#      $prec_mz = $_;
-#      if ($prec_mz =~ /activationMethod/) {
-#				if ($prec_mz =~ /precursorCharge/){
-#        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
-#					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
-#				} else { #ADDED Feb 12 2010 for non-data dependent scans
-				#print "\n$prec_mz\n";
-#        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
-#					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
-#				}
-			#print "$prec_mz, $prec_act, $prec_int\n";
-#      }elsif ($prec_mz =~ /precursorCharge/){
-#        $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*//;
-#        ($prec_mz, $prec_int) = ($2, $1);
-#			} else {
-#       $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)">([e\d\.\+]+)<\/precursorMz>.*//;
-#       ($prec_mz, $prec_int) = ($2, $1);
-#    }
+# ###### changed by yanji
+#     next if (!/filterLine/);
+
+#     if ((/filterLine/)) {
+# 	chomp;
+# 	if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
+# 	{
+# 	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+# 	    $mslevel =~ s/\s+//g;
+# 	    $prec_mz =~ s/\s+//g;
+# 	    $prec_act =~ tr/a-z/A-Z/;
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
+# 	    last;
+# 	}
+# 	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
+# 	{
+# 	    ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
+# 	    $mslevel =~ s/\s+//g;
+# 	    $prec_mz =~ s/\s+//g;
+# 	    $prec_act =~ tr/a-z/A-Z/;
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
+# 	    last;
+# 	}
+# 	elsif($_ =~ / ms \[\d+\./)
+# 	{
+# 	    $mslevel=1;
+# 	    $prec_mz = 0;
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
+# 	    last;
+# 	}
+#     }
+#     elsif(//)
+#     {
+#     }
+#   }
+
+# #    next if (!/<precursorMz/);
+# #    if (/<\/precursorMz>/){
+# #      chomp;
+# #      $prec_mz = $_;
+# #      if ($prec_mz =~ /activationMethod/) {
+# #				if ($prec_mz =~ /precursorCharge/){
+# #        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
+# #					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
+# #				} else { #ADDED Feb 12 2010 for non-data dependent scans
+# 				#print "\n$prec_mz\n";
+# #        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
+# #					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
+# #				}
+# 			#print "$prec_mz, $prec_act, $prec_int\n";
+# #      }elsif ($prec_mz =~ /precursorCharge/){
+# #        $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*//;
+# #        ($prec_mz, $prec_int) = ($2, $1);
+# #			} else {
+# #       $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)">([e\d\.\+]+)<\/precursorMz>.*//;
+# #       ($prec_mz, $prec_int) = ($2, $1);
+# #    }
 
 
-#      last;
-#    } 
-#    else {
-#      while (<XML>){
-#        chomp;
-#        exit if (!/collisionEnergy=/);
-#        $prec_mz = $_;
-#        $prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
-#        last;
-#      }
-#      last;
-#    }
-#  }
+# #      last;
+# #    } 
+# #    else {
+# #      while (<XML>){
+# #        chomp;
+# #        exit if (!/collisionEnergy=/);
+# #        $prec_mz = $_;
+# #        $prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+# #        last;
+# #      }
+# #      last;
+# #    }
+# #  }
 
 
 
-#  if(defined $prec_mz) {
-#    print "YYYYYYYYYYYanji $prec_mz\n";
-#  } else {
-#    print "JJJJJJJJJJJJJ None\n";	
-#  }  
-# {
+# #  if(defined $prec_mz) {
+# #    print "YYYYYYYYYYYanji $prec_mz\n";
+# #  } else {
+# #    print "JJJJJJJJJJJJJ None\n";	
+# #  }  
+# # {
 
-# seek (XML, $scan_index, 0);
-#    while (<XML>){
-#        chomp;
+# # seek (XML, $scan_index, 0);
+# #    while (<XML>){
+# #        chomp;
 	
-#      if(/filterLine/)
-#      {
-#	$prec_mz = $_;
-#        if($prec_mz=~ /Full ms2 (.*)\@cid/)
-#	{
-#       		 $prec_mz = $1;
-#	}
-#       }
-#    }
-#  }
+# #      if(/filterLine/)
+# #      {
+# #	$prec_mz = $_;
+# #        if($prec_mz=~ /Full ms2 (.*)\@cid/)
+# #	{
+# #       		 $prec_mz = $1;
+# #	}
+# #       }
+# #    }
+# #  }
 
   return ($prec_mz, $prec_int, $prec_act,$mslevel);
 }
