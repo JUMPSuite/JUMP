@@ -212,6 +212,7 @@ sub get_PrecursorMZINTACT{
 	    $mslevel =~ s/\s+//g;
 	    $prec_mz =~ s/\s+//g;
 	    $prec_act =~ tr/a-z/A-Z/;
+	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
 	    last;
 	}
 	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
@@ -220,12 +221,14 @@ sub get_PrecursorMZINTACT{
 	    $mslevel =~ s/\s+//g;
 	    $prec_mz =~ s/\s+//g;
 	    $prec_act =~ tr/a-z/A-Z/;
+	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
 	    last;
 	}
 	elsif($_ =~ / ms \[\d+\./)
 	{
 	    $mslevel=1;
 	    $prec_mz = 0;
+	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
 	    last;
 	}
     }
