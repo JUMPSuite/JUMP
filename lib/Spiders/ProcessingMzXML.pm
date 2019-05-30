@@ -119,7 +119,7 @@ sub readmzXML
 	my ($self)=@_;
 	my $mzXML = $self->get_mzXML_file();
 
-	open (XML, "<$mzXML") || die "can not open the file";
+	open (XML, "<$mzXML") || die "can not open the file $mzXML";
 	my $xml = new Spiders::XMLParser();
 	my $indexOffset = $xml->get_IndexOffset(*XML); 
 	my ($index_array, $last_scan) = $xml->get_IndexArray(*XML, $indexOffset);
@@ -206,7 +206,7 @@ sub generate_hash_dta
 		$number++;
 		my $mslevel=0;
 
-
+		my $r = $xml->parse_scan(*XML, $index);
 		next if ($number>$parameter->{'last_scan_extraction'});			
 		print "\r  Gathering scan information: $number of $last_scan scans          ";
 		my ($rt) = $xml->get_RT(*XML, $index);
