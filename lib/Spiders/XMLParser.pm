@@ -39,6 +39,7 @@ sub new {
   my($class) = @_;
   my $self = {};
   $self->{"xmlParser"} = XML::Parser->new(Style=>"Tree");
+  $self->{"cache"} = {};
   bless ($self,$class);
   
   return $self;
@@ -82,16 +83,19 @@ sub get_node_data {
 sub parse_scan {
     my $self = shift @_;
     (*XML, my $scan_index) = @_;
-    seek(XML, $scan_index, 0);
-    my $scanXML;
-    while(<XML>) {
-	$scanXML .= $_;
-	if($scanXML =~ /<scan.*?<\/scan>/s) {
-	    last;
+    unless(defined($self->{"cache"}->{$scan_index})) {
+	seek(XML, $scan_index, 0);
+	my $scanXML;
+	while(<XML>) {
+	    $scanXML .= $_;
+	    if($scanXML =~ /<scan.*?<\/scan>/s) {
+		last;
+	    }
 	}
+	$scanXML =~ s/\s+/ /g;
+	$self->{"cache"}->{$scan_index} = $self->{"xmlParser"}->parse($scanXML);
     }
-    $scanXML =~ s/\s+/ /g;
-    return $self->{"xmlParser"}->parse($scanXML);
+    return $self->{"cache"}->{$scan_index};
 }
 
 sub get_runtime{
