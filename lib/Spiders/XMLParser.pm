@@ -235,7 +235,7 @@ sub get_MSLevel{
         my $self = shift @_;
 	(*XML, my $scan_index) = @_;
 	my $msLevel;
-	my $tree = $self->parse_scan($scan_index);
+	my $tree = $self->parse_scan(\*XML,$scan_index);
 	(my $kvdata,my $textdata) = $self->get_node_data($tree);
 	my $attrdata = $self->get_node_attrs($tree);
 	$msLevel = $$attrdata{"mzLevel"};
@@ -256,10 +256,10 @@ sub get_PrecursorMZINTACT{
   (*XML, my $scan_index) = @_;
   my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
   my $mslevel=2;                                                                                                                            
-  my $tree = $self->parse_scan($scan_index);
+  my $tree = $self->parse_scan(\*XML,$scan_index);
   (my $kvdata,my $textdata) = $self->get_node_data($tree);
   my $attrdata = $self->get_node_attrs($tree);
-  $mslevel = $$attrdata{"mzLevel"};
+  $mslevel = $$attrdata{"msLevel"};
 
   my $prec_attrs;
   my $prec_kvdata;
@@ -380,7 +380,7 @@ sub get_Precursor{
   (*XML, my $scan_index) = @_;
   my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
   my $mslevel=2;                                                                                                                            
-  my $tree = $self->parse_scan($scan_index);
+  my $tree = $self->parse_scan(\*XML,$scan_index);
   (my $kvdata,my $textdata) = $self->get_node_data($tree);
   my $attrdata = $self->get_node_attrs($tree);
   $mslevel = $$attrdata{"mzLevel"};
@@ -435,7 +435,7 @@ sub get_PrecursorIntensity{
   my $prec_mz;
   my $prec_intensity;
   my $mslevel=2;                                                                                                                            
-  my $tree = $self->parse_scan($scan_index);
+  my $tree = $self->parse_scan(\*XML,$scan_index);
   (my $kvdata,my $textdata) = $self->get_node_data($tree);
   my $attrdata = $self->get_node_attrs($tree);
   $mslevel = $$attrdata{"mzLevel"};
@@ -543,7 +543,7 @@ sub get_RT{
 	my $rttime;
 	my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
 	my $mslevel=2;                                                                                                                            
-	my $tree = $self->parse_scan($scan_index);
+	my $tree = $self->parse_scan(\*XML,$scan_index);
 	(my $kvdata,my $textdata) = $self->get_node_data($tree);
 	$rttime = $$kvdata{"retentionTime"};
 # ####### debug by xusheng ###
@@ -566,7 +566,7 @@ sub get_PeaksCount{
 	(*XML, my $scan_index) = @_;
 	my ($peaksCount);
 	
-	my $tree = $self->parse_scan($scan_index);
+	my $tree = $self->parse_scan(\*XML,$scan_index);
 	(my $kvdata,my $textdata) = $self->get_node_data($tree);
 	(my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
 	$peaksCount = $$peak_kvdata{"peaksCount"};
@@ -603,7 +603,7 @@ sub get_Peaks{
     (*XML, my $peak_array, my $scan_index) = @_;
     my ($peaks, $peaks_line);
 
-    my $tree = $self->parse_scan($scan_index);
+    my $tree = $self->parse_scan(\*XML,$scan_index);
     (my $kvdata,my $textdata) = $self->get_node_data($tree);
     (my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
     $peaks_line = $$peak_textdata[0];
@@ -723,7 +723,7 @@ sub get_mzrange{ #DMD June 28, 2007
     (*XML, my $scan_index) = @_;
     my ($smz, $emz);
 
-    my $tree = $self->parse_scan($scan_index);
+    my $tree = $self->parse_scan(\*XML,$scan_index);
     (my $kvdata,my $textdata) = $self->get_node_data($tree);
     $smz = $$kvdata{"startMz"};
     $emz = $$kvdata{"endMz"};
