@@ -544,8 +544,8 @@ sub get_RT{
 	my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
 	my $mslevel=2;                                                                                                                            
 	my $tree = $self->parse_scan(\*XML,$scan_index);
-	(my $kvdata,my $textdata) = $self->get_node_data($tree);
-	$rttime = $$kvdata{"retentionTime"};
+	my $attrs = $self->get_node_attrs($tree);
+	$rttime = $$attrs{"retentionTime"};
 # ####### debug by xusheng ###
 # #	print $scan_index,"aa\n";
 # ############################
