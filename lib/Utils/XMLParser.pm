@@ -4,7 +4,7 @@
 ## Release version: version 12.1.0
 ## Module name: Spiders::XMLParser
 
-package Spiders::XMLParser;
+package Utils::XMLParser;
 use strict;
 #use GD;
 use MIME::Base64;
