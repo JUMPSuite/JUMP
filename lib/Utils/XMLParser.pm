@@ -1,10 +1,15 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -wT
 
-package Utils::XMLParser;
+## Release date: 11/01/2015
+## Release version: version 12.1.0
+## Module name: Spiders::XMLParser
+
+package Spiders::XMLParser;
 use strict;
-use warnings;
+#use GD;
 use MIME::Base64;
 use Data::Dumper;#DMD June 28, 2007
+use XML::Parser;
 
 my %residMass =(A => 71.0788,
 		 B => 114.5962,
@@ -33,9 +38,64 @@ my %residMass =(A => 71.0788,
 sub new {
   my($class) = @_;
   my $self = {};
+  $self->{"xmlParser"} = XML::Parser->new(Style=>"Tree");
+  $self->{"cache"} = {};
   bless ($self,$class);
   
   return $self;
+}
+
+#-----------------------------------------------------------------
+sub get_node_attrs {
+    (my $self, my $tree) = @_;
+    my $nodeData;
+    if( scalar(@$tree) % 2 == 0 ) {
+	$nodeData = @$tree[1];
+    }
+    else {
+	$nodeData = $tree;
+    }
+    return $$nodeData[0];
+}
+
+sub get_node_data {
+    (my $self, my $tree) = @_;
+    my $nodeData;
+    if( scalar(@$tree) % 2 == 0 ) {
+	$nodeData = @$tree[1];
+    }
+    else {
+	$nodeData = $tree;
+    }
+    my %kvdata;
+    my @textdata;
+    for( my $i = 1; $i < scalar(@$nodeData); $i += 2 ) {
+	if( $$nodeData[$i] eq "0" && $$nodeData[$i+1] ne " " ) {
+	    push( @textdata, @$nodeData[$i+1] );
+	}
+	elsif( $$nodeData[$i] ne "0" ) {
+	    $kvdata{@$nodeData[$i]} = @$nodeData[$i+1];	    
+	} 
+    }
+    return (\%kvdata,\@textdata)
+}
+
+sub parse_scan {
+    my $self = shift @_;
+    (*XML, my $scan_index) = @_;
+    unless(defined($self->{"cache"}->{$scan_index})) {
+	seek(XML, $scan_index, 0);
+	my $scanXML;
+	while(<XML>) {
+	    $scanXML .= $_;
+	    if($scanXML =~ /<scan.*?<\/scan>/s) {
+		last;
+	    }
+	}
+	$scanXML =~ s/\s+/ /g;
+	$self->{"cache"}->{$scan_index} = $self->{"xmlParser"}->parse($scanXML);
+    }
+    return $self->{"cache"}->{$scan_index};
 }
 
 sub get_runtime{
@@ -172,42 +232,46 @@ sub get_Peaksinfo{
 }
 
 sub get_MSLevel{
-	shift @_;
+        my $self = shift @_;
 	(*XML, my $scan_index) = @_;
 	my $msLevel;
+	my $tree = $self->parse_scan(\*XML,$scan_index);
+	(my $kvdata,my $textdata) = $self->get_node_data($tree);
+	my $attrdata = $self->get_node_attrs($tree);
+	$msLevel = $$attrdata{"mzLevel"};
 	
-	seek (XML, $scan_index, 0);
-	while (<XML>){
-	  next if (!/msLevel=/);
-	  chomp;
-	  $msLevel = $_;
-	  $msLevel =~ s/\s+msLevel="(\d)".*/$1/o;
-	  last;
-	}
+	# seek (XML, $scan_index, 0);
+	# while (<XML>){
+	#   next if (!/msLevel=/);
+	#   chomp;
+	#   $msLevel = $_;
+	#   $msLevel =~ s/\s+msLevel="(\d)".*/$1/o;
+	#   last;
+	# }
 	
 	return $msLevel;
 }
 sub get_PrecursorMZINTACT{
-  shift @_;
+  my $self = shift @_;
   (*XML, my $scan_index) = @_;
   my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
   my $mslevel=2;                                                                                                                            
-  seek (XML, $scan_index, 0);
-  my $scan_entry;
-  do {
-      chomp($_);
-      $scan_entry .= $_;
-  } while (<XML>);
-  
-  my $prec_entry = ($scan_entry =~ /<precursorMz.*\/precursorMz>/);
-  if( defined($prec_entry) ) {
-      $prec_mz = ($prec_entry =~ m/.*>\s*(\w+)\s*</);
-      $prec_int = ($prec_entry =~ m/\sprecursorIntensity="?(\w+)"?\s/);
-      $prec_act = ($prec_entry =~ m/\sactivationMethod="?(\w+)"?\s/);
-      $mslevel = ($scan_entry =~ m/\s+msLevel="(\d)".*/);
+  my $tree = $self->parse_scan(\*XML,$scan_index);
+  (my $kvdata,my $textdata) = $self->get_node_data($tree);
+  my $attrdata = $self->get_node_attrs($tree);
+  $mslevel = $$attrdata{"msLevel"};
+
+  my $prec_attrs;
+  my $prec_kvdata;
+  my $prec_textdata;
+  if( defined($$kvdata{"precursorMz"}) ) {
+      $prec_attrs = $self->get_node_attrs($$kvdata{"precursorMz"});
+      (my $prec_kvdata,my $prec_textdata) = $self->get_node_data($$kvdata{"precursorMz"});
+      $prec_mz = $$prec_textdata[0];
+      $prec_int = $$prec_attrs{"precursorIntensity"};
+      $prec_act = $$prec_attrs{"activationMethod"};
   }
   else {
-      $mslevel = 1;
       $prec_mz = 0;
   }
 #   while (<XML>){
@@ -223,6 +287,7 @@ sub get_PrecursorMZINTACT{
 # 	    $mslevel =~ s/\s+//g;
 # 	    $prec_mz =~ s/\s+//g;
 # 	    $prec_act =~ tr/a-z/A-Z/;
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
 # 	    last;
 # 	}
 # 	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
@@ -231,97 +296,170 @@ sub get_PrecursorMZINTACT{
 # 	    $mslevel =~ s/\s+//g;
 # 	    $prec_mz =~ s/\s+//g;
 # 	    $prec_act =~ tr/a-z/A-Z/;
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
 # 	    last;
 # 	}
 # 	elsif($_ =~ / ms \[\d+\./)
 # 	{
 # 	    $mslevel=1;
 # 	    $prec_mz = 0;
-	    
+# 	    unless(defined($prec_mz)) { warn("prec mz undefined for line $_ \n" ); }
+# 	    last;
 # 	}
 #     }
 #     elsif(//)
 #     {
 #     }
 #   }
-#   #     chomp;
-#   #       if($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+).*(\s\d+\.\d+)\@([a-z]+)/)
-#   #       {
-#   #               ($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-#   #               $mslevel =~ s/\s+//g;
-#   #               $prec_mz =~ s/\s+//g;
-#   #               $prec_act =~ tr/a-z/A-Z/;
-#   #               last;
-#   #       }
-#   # 	elsif($_ =~ m/ms(.*)(\s\d+\.\d+)\@([a-z]+)/)
-#   #     	{
-#   #    	 	($mslevel,$prec_mz,$prec_act) = ($1, $2, $3);
-#   # 	 	$mslevel =~ s/\s+//g;
-#   #     	 	$prec_mz =~ s/\s+//g;
-#   #     	 	$prec_act =~ tr/a-z/A-Z/;
-#   #     	 	last;
-#   # 	}
-#   # 	elsif($_ =~ / ms \[\d+\./)
-#   # 	{
-#   # 		$mslevel=1;
-#   # 		$prec_mz = 0;
-#   # 		last;
-#   # 	}
-#   #   }
-#   # }
+
+# #    next if (!/<precursorMz/);
+# #    if (/<\/precursorMz>/){
+# #      chomp;
+# #      $prec_mz = $_;
+# #      if ($prec_mz =~ /activationMethod/) {
+# #				if ($prec_mz =~ /precursorCharge/){
+# #        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
+# #					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
+# #				} else { #ADDED Feb 12 2010 for non-data dependent scans
+# 				#print "\n$prec_mz\n";
+# #        	$prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" activationMethod="([A-Z]+)" >([e\d\.\+]+)<\/precursorMz>.*//;
+# #					($prec_mz, $prec_act, $prec_int) = ($3, $2, $1);
+# #				}
+# 			#print "$prec_mz, $prec_act, $prec_int\n";
+# #      }elsif ($prec_mz =~ /precursorCharge/){
+# #        $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*//;
+# #        ($prec_mz, $prec_int) = ($2, $1);
+# #			} else {
+# #       $prec_mz =~ s/\s+<precursorMz precursorIntensity="([e\d\.\-\+]+)">([e\d\.\+]+)<\/precursorMz>.*//;
+# #       ($prec_mz, $prec_int) = ($2, $1);
+# #    }
+
+
+# #      last;
+# #    } 
+# #    else {
+# #      while (<XML>){
+# #        chomp;
+# #        exit if (!/collisionEnergy=/);
+# #        $prec_mz = $_;
+# #        $prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+# #        last;
+# #      }
+# #      last;
+# #    }
+# #  }
+
+
+
+# #  if(defined $prec_mz) {
+# #    print "YYYYYYYYYYYanji $prec_mz\n";
+# #  } else {
+# #    print "JJJJJJJJJJJJJ None\n";	
+# #  }  
+# # {
+
+# # seek (XML, $scan_index, 0);
+# #    while (<XML>){
+# #        chomp;
+	
+# #      if(/filterLine/)
+# #      {
+# #	$prec_mz = $_;
+# #        if($prec_mz=~ /Full ms2 (.*)\@cid/)
+# #	{
+# #       		 $prec_mz = $1;
+# #	}
+# #       }
+# #    }
+# #  }
+
   return ($prec_mz, $prec_int, $prec_act,$mslevel);
 }
-
 sub get_Precursor{
-  shift @_;
+  my $self = shift @_;
   (*XML, my $scan_index) = @_;
-  my $prec_mz;
-                                                                                                                                                             
-  seek (XML, $scan_index, 0);
-  while (<XML>){
-  	next if (!/<precursorMz/);
-		if (/<\/precursorMz>/){
-			chomp;
-			$prec_mz = $_;
-			#print "$prec_mz\n";
-			if ($prec_mz =~ /activationMethod/){
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+" activationMethod="[A-Z]+"\s+>([e\d\.\+]+)<\/precursorMz>.*/$1/;
-			
-			}elsif ($prec_mz =~ /precursorCharge/){
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
-			} else {
-				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
-			}
-			last;
-		} else {
-			while (<XML>){
-				chomp;
-				exit if (!/collisionEnergy=/);
-				$prec_mz = $_;
-				$prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
-				last;
-			}
-			last;
-		}
+  my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
+  my $mslevel=2;                                                                                                                            
+  my $tree = $self->parse_scan(\*XML,$scan_index);
+  (my $kvdata,my $textdata) = $self->get_node_data($tree);
+  my $attrdata = $self->get_node_attrs($tree);
+  $mslevel = $$attrdata{"mzLevel"};
+
+  my $prec_attrs;
+  my $prec_kvdata;
+  my $prec_textdata;
+  if( defined($$kvdata{"precursorMz"}) ) {
+      $prec_attrs = $self->get_node_attrs($$kvdata{"precursorMz"});
+      (my $prec_kvdata,my $prec_textdata) = $self->get_node_data($$kvdata{"precursorMz"});
+      $prec_mz = $$prec_textdata[0];
   }
-	#print "$prec_mz\n";exit;
+  else {
+      $prec_mz = $$kvdata{"collisionEnergy"};
+  }
+                                                                                                                                                             
+  # seek (XML, $scan_index, 0);
+  # while (<XML>){
+  # 	next if (!/<precursorMz/);
+  # 		if (/<\/precursorMz>/){
+  # 			chomp;
+  # 			$prec_mz = $_;
+  # 			#print "$prec_mz\n";
+  # 			if ($prec_mz =~ /activationMethod/){
+  # 				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+" activationMethod="[A-Z]+"\s+>([e\d\.\+]+)<\/precursorMz>.*/$1/;
+			
+  # 			}elsif ($prec_mz =~ /precursorCharge/){
+  # 				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+" precursorCharge="[\d]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+  # 			} else {
+  # 				$prec_mz =~ s/\s+<precursorMz precursorIntensity="[e\d\.\-\+]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+  # 			}
+  # 			last;
+  # 		} else {
+  # 			while (<XML>){
+  # 				chomp;
+  # 				exit if (!/collisionEnergy=/);
+  # 				$prec_mz = $_;
+  # 				$prec_mz =~ s/\s+collisionEnergy="[\d\.]+">([e\d\.\+]+)<\/precursorMz>.*/$1/;
+  # 				last;
+  # 			}
+  # 			last;
+  # 		}
+  # }
+  # 	#print "$prec_mz\n";exit;
                                                                                                                                                              
   return $prec_mz;
 }
 
 sub get_PrecursorIntensity{
-  shift @_;
+  my $self = shift @_;
   (*XML, my $scan_index) = @_;
+  my $prec_mz;
   my $prec_intensity;
+  my $mslevel=2;                                                                                                                            
+  my $tree = $self->parse_scan(\*XML,$scan_index);
+  (my $kvdata,my $textdata) = $self->get_node_data($tree);
+  my $attrdata = $self->get_node_attrs($tree);
+  $mslevel = $$attrdata{"mzLevel"};
+
+  my $prec_attrs;
+  my $prec_kvdata;
+  my $prec_textdata;
+  if( defined($$kvdata{"precursorMz"}) ) {
+      $prec_attrs = $self->get_node_attrs($$kvdata{"precursorMz"});
+      (my $prec_kvdata,my $prec_textdata) = $self->get_node_data($$kvdata{"precursorMz"});
+      $prec_intensity = $$prec_kvdata{"precursorIntensity"};
+  }
+  else {
+      warn( "no precursor intensity found." );
+  }
                                                                                                                                                              
-  seek (XML, $scan_index, 0);
-  while (<XML>){
-    next if (!/<precursorMz/);
-		chomp;
-		$prec_intensity = $_;
-		$prec_intensity =~ s/[\s\t]+<precursorMz\sprecursorIntensity="([e\d\.\-\+]+)".*/$1/;
-		last;
-	}              
+  # seek (XML, $scan_index, 0);
+  # while (<XML>){
+  #   next if (!/<precursorMz/);
+  # 		chomp;
+  # 		$prec_intensity = $_;
+  # 		$prec_intensity =~ s/[\s\t]+<precursorMz\sprecursorIntensity="([e\d\.\-\+]+)".*/$1/;
+  # 		last;
+  # 	}              
   return $prec_intensity;
 }
 
@@ -400,37 +538,46 @@ sub get_BasePeakIntensity{
 }
 
 sub get_RT{
-	shift @_;
+        my $self = shift @_;
 	(*XML, my $scan_index) = @_;
 	my $rttime;
-####### debug by xusheng ###
-#	print $scan_index,"aa\n";
-############################
-	seek (XML, $scan_index, 0);
-	while (<XML>){
-	  next if (!/retentionTime=/);
-	  chomp;
-	  $rttime = $_;
-	  $rttime =~ s/.*retentionTime="PT([\d+\.]+)S".*/$1/o;
-	  last;
-	}
+	my $prec_mz; my $prec_int = 0; my $prec_act = "CID";
+	my $mslevel=2;                                                                                                                            
+	my $tree = $self->parse_scan(\*XML,$scan_index);
+	(my $kvdata,my $textdata) = $self->get_node_data($tree);
+	$rttime = $$kvdata{"retentionTime"};
+# ####### debug by xusheng ###
+# #	print $scan_index,"aa\n";
+# ############################
+# 	seek (XML, $scan_index, 0);
+# 	while (<XML>){
+# 	  next if (!/retentionTime=/);
+# 	  chomp;
+# 	  $rttime = $_;
+# 	  $rttime =~ s/.*retentionTime="PT([\d+\.]+)S".*/$1/o;
+# 	  last;
+# 	}
 	
 	return $rttime;
 }
 
 sub get_PeaksCount{
-	shift @_;
+        my $self = shift @_;
 	(*XML, my $scan_index) = @_;
 	my ($peaksCount);
 	
-	seek (XML, $scan_index, 0);
-	while (<XML>){
-	  next if (!/peaksCount/);
-	  chomp;
-	  $peaksCount = $_;
-	  $peaksCount =~ s/\s+peaksCount="(\d+)".*/$1/o;
-	  last;
-	}
+	my $tree = $self->parse_scan(\*XML,$scan_index);
+	(my $kvdata,my $textdata) = $self->get_node_data($tree);
+	(my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
+	$peaksCount = $$peak_kvdata{"peaksCount"};
+	# seek (XML, $scan_index, 0);
+	# while (<XML>){
+	#     next if (!/peaksCount/);
+	#     chomp;
+	#     $peaksCount = $_;
+	#     $peaksCount =~ s/\s+peaksCount="(\d+)".*/$1/o;
+	#     last;
+	# }
 	
 	return $peaksCount;
 }
@@ -452,42 +599,49 @@ sub get_PeaksString{
 }
 
 sub get_Peaks{
-	shift @_;
-	(*XML, my $peak_array, my $scan_index) = @_;
-	my ($peaks, $peaks_line);
+    my $self = shift @_;
+    (*XML, my $peak_array, my $scan_index) = @_;
+    my ($peaks, $peaks_line);
+
+    my $tree = $self->parse_scan(\*XML,$scan_index);
+    (my $kvdata,my $textdata) = $self->get_node_data($tree);
+    (my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
+    $peaks_line = $$peak_textdata[0];
+
+    
 	
-	seek (XML, $scan_index, 0);
-	#print "$scan_index\n";
-	while(<XML>){
-		#print "$_\n";
-		#if (/m\/z-int/){print "$_\n\n\n";	}
-	  if (/<peaks\sprecision="32"/ || /pairOrder="m\/z-int"[\s]*>/){
-      chomp;
-			next if ($_ =~ /<peaks precision="32"\Z/);
-      $peaks_line = $_;
-	  	if (/<peaks precision="32">/){
-       	$peaks_line =~ s/\s+<peaks precision="32"[\s\w\W\d\=\"]+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-			} else {
-       	$peaks_line =~ s/\s+pairOrder="m\/z-int"[\s]*>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-				#print "$peaks_line\n";exit;
-			}
-	  	last;
-		} elsif (/compressedLen/){
-      chomp;
-      $peaks_line = $_;
-     	$peaks_line =~ s/\s+compressedLen="[\d]"\s+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-			last;
-		} else {
-			next;
-		}
-	}
+	# seek (XML, $scan_index, 0);
+	# #print "$scan_index\n";
+	# while(<XML>){
+	#     #print "$_\n";
+	#     #if (/m\/z-int/){print "$_\n\n\n";	}
+	#     if (/<peaks\sprecision="32"/ || /pairOrder="m\/z-int"[\s]*>/){
+	# 	chomp;
+	# 	next if ($_ =~ /<peaks precision="32"\Z/);
+	# 	$peaks_line = $_;
+	#   	if (/<peaks precision="32">/){
+	# 	    $peaks_line =~ s/\s+<peaks precision="32"[\s\w\W\d\=\"]+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+	# 	} else {
+	# 	    $peaks_line =~ s/\s+pairOrder="m\/z-int"[\s]*>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+	# 	    #print "$peaks_line\n";exit;
+	# 	}
+	#   	last;
+	#     } elsif (/compressedLen/){
+	# 	chomp;
+	# 	$peaks_line = $_;
+	# 	$peaks_line =~ s/\s+compressedLen="[\d]"\s+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
+	# 	last;
+	#     } else {
+	# 	next;
+	#     }
+	# }
 	#Base64 Decode
 	#print "$peaks_line\n";exit;
 	$peaks = decode_base64($peaks_line);
 	my @hostOrder32 = unpack("N*", $peaks);
 	for (@hostOrder32){
-		my $float = unpack("f", pack("I", $_));
-		push (@$peak_array, $float);
+	    my $float = unpack("f", pack("I", $_));
+	    push (@$peak_array, $float);
 	}
 	#print Dumper($peak_array);exit;
 }
@@ -565,21 +719,25 @@ sub MS_Source{ #DMD June 28, 2007
 }
 
 sub get_mzrange{ #DMD June 28, 2007
-	shift @_;
-	(*XML, my $scan_index) = @_;
-  my ($smz, $emz);
+    my $self = shift @_;
+    (*XML, my $scan_index) = @_;
+    my ($smz, $emz);
 
-  seek (XML, $scan_index, 0);
-  while (<XML>){
-    next if (!/startMz=/ && !/endMz=/);
-    chomp;
-		if (/startMz=/){
-    	$smz = $_; $smz =~ s/.*startMz=\"([\d+\.]+)\".*/$1/o;
-		} else {
-    	$emz = $_; $emz =~ s/.*endMz=\"([\d+\.]+)\".*/$1/o;
-    	last;
-		}
-  }
+    my $tree = $self->parse_scan(\*XML,$scan_index);
+    (my $kvdata,my $textdata) = $self->get_node_data($tree);
+    $smz = $$kvdata{"startMz"};
+    $emz = $$kvdata{"endMz"};
+    # seek (XML, $scan_index, 0);
+    # while (<XML>){
+    # 	next if (!/startMz=/ && !/endMz=/);
+    # 	chomp;
+    # 	if (/startMz=/){
+    # 	    $smz = $_; $smz =~ s/.*startMz=\"([\d+\.]+)\".*/$1/o;
+    # 	} else {
+    # 	    $emz = $_; $emz =~ s/.*endMz=\"([\d+\.]+)\".*/$1/o;
+    # 	    last;
+    # 	}
+    # }
 
   return ($smz, $emz);
 }
