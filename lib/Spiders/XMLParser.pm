@@ -86,12 +86,22 @@ sub parse_scan {
     unless(defined($self->{"cache"}->{$scan_index})) {
 	seek(XML, $scan_index, 0);
 	my $scanXML;
+	my $scanOpen = 0;
 	while(<XML>) {
-	    $scanXML .= $_;
-	    if($scanXML =~ /<scan.*?<\/scan>/s) {
+	    if($_ =~ /<scan/) {
+		$scanOpen += 1;
+	    }
+	    if($scanOpen > 1) {
 		last;
 	    }
+	    elsif($_ =~ /<\/scan>/) {
+		last;
+	    }
+	    else {
+		$scanXML .= $_;
+	    }
 	}
+	$scanXML .= "</scan>";
 	$scanXML =~ s/\s+/ /g;
 	$self->{"cache"}->{$scan_index} = $self->{"xmlParser"}->parse($scanXML);
     }
