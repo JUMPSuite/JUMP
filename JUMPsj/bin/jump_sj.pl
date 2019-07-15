@@ -8,6 +8,8 @@ use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
 use Spiders::Config;
+use Spiders::ClusterConfig;
+use Spiders::Params;
 my $config = new Spiders::Config();
 our $VERSION = 1.13.1;
 
@@ -21,12 +23,17 @@ GetOptions('-help|h'=>\$help, '--dispatch=s'=>\$dispatch,
 	   '--max-jobs=s'=>\${$options{'--max-jobs'}}
     );
 
+my $p = Spiders::Params->new('-path'=>$parameter);
+my $params=$p->parse_param();
+
 unless(defined(${$options{'--dtas-backend'}})) {
     ${$options{'--dtas-backend'}} = 'idx';
 }
 
-unless(defined($dispatch)) {
+unless(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) == Spiders::ClusterConfig->CLUSTER) {
     $dispatch = "batch-interactive";
+} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) == Spiders::ClusterConfig->SMP) {
+    $dispatch = "localhost";
 }
 
 unless(defined(${$options{'--max-jobs'}})) {
