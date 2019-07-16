@@ -2,11 +2,14 @@
 
 our $VERSION = 1.13.1;
 
+use lib $ENV{"JUMP_Q_LIB"};
 use File::Basename;
 use Cwd 'abs_path';
 use File::Spec;
 use Getopt::Long;
 use Spiders::Config;
+use Spiders::ClusterConfig;
+use Utils::Parse;
 my $config = new Spiders::Config();
 
 print <<EOF;
@@ -31,6 +34,9 @@ my $mem;
 my $dispatch;
 GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
+my %params;
+Utils::Parse->new($ARGV[0],\%params);
+
 if(!defined($queue) && !defined($mem)) {
     $queue = $config->get("normal_queue");
     $mem = 200000;
@@ -44,10 +50,9 @@ elsif(!defined($mem)) {
 }
 
 my $cmd;
-unless(defined($dispatch) && $dispatch eq 'localhost') {
+if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_q.pl" . " " . $ARGV[0];
-}
-else {
+} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="_jump_q.pl " . $ARGV[0];
 }
 system($cmd);

@@ -59,6 +59,8 @@ sub configure_jump_driver {
     open( my $fh, '>'.File::Spec->join('JUMP','bin','config.sh' ) );
     print $fh @lines;
     close( $fh );
+    my $perm = (stat $fh)[2] & 07777;
+    chmod( 700 | $perm, File::Spec->join('JUMP','bin','config.sh' ) );
 
     open( $fh, '>'.File::Spec->join('JUMP','bin','jump') );
     print $fh "#!/bin/bash\n"."PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n";
