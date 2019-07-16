@@ -103,7 +103,7 @@ my @defaultParamValues = ($Config{'installprefix'},
 			  '/etc/jump',
 #			  'UP000005640_9606,UP000000589_10090',
 			  '',
-			  'no-batch',
+			  'no-batch-system',
 			  '',
 			  '',
 			  '',
@@ -215,9 +215,24 @@ EOF
 $options{'ENVIRONMENT'} = \%kwargs;
 
 my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
-open( my $makefile, '>Makefile' );
-my $optstr = join( ' ', @ARGV );
-print $makefile <<EOF;
+
+
+if($options{'INPLACE'} eq '1') {
+    foreach my $dir (@subdirs) {
+	chdir($dir);
+	system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
+	chdir($rootdir);
+    }
+
+    configure_jump_driver(\%options);
+    chdir('JUMP');
+    system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
+    chdir($rootdir);
+}
+else {
+    open( my $makefile, '>Makefile' );
+    my $optstr = join( ' ', @ARGV );
+    print $makefile <<EOF;
 all: Makefile
 \t(for i in $subdirstr ; do cd \$\${i} && make && cd - ; done ; )
 
@@ -234,20 +249,6 @@ Makefile: Makefile.PL
 \t\@echo 'Your makefiles have been rebuilt. Please re-execute your make command.'
 \tfalse
 EOF
-
-if($options{'INPLACE'} == 0) {
-    foreach my $dir (@subdirs) {
-	chdir($dir);
-	system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
-	chdir($rootdir);
-    }
-
-    configure_jump_driver(\%options);
-    chdir('JUMP');
-    system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
-    chdir($rootdir);
-}
-else {
     configure_jump_driver(\%options);
     system("sh gen-site-config.sh");
 }
