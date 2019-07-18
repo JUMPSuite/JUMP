@@ -200,6 +200,7 @@ if( ! -d $etcPath ) {
 }
 
 {my %h; store(\%h,"$cfgFile");}
+$ENV{'JUMP_CONFIG_PATH'} = $cfgFile;
 my $config = new Spiders::Config();
 $config->put( "use_batch_system", $options{'USE_BATCH_SYSTEM'} );
 $config->put( "normal_queue", $options{'NORMAL_QUEUE'} );
@@ -210,6 +211,7 @@ $config->put( "max_normal_memory", $options{'MAX_NORMAL_MEMORY'} );
 $config->put( "max_large_memory", $options{'MAX_LARGE_MEMORY'} );
 $config->put( "extra_readwrite_job_flags", $options{'EXTRA_READWRITE_JOB_FLAGS'} );
 $config->put( "extra_readonly_job_flags", $options{'EXTRA_READONLY_JOB_FLAGS'} );
+$ENV{'JUMP_CONFIG_PATH'} = '';
 
 $options{'ENVIRONMENT'} = \%kwargs;
 
