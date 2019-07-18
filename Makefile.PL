@@ -72,6 +72,7 @@ sub configure_jump_driver {
 	print $fh $_;
     }
     close( $fh );
+    chmod( 700 | $perm, File::Spec->join('JUMP','bin','jump' ) );
     close( $template );
 }
 
