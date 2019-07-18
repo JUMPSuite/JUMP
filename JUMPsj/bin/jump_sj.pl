@@ -88,7 +88,7 @@ elsif( $dispatch eq "batch" ) {
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
     system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 }
-elsif( $dispatch eq "localhost" ) {
+elsif( $dispatch eq "localhost" || Spiders::Config::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP ) {
     my $library = $Bin;
     my $main = new Spiders::JUMPmain();
     $main->set_library($library);
