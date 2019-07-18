@@ -199,7 +199,7 @@ if( ! -d $etcPath ) {
     mkdir( $etcPath )
 }
 
-{my %h; store(\%h,'$cfgFile');}
+{my %h; store(\%h,"$cfgFile");}
 my $config = new Spiders::Config();
 $config->put( "use_batch_system", $options{'USE_BATCH_SYSTEM'} );
 $config->put( "normal_queue", $options{'NORMAL_QUEUE'} );
