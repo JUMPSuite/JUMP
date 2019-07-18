@@ -1,7 +1,10 @@
 use File::Spec;
+use lib File::Spec->join( 'common', 'lib' );
 use Cwd;
 use strict;
 use Config;
+use Spiders::Config;
+use Storable;
 
 sub get_etc_path {
     my %options = %{shift(@_)};
@@ -114,7 +117,7 @@ my @defaultParamValues = ($Config{'installprefix'},
 			  'inf',
 			  '',
 			  '',
-			  '0');
+			  '1');
 my @defaultParamHelp = ('installation prefix',
 			'command for Rawfile to mzXML converter',
 			'location to install default databases',
@@ -189,30 +192,24 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     }
 }
 
+$options{'CLUSTER'} = ($options{'USE_BATCH_SYSTEM'} ne 'no-batch-system');
 my $etcPath = get_etc_path(\%options);
 my $cfgFile = File::Spec->join($etcPath,'cfg.bin');
-my $jumpPath;
-if($options{'INPLACE'} == 0) {
-    $jumpPath = File::Spec->join($options{'PREFIX'},'bin','jump');
+if( ! -d $etcPath ) {
+    mkdir( $etcPath )
 }
-else {
-    $jumpPath = File::Spec->join($options{'PREFIX'},'JUMP','bin','jump');
-}
-open( my $genSiteConfigFile, '>gen-site-config.sh' );
-print $genSiteConfigFile <<EOF;
-if [ ! -d $etcPath ] ; then mkdir $etcPath ; fi
-perl -e "use Storable; my %h; store(\\%h,'$cfgFile');"
-$jumpPath -config use_batch_system "$options{'USE_BATCH_SYSTEM'}"
-$jumpPath -config normal_queue "$options{'NORMAL_QUEUE'}"
-$jumpPath -config large_mem_queue "$options{'LARGE_MEM_QUEUE'}"
-$jumpPath -config allocation_project "$options{'ALLOCATION_PROJECT'}"
-$jumpPath -config max_time "$options{'MAX_TIME'}"
-$jumpPath -config max_normal_memory "$options{'MAX_NORMAL_MEMORY'}"
-$jumpPath -config max_large_memory "$options{'MAX_LARGE_MEMORY'}"
-$jumpPath -config extra_readwrite_job_flags "$options{'EXTRA_READWRITE_JOB_FLAGS'}"
-$jumpPath -config extra_readonly_job_flags "$options{'EXTRA_READONLY_JOB_FLAGS'}"
-EOF
 
+{my %h; store(\%h,'$cfgFile');}
+my $config = new Spiders::Config();
+$config->put( "use_batch_system", $options{'USE_BATCH_SYSTEM'} );
+$config->put( "normal_queue", $options{'NORMAL_QUEUE'} );
+$config->put( "large_mem_queue", $options{'LARGE_MEM_QUEUE'} );
+$config->put( "allocation_project", $options{'ALLOCATION_PROJECT'} );
+$config->put( "max_time", $options{'MAX_TIME'} );
+$config->put( "max_normal_memory", $options{'MAX_NORMAL_MEMORY'} );
+$config->put( "max_large_memory", $options{'MAX_LARGE_MEMORY'} );
+$config->put( "extra_readwrite_job_flags", $options{'EXTRA_READWRITE_JOB_FLAGS'} );
+$config->put( "extra_readonly_job_flags", $options{'EXTRA_READONLY_JOB_FLAGS'} );
 
 $options{'ENVIRONMENT'} = \%kwargs;
 
@@ -220,6 +217,9 @@ my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 
 
 if($options{'INPLACE'} eq '1') {
+    configure_jump_driver(\%options);
+}
+else {
     foreach my $dir (@subdirs) {
 	chdir($dir);
 	system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
@@ -230,8 +230,7 @@ if($options{'INPLACE'} eq '1') {
     chdir('JUMP');
     system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
     chdir($rootdir);
-}
-else {
+
     open( my $makefile, '>Makefile' );
     my $optstr = join( ' ', @ARGV );
     print $makefile <<EOF;
@@ -251,7 +250,5 @@ Makefile: Makefile.PL
 \t\@echo 'Your makefiles have been rebuilt. Please re-execute your make command.'
 \tfalse
 EOF
-    configure_jump_driver(\%options);
-    system("sh gen-site-config.sh");
 }
 

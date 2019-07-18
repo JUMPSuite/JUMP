@@ -30,9 +30,9 @@ unless(defined(${$options{'--dtas-backend'}})) {
     ${$options{'--dtas-backend'}} = 'idx';
 }
 
-unless(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) == Spiders::ClusterConfig->CLUSTER) {
+unless(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     $dispatch = "batch-interactive";
-} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) == Spiders::ClusterConfig->SMP) {
+} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $dispatch = "localhost";
 }
 
