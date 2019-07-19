@@ -3,6 +3,7 @@
 use strict;
 use Getopt::Long;
 use Spiders::Config;
+use File::Spec;
 
 my $dispatch;
 my $config = new Spiders::Config();
