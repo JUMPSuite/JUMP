@@ -4,7 +4,7 @@ case $1 in
 -s)
 	arglist=''
 	for arg in "${@:2}" ; do 
-	    if [[ ( ! $arg =~ --.* ) && $(file $arg) =~ .*ASCII.*text.* ]] ; then
+	    if [[ ( ! $arg =~ --.* ) && $(echo $arg | tr [:upper:] [:lower:]) =~ .*.mzxml || $(echo $arg | tr [:upper:] [:lower:]) =~ .*.raw ]] ; then
 		arglist="$arglist -p $arg"
 	    else
 		arglist="$arglist $arg";
