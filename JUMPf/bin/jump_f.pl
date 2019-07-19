@@ -43,10 +43,9 @@ elsif(!defined($mem)) {
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
 
 my $cmd;
-unless(defined($dispatch) && $dispatch eq 'localhost') {
+if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_f.pl" . " " . $ARGV[0];
-}
-else {
+} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="_jump_f.pl " . $ARGV[0];
 }
 system($cmd);
