@@ -5,9 +5,9 @@ case $1 in
 	arglist=''
 	for arg in "${@:2}" ; do 
 	    if [[ ( ! $arg =~ --.* ) && $(echo $arg | tr [:upper:] [:lower:]) =~ .*.mzxml || $(echo $arg | tr [:upper:] [:lower:]) =~ .*.raw ]] ; then
-		arglist="$arglist -p $arg"
-	    else
 		arglist="$arglist $arg";
+	    else
+		arglist="$arglist -p $arg"
 	    fi
 	done
 	jump_sj.pl $arglist ;; 
