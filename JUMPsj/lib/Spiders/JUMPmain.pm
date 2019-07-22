@@ -44,6 +44,7 @@ use Spiders::FsDtasBackend;
 use Spiders::IdxDtasBackend;
 use Spiders::DtaDir;
 use Spiders::Config;
+use Spiders::ClusterConfig;
 use List::Util qw(max);
 
 use vars qw($VERSION @ISA @EXPORT);
@@ -427,7 +428,7 @@ sub runjobs
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
 	}
 
-	if($params->{'cluster'} eq '0')
+	if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 	{
 		$job_num = $MAX_PROCESSES;
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
@@ -505,7 +506,7 @@ sub runjobs
 
 	######### running jobs ######################### 
 	my $job_list;
-	if($params->{'cluster'} eq '1')
+	if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER)
 	{
 		if($params->{'Job_Management_System'} eq 'LSF')
 		{
@@ -552,7 +553,7 @@ sub runjobs
 		print "\n  You submitted $job_num jobs for database search\n";
 		Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);		
 	}
-	elsif($params->{'cluster'} eq '0')
+	elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 	{
 		print "  Only use single server to run jobs (MAX_PROCESSES = $MAX_PROCESSES). Please be patient!\n";
         my $pm = new Parallel::ForkManager($MAX_PROCESSES);
@@ -713,7 +714,7 @@ sub Check_Job_stat
 	my $dot = ".";
 	while($job_info)
 	{
-		if($params->{'cluster'} eq 0)
+		if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 		{
 			if($jobs_prefix =~ /sch_/ || $jobs_prefix =~ /resch_/)
 			{
@@ -1001,7 +1002,7 @@ sub database_creation
 		for($i=1;$i<=$job_num;$i++)
 		{
 			open(JOB,">$tmp_database_path/job_db_$i.sh") || die "can not open the job db files\n";
-			if($params->{'cluster'} eq '1') {
+			if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
 			if($params->{'Job_Management_System'} eq 'LSF')
 			{
 				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
@@ -1040,7 +1041,7 @@ sub database_creation
 
 		# submit jobs
                 my %jobhash;
-		if($params->{'cluster'} eq '1') {
+		if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for( my $i = 1; $i <= $job_num; $i += 1 ) {
 				my $cmd = "cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < job_db_$i.sh";
@@ -1071,7 +1072,7 @@ sub database_creation
 			else {
 			    Check_Job_stat("job_db_",$job_num);
 			}
-		} elsif($params->{'cluster'} eq '0') {
+		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
 			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
 			for my $i ( 1 .. $job_num ) {
@@ -1128,7 +1129,7 @@ sub database_creation
 
 			open(JOB,">$FileName") || die "can not open $FileName\n";
 
-			if ($params->{'cluster'} eq '1') {
+			if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
 			    if($params->{'Job_Management_System'} eq 'LSF') {
 				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
 				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
@@ -1146,7 +1147,7 @@ sub database_creation
 				print JOB "#\$ \-o $dta_path/$outputName.o\n";
 				print JOB $cmd;
 			    }
-			} elsif($params->{'cluster'} eq '0') {
+			} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 				print JOB "#!/bin/bash\n";
 				print JOB "$cmd >$dta_path/$outputName.o 2>$dta_path/$outputName.e";
 			}
@@ -1155,7 +1156,7 @@ sub database_creation
 		}
 
                 %jobhash = ();
-		if ($params->{'cluster'} eq '1') {
+		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
 
 			if($params->{'Job_Management_System'} eq 'LSF') {
 			    for(my $i=0;$i<$num_mass_region;$i += 1) {
@@ -1193,7 +1194,7 @@ sub database_creation
 			else {
 			    Check_Job_stat("sort_",$num_mass_region);
 			}
-		} elsif($params->{'cluster'} eq '0') {
+		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 			my $pm;
 			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
 				my $k=int($MAX_PROCESSES/10)+1;
@@ -1218,7 +1219,7 @@ sub database_creation
 		my $merge_job_num = $num_mass_region-1;
 		my $dta_path=$tmp_database_path;
                 %jobhash = ();
-		if ($params->{'cluster'} eq '1') {
+		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
 			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
 			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
@@ -1231,7 +1232,7 @@ sub database_creation
 			if(defined($job)) {
 			    $jobhash{$job} = 1;
 			}
-		} elsif($params->{'cluster'} eq '0') {
+		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
 			open(JOB,">$FileName") || die "can not open $FileName\n";
