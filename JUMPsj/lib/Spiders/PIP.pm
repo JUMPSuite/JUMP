@@ -181,7 +181,7 @@ sub Calculate_PIP
 
 		for (my $i = $lowint; $i<=$highint; $i++)
 		{
-			next if (!%{$$mzarray[$survey][$i]});
+			next if (!$$mzarray[$survey][$i]);
 			while (my ($key, $value) = each %{$$mzarray[$survey][$i]})
 			{
 				if($key>=$lowmz and $key<=$highmz)
@@ -381,7 +381,7 @@ sub define_charge
    #    print "$strongest_mz low = $lowint high = $highint\n";
 	for (my $i = $lowint; $i<=$highint; $i++)
 	{
-		next if (!%{$$mzarray[$strongest_scan][$i]});
+		next if (!$$mzarray[$strongest_scan][$i]);
 		while (my ($key, $value) = each %{$$mzarray[$strongest_scan][$i]}){
 
 ###### selected the peaks within the exact window, not the expanded window	
@@ -411,7 +411,7 @@ sub define_charge
 
 	undef %mzhash;
 	for (my $i = $lowint; $i<=$highint; $i++){
-		next if (!%{$$mzarray[$strongest_scan][$i]});
+		next if (!$$mzarray[$strongest_scan][$i]);
 		while (my ($key, $value) = each %{$$mzarray[$strongest_scan][$i]})
 		{
 				$mzhash{$key} = $value;	

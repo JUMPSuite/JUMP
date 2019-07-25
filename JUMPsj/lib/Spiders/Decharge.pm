@@ -303,7 +303,7 @@ sub find_charge{
 
  #      print "$strongest_mz low = $lowint high = $highint  aaaaaaaaaaaa\n";
 	for (my $i = $lowint; $i<=$highint; $i++){
-		next if (!%{$$mzarray[$strongest_scan][$i]});
+		next if (!$$mzarray[$strongest_scan][$i]);
 		while (my ($key, $value) = each %{$$mzarray[$strongest_scan][$i]}){
 ###### selected the peaks within the exact window, not the expanded window	
 			if($key>=$low and $key<=$high)
@@ -332,7 +332,7 @@ sub find_charge{
   #     print "$strongest_mz low = $lowint high = $highint bbbbbbbbbbbbbbbbbb\n";
 	undef %mzhash;
 	for (my $i = $lowint; $i<=$highint; $i++){
-		next if (!%{$$mzarray[$strongest_scan][$i]});
+		next if (!$$mzarray[$strongest_scan][$i]);
 		while (my ($key, $value) = each %{$$mzarray[$strongest_scan][$i]})
 		{
 				$mzhash{$key} = $value;	
@@ -414,7 +414,7 @@ sub find_charge_by_more_scans
 			my $nextscan = $$mshash{'orderhash'}{$nextorder};
 			my %hash;
 			for (my $j = $lowint; $j<=$highint; $j++){
-				next if (!%{$$mzarray[$nextscan][$j]});
+				next if (!$$mzarray[$nextscan][$j]);
 				while (my ($key, $value) = each %{$$mzarray[$nextscan][$j]}){
 					$hash{$key} = $value;
 				}
