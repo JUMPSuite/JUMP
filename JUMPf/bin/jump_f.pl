@@ -7,6 +7,7 @@ use Cwd 'abs_path';
 use File::Spec;
 use Getopt::Long;
 use Spiders::Config;
+use Spiders::ClusterConfig;
 print <<EOF;
 
 ################################################################
