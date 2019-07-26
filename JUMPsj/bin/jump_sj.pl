@@ -31,7 +31,7 @@ unless(defined(${$options{'--dtas-backend'}})) {
 }
 
 if(!defined($dispatch) && Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
-    $dispatch = "batch-interactive";
+    $dispatch = ($config->get('compute_on_loginnode') eq '0' ? "localhost" : 'batch-interactive';
 } elsif(!defined($dispatch) && Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $dispatch = "localhost";
 }

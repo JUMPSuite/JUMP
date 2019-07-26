@@ -5,6 +5,7 @@ use strict;
 use Config;
 use Spiders::Config;
 use Storable;
+use Fcntl qw( :mode );
 
 sub get_etc_path {
     my %options = %{shift(@_)};
@@ -62,8 +63,8 @@ sub configure_jump_driver {
     open( my $fh, '>'.File::Spec->join('JUMP','bin','config.sh' ) );
     print $fh @lines;
     close( $fh );
-    my $perm = (stat $fh)[2] & 07777;
-    chmod( 700 | $perm, File::Spec->join('JUMP','bin','config.sh' ) );
+    my $perm = (stat File::Spec->join('JUMP','bin','config.sh' ))[2] & 07777;
+    chmod( 0700 | $perm, File::Spec->join('JUMP','bin','config.sh' ) );
 
     open( $fh, '>'.File::Spec->join('JUMP','bin','jump') );
     print $fh "#!/bin/bash\n"."PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n";
@@ -72,7 +73,8 @@ sub configure_jump_driver {
 	print $fh $_;
     }
     close( $fh );
-    chmod( 700 | $perm, File::Spec->join('JUMP','bin','jump' ) );
+    my $perm = (stat File::Spec->join('JUMP','bin','jump' ))[2]  & 07777;
+    chmod( 0700 | $perm, File::Spec->join('JUMP','bin','jump' ) );
     close( $template );
 }
 
@@ -92,44 +94,43 @@ foreach my $arg (@ARGV) {
 
 my @defaultParamKeys = ('PREFIX',
 			'RAWFILE_CONVERTER',
-			'DEFAULT_DB_DIR',
-			'BOOTSTRAP_DBS',
+#			'DEFAULT_DB_DIR',
+#			'BOOTSTRAP_DBS',
 			'USE_BATCH_SYSTEM',
 			'NORMAL_QUEUE',
-			'LARGE_MEM_QUEUE',
+#			'LARGE_MEM_QUEUE',
 			'ALLOCATION_PROJECT',
-			'MAX_TIME',
-			'MAX_NORMAL_MEMORY',
-			'MAX_LARGE_MEMORY',
+#			'MAX_TIME',
+#			'MAX_NORMAL_MEMORY',
+#			'MAX_LARGE_MEMORY',
 			'EXTRA_READWRITE_JOB_FLAGS',
 			'EXTRA_READONLY_JOB_FLAGS',
 			'INPLACE');
 my @defaultParamValues = ($Config{'installprefix'},
 			  'ReAdW.exe',
-			  '/etc/jump',
+#			  '/usr/share/jump',
 #			  'UP000005640_9606,UP000000589_10090',
-			  '',
 			  'no-batch-system',
 			  '',
+#			  '',
 			  '',
-			  '',
-			  'inf',
-			  'inf',
-			  'inf',
+#			  'inf',
+#			  'inf',
+#			  'inf',
 			  '',
 			  '',
 			  '1');
-my @defaultParamHelp = ('installation prefix',
+my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
 			'command for Rawfile to mzXML converter',
-			'location to install default databases',
-			'bootstrap databases for all FASTA files in this colon-separated list',
-			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF,slurm)',
-			'queue for jobs that have no special resource needs (only if USE_BATCH_SYSTEM != no-batch)',
-			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
-			'batch system project id to use for allocation charges (only if USE_BATCH_SYSTEM != no-batch)',
-			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
-			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
-			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
+#			'location to install default databases',
+#			'bootstrap databases for all FASTA files in this colon-separated list',
+			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF)',
+			'queue for jump jobs (only used if USE_BATCH_SYSTEM != no-batch)',
+#			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
+			'batch system project id to use for allocation charges (only used if USE_BATCH_SYSTEM != no-batch)',
+#			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
+#			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
+#			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
 			'extra flags for jobs that perform intense IO',
 			'extra flags for jobs that do not perform intense IO',
 			'perform an in-place configuration');
@@ -205,11 +206,7 @@ $ENV{'JUMP_CONFIG_PATH'} = $cfgFile;
 my $config = new Spiders::Config();
 $config->put( "use_batch_system", $options{'USE_BATCH_SYSTEM'} );
 $config->put( "normal_queue", $options{'NORMAL_QUEUE'} );
-$config->put( "large_mem_queue", $options{'LARGE_MEM_QUEUE'} );
 $config->put( "allocation_project", $options{'ALLOCATION_PROJECT'} );
-$config->put( "max_time", $options{'MAX_TIME'} );
-$config->put( "max_normal_memory", $options{'MAX_NORMAL_MEMORY'} );
-$config->put( "max_large_memory", $options{'MAX_LARGE_MEMORY'} );
 $config->put( "extra_readwrite_job_flags", $options{'EXTRA_READWRITE_JOB_FLAGS'} );
 $config->put( "extra_readonly_job_flags", $options{'EXTRA_READONLY_JOB_FLAGS'} );
 $ENV{'JUMP_CONFIG_PATH'} = '';
