@@ -182,8 +182,9 @@ if( $options{'INPLACE'} == 1 ) {
 
 if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     my $batch_complete = 1;
-    foreach my $k ('NORMAL_QUEUE','LARGE_MEM_QUEUE','ALLOCATION_PROJECT',
-		   'MAX_TIME','MAX_NORMAL_MEMORY','MAX_LARGE_MEMORY') {
+#    foreach my $k ('NORMAL_QUEUE','LARGE_MEM_QUEUE','ALLOCATION_PROJECT',
+#		   'MAX_TIME','MAX_NORMAL_MEMORY','MAX_LARGE_MEMORY') {
+    foreach my $k ('NORMAL_QUEUE', 'ALLOCATION_PROJECT') {
 	if($options{$k} eq '') {
 	    print "You must define $k since you have selected USE_BATCH_SYSTEM=$options{'USE_BATCH_SYSTEM'}\n";
 	    $batch_complete = 0;
