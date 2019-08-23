@@ -10,6 +10,7 @@ use Cwd 'abs_path';
 use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::Params;
+use Spiders::JobManager;
 my $config = new Spiders::Config();
 our $VERSION = 1.13.1;
 
@@ -31,7 +32,7 @@ unless(defined(${$options{'--dtas-backend'}})) {
 }
 
 if(!defined($dispatch) && Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
-    $dispatch = ($config->get('compute_on_loginnode') eq '0' ? "localhost" : 'batch-interactive');
+    $dispatch = ($config->get('compute_on_login_node') eq '1' ? "localhost" : 'batch-interactive');
 } elsif(!defined($dispatch) && Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $dispatch = "localhost";
 }
@@ -79,16 +80,20 @@ for my $k (keys(%options)) {
     }
 }
 
-if( $dispatch eq "batch-interactive" ) {
+if( $dispatch eq "batch-interactive" && $config->get('compute_on_login_node') eq '0' ) {
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
+    my $batchSystem = new Spiders::BatchSystem();
+    my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_SEARCH);
     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" -Is \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
+    system( "$batchCmd \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
 }
-elsif( $dispatch eq "batch" ) {
-    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
-}
-elsif( $dispatch eq "localhost" || Spiders::Config::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP ) {
+# elsif( $dispatch eq "batch" ) {
+#     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
+#     system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
+# }
+elsif( $dispatch eq "localhost" || 
+       Spiders::Config::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP || 
+       $config->get('compute_on_login_node') eq '1' ) {
     my $library = $Bin;
     my $main = new Spiders::JUMPmain();
     $main->set_library($library);

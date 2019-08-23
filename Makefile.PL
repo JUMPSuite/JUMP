@@ -5,6 +5,7 @@ use strict;
 use Config;
 use Spiders::Config;
 use Storable;
+use Spiders::BatchSystem;
 use Fcntl qw( :mode );
 
 sub get_etc_path {
@@ -97,14 +98,13 @@ my @defaultParamKeys = ('PREFIX',
 #			'DEFAULT_DB_DIR',
 #			'BOOTSTRAP_DBS',
 			'USE_BATCH_SYSTEM',
-			'NORMAL_QUEUE',
-#			'LARGE_MEM_QUEUE',
-			'ALLOCATION_PROJECT',
+ #			'LARGE_MEM_QUEUE',
+#			'ALLOCATION_PROJECT',
 #			'MAX_TIME',
 #			'MAX_NORMAL_MEMORY',
 #			'MAX_LARGE_MEMORY',
-			'EXTRA_READWRITE_JOB_FLAGS',
-			'EXTRA_READONLY_JOB_FLAGS',
+#			'EXTRA_READWRITE_JOB_FLAGS',
+#			'EXTRA_READONLY_JOB_FLAGS',
 			'INPLACE');
 my @defaultParamValues = ($Config{'installprefix'},
 			  'ReAdW.exe',
@@ -113,26 +113,26 @@ my @defaultParamValues = ($Config{'installprefix'},
 			  'no-batch-system',
 			  '',
 #			  '',
-			  '',
+#			  '',
 #			  'inf',
 #			  'inf',
 #			  'inf',
-			  '',
-			  '',
+#			  '',
+#			  '',
 			  '1');
 my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
 			'command for Rawfile to mzXML converter',
 #			'location to install default databases',
 #			'bootstrap databases for all FASTA files in this colon-separated list',
 			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF)',
-			'queue for jump jobs (only used if USE_BATCH_SYSTEM != no-batch)',
+			'default command template for submitting batch commands',
 #			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
-			'batch system project id to use for allocation charges (only used if USE_BATCH_SYSTEM != no-batch)',
+#			'batch system project id to use for allocation charges (only used if USE_BATCH_SYSTEM != no-batch)',
 #			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
 #			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
 #			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
-			'extra flags for jobs that perform intense IO',
-			'extra flags for jobs that do not perform intense IO',
+#			'extra flags for jobs that perform intense IO',
+#			'extra flags for jobs that do not perform intense IO',
 			'perform an in-place configuration');
 my %defaultParams;
 my %defaultParamHelp;
@@ -159,7 +159,8 @@ foreach my $k (@defaultParamKeys) {
 }
     print <<EOF;
 You may pass any key=value pair to Makefile.PL.  Any key=value pair not
-listed above will be added as an environment variable for JUMP to use.
+conforming to <JUMP tool>_batch_cmd or otherwise listed above will be 
+added as an environment variable for JUMP to use.
 EOF
 
     exit 1;
@@ -168,10 +169,10 @@ EOF
 while( my ($k,$v) = each %defaultParams ) {
     unless(defined($kwargs{$k})) {
 	$options{$k} = $defaultParams{$k};
+	delete $kwargs{$k};
     }
     else {
 	$options{$k} = $kwargs{$k};
-	delete $kwargs{$k};
     }
 }
 
@@ -180,16 +181,23 @@ if( $options{'INPLACE'} == 1 ) {
     $options{'PREFIX'} = $rootdir;
 }
 
+my $batch_complete = 1;
 if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
-    my $batch_complete = 1;
-#    foreach my $k ('NORMAL_QUEUE','LARGE_MEM_QUEUE','ALLOCATION_PROJECT',
-#		   'MAX_TIME','MAX_NORMAL_MEMORY','MAX_LARGE_MEMORY') {
-    foreach my $k ('NORMAL_QUEUE', 'ALLOCATION_PROJECT') {
+    foreach my $k ('DEFAULT_BATCH_CMD') {
 	if($options{$k} eq '') {
 	    print "You must define $k since you have selected USE_BATCH_SYSTEM=$options{'USE_BATCH_SYSTEM'}\n";
 	    $batch_complete = 0;
 	}
     }
+    if(!defined($kwargs{'COMPUTE_ON_LOGIN_NODE'})) {
+	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with COMPUTE_ON_LOGIN_NODE=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration");
+	$options{'compute_on_login_node'} = 1;
+    } 
+    else {
+	$options{'compute_on_login_node'} = $kwargs{'COMPUTE_ON_LOGIN_NODE'};
+	delete $kwargs{'COMPUTE_ON_LOGIN_NODE'};
+    }
+    
     if( ! $batch_complete ) {
 	exit -1;
     }
@@ -205,11 +213,14 @@ if( ! -d $etcPath ) {
 {my %h; store(\%h,"$cfgFile");}
 $ENV{'JUMP_CONFIG_PATH'} = $cfgFile;
 my $config = new Spiders::Config();
-$config->put( "use_batch_system", $options{'USE_BATCH_SYSTEM'} );
-$config->put( "normal_queue", $options{'NORMAL_QUEUE'} );
-$config->put( "allocation_project", $options{'ALLOCATION_PROJECT'} );
-$config->put( "extra_readwrite_job_flags", $options{'EXTRA_READWRITE_JOB_FLAGS'} );
-$config->put( "extra_readonly_job_flags", $options{'EXTRA_READONLY_JOB_FLAGS'} );
+foreach my $k (keys %kwargs) {
+    if ( $k =~ /_batch_cmd/i ) {
+    	$config->put( lc($k), $kwargs{$k} );
+	delete $kwargs{$k};
+    }
+} 
+$config->put('default_batch_cmd', $options{'default_batch_cmd'});
+$config->put('compute_on_login_node', $options{'compute_on_login_node'});
 $ENV{'JUMP_CONFIG_PATH'} = '';
 
 $options{'ENVIRONMENT'} = \%kwargs;
@@ -252,4 +263,4 @@ Makefile: Makefile.PL
 \tfalse
 EOF
 }
-
+print("configuration complete.\n");
