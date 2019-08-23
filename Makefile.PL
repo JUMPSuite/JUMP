@@ -192,10 +192,10 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     }
     if(!defined($kwargs{'COMPUTE_ON_LOGIN_NODE'})) {
 	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with COMPUTE_ON_LOGIN_NODE=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration");
-	$options{'compute_on_login_node'} = 1;
+	$options{'COMPUTE_ON_LOGIN_NODE'} = 1;
     } 
     else {
-	$options{'compute_on_login_node'} = $kwargs{'COMPUTE_ON_LOGIN_NODE'};
+	$options{'COMPUTE_ON_LOGIN_NODE'} = $kwargs{'COMPUTE_ON_LOGIN_NODE'};
 	delete $kwargs{'COMPUTE_ON_LOGIN_NODE'};
     }
     
@@ -220,8 +220,9 @@ foreach my $k (keys %kwargs) {
 	delete $kwargs{$k};
     }
 } 
-$config->put('default_batch_cmd', $options{'default_batch_cmd'});
-$config->put('compute_on_login_node', $options{'compute_on_login_node'});
+$config->put('cluster',$options{'CLUSTER'});
+$config->put('default_batch_cmd', $options{'DEFAULT_BATCH_CMD'});
+$config->put('compute_on_login_node', $options{'COMPUTE_ON_LOGIN_NODE'});
 $ENV{'JUMP_CONFIG_PATH'} = '';
 
 $options{'ENVIRONMENT'} = \%kwargs;
