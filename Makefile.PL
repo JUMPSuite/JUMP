@@ -221,8 +221,11 @@ foreach my $k (keys %kwargs) {
     }
 } 
 $config->put('cluster',$options{'CLUSTER'});
-$config->put('default_batch_cmd', $options{'DEFAULT_BATCH_CMD'});
 $config->put('compute_on_login_node', $options{'COMPUTE_ON_LOGIN_NODE'});
+$config->put('max_search_worker_procs',1);
+$config->put('max_dispatch_worker_procs',' ');
+$config->put('batch_job_unroll',1);
+
 $ENV{'JUMP_CONFIG_PATH'} = '';
 
 $options{'ENVIRONMENT'} = \%kwargs;

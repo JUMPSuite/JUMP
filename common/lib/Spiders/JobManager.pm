@@ -17,7 +17,7 @@ use strict;
 use Spiders::MakeJobManager;
 
 sub newJobManager {
-    my $self = Spiders::MakeJobManager->new();
+    my $self = Spiders::MakeJobManager->new({'DEBUG'=>''});
     return $self;
 }
 

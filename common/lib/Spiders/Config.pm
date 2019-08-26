@@ -61,6 +61,9 @@ sub get {
     elsif(defined($self->{'globalConfig'}->{$key})) {
 	return $self->{'globalConfig'}->{$key};
     }
+    else {
+	return undef;
+    }
 }
 
 sub put {
