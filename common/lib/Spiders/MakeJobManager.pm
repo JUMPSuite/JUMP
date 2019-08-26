@@ -46,7 +46,7 @@ sub _generateSMPMakefile {
     my $njobs = scalar(@jobs);
     for( my $i = 0; $i < $njobs; $i += 1 ) {
 	my $cmd = $jobs[$i]->{'cmd'};
-	$rules{"$i-cmd-run"} = "( $cmd ) && echo finished job " . $i;
+	$rules{"$i-cmd-run"} = "( $cmd ) &> /dev/null && echo finished job " . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
@@ -93,16 +93,24 @@ sub runJobs {
 
     my $code = 0;
     my $mfile;
+    my $handle;
+    print "  Submitting " . scalar(@jobs) . " jobs for search\n";
     if( $clusterConfig eq Spiders::ClusterConfig::SMP ) {
 	($mfile,my $rules) = $self->_generateSMPMakefile( @jobs );
-	$code = system( "make -f " . $mfile->filename . ' -j ' . $self->{'config'}->get( 'max_search_worker_procs' ) );
+	open( $handle, "make -f " . $mfile->filename . ' -j ' . $self->{'config'}->get( 'max_search_worker_procs' ) . '|' );
     }
     elsif( $clusterConfig eq Spiders::ClusterConfig::CLUSTER ) {
-	print "  Submitting " . scalar(@jobs) . " jobs for search\n";
-	($mfile,my $rules) = $self->_generateBatchMakefile( @jobs );
-	$code = system( "make -f " . $mfile->filename . ' -j ' . $self->{'config'}->get( 'max_dispatch_worker_procs' ) );
+	($mfile,my $rules) = $self->_generateBatchMakefile( @jobs );	
+	open( $handle, "make -f " . $mfile->filename . ' -j ' . $self->{'config'}->get( 'max_dispatch_worker_procs' )  . '|');
     }
-    
+
+    $| = 1;
+    for( my $jobsDone = 0; <$handle>; $jobsDone += 1 ) {
+	print "\r  $jobsDone jobs are done";
+    }
+    print "\n";
+    $| = 0;
+
     if( $code ne 0 ) {
 	$self->{"myDir"}->unlink_on_destroy( 0 );
 	croak( "make retured with nonzero exit code; see makefiles in " . $mfile . "\n" );
