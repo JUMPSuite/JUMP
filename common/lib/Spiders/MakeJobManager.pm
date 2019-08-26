@@ -105,7 +105,7 @@ sub runJobs {
     }
 
     $| = 1;
-    for( my $jobsDone = 0; <$handle>; $jobsDone += 1 ) {
+    for( my $jobsDone = 1; <$handle>; $jobsDone += 1 ) {
 	print "\r  $jobsDone jobs are done";
     }
     print "\n";
