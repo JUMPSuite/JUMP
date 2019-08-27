@@ -579,7 +579,6 @@ sub runjobs
 # 	}
 # #=head
 # 	#### checking whether all dta files has been searched  
-# 	my $temp_file_array;
 # 	if($params->{'Job_Management_System'} eq 'LSF') {
 # 	    # check all job statuses
 # 	    foreach my $id (keys(%$job_list)) {
@@ -599,22 +598,21 @@ sub runjobs
 # 	    }
 # 	}
 # 	else {
-# 	    for(my $k=0;$k<=$#$file_array;$k++)
-# 	    {
-# 		my $data_file = $file_array->[$k];
-# 		my $out_file = $data_file;
-# 		#$out_file =~ s/\.dta$/\.out/;
-# 		$out_file =~ s/\.dta$/\.spout/;
-# 		$out_file = File::Spec->join($dta_path,$out_file);
-# 		if(!-e $out_file)
-# 		{
-# 		    push (@{$temp_file_array},$data_file);
-# 		}
-# 	    }
 # 	}
 # 	return $temp_file_array;
 	$jobManager->runJobs( @cmdArr );
-	return ();
+ 	my $temp_file_array;
+	for(my $k=0;$k<=$#$file_array;$k++) {
+	    my $data_file = $file_array->[$k];
+	    my $out_file = $data_file;
+	    #$out_file =~ s/\.dta$/\.out/;
+	    $out_file =~ s/\.dta$/\.spout/;
+	    $out_file = File::Spec->join($dta_path,$out_file);
+	    if(!-e $out_file) {
+		push (@{$temp_file_array},$data_file);
+	    }
+	}
+	return $temp_file_array;
 =head
 	if(scalar(@temp_file_array)>0)
 	{

@@ -99,7 +99,7 @@ my @defaultParamKeys = ('PREFIX',
 #			'BOOTSTRAP_DBS',
 			'USE_BATCH_SYSTEM',
 			'DEFAULT_BATCH_CMD',
- #			'LARGE_MEM_QUEUE',
+			'MAX_DISPATCH_WORKER_PROCS',
 #			'ALLOCATION_PROJECT',
 #			'MAX_TIME',
 #			'MAX_NORMAL_MEMORY',
@@ -113,7 +113,7 @@ my @defaultParamValues = ($Config{'installprefix'},
 #			  'UP000005640_9606,UP000000589_10090',
 			  'no-batch-system',
 			  '',
-#			  '',
+			  ' ',
 #			  '',
 #			  'inf',
 #			  'inf',
@@ -127,7 +127,7 @@ my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
 #			'bootstrap databases for all FASTA files in this colon-separated list',
 			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF)',
 			'default command template for submitting batch commands',
-#			'queue for jobs that require large memory (only if USE_BATCH_SYSTEM != no-batch)',
+			'maximum number of worker processes used to submit jobs',
 #			'batch system project id to use for allocation charges (only used if USE_BATCH_SYSTEM != no-batch)',
 #			'maximum execution time for JUMP jobs (only if USE_BATCH_SYSTEM != no-batch)',
 #			'maximum memory to request for jobs in the NORMAL_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
@@ -191,7 +191,7 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
 	}
     }
     if(!defined($kwargs{'COMPUTE_ON_LOGIN_NODE'})) {
-	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with COMPUTE_ON_LOGIN_NODE=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration");
+	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with COMPUTE_ON_LOGIN_NODE=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration\n");
 	$options{'COMPUTE_ON_LOGIN_NODE'} = 1;
     } 
     else {
@@ -199,6 +199,11 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
 	delete $kwargs{'COMPUTE_ON_LOGIN_NODE'};
     }
     
+    if($options{'MAX_DISPATCH_WORKER_PROCS'} =~ /\s+/) {
+	print("configuring JUMP to fork unlimited processes for submitting jobs.  This may tax your job manager.  To change this, either\n\tconfigure with MAX_DISPATCH_WORKER_PROCS=N\nor\n\texecute jump -config max_dispatch_worker_procs N\nafter configuration\n" );
+	$options{'MAX_DISPATCH_WORKER_PROCS'} = " " ;
+    }
+
     if( ! $batch_complete ) {
 	exit -1;
     }
@@ -223,7 +228,7 @@ foreach my $k (keys %kwargs) {
 $config->put('cluster',$options{'CLUSTER'});
 $config->put('compute_on_login_node', $options{'COMPUTE_ON_LOGIN_NODE'});
 $config->put('max_search_worker_procs',1);
-$config->put('max_dispatch_worker_procs',' ');
+$config->put('max_dispatch_worker_procs',$options{'MAX_DISPATCH_WORKER_PROCS'});
 $config->put('batch_job_unroll',1);
 
 $ENV{'JUMP_CONFIG_PATH'} = '';
