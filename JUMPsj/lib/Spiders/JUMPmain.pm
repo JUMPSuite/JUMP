@@ -484,10 +484,12 @@ sub runjobs
 # 			}
 # 			$job2dtaMap{$i} = clone(\@dta_file_arrays);
 # 
-		    push( @cmdArr, {'cmd' => "cd $dta_path && perl runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path " . 
-					join( " && cd $dta_path && perl runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path ", 
-					      @dta_file_arrays ),
-				    'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
+		    if(scalar(@dta_file_arrays) > 0) {
+			push( @cmdArr, {'cmd' => "cd $dta_path && perl runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path " . 
+					    join( " && cd $dta_path && perl runsearch_shell.pl -job_num $i -param $parameter -dta_path $dta_path ", 
+						  @dta_file_arrays ),
+					    'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
+		    }
 		}
 	# 	elsif($params->{'Job_Management_System'} eq 'SGE')
 	# 	{

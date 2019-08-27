@@ -398,7 +398,7 @@ foreach my \$dta_file (\@dtafiles)
 	#	system(qq(rm -rf \$dta_file)) if($search_flag);
 	}
 
-	\$dtas->add_dta(\$dta);
+#	\$dtas->add_dta(\$dta);
 }
 \$dtas->print_dtas("job_\$job_num.dtas",\\\@dtafiles);	
 EOF

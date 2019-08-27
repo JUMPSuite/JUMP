@@ -15,6 +15,7 @@ package Spiders::MakeJobManager;
 
 use strict;
 use Carp;
+use List::Util qw[min];
 use File::Temp;
 use Spiders::BatchSystem;
 use Spiders::Config;
@@ -71,8 +72,9 @@ sub _generateBatchMakefile {
     my $njobs = scalar(@jobs);
     for( my $i = 0; $i < $njobs; $i += $self->{'unroll'} ) {
 	my $cmd = $jobs[$i]->{'cmd'};
-	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..($i + $self->{'unroll'})] );
-	$rules{"$i-cmd-run"} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null )  ; echo finished job ' . $i;
+	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..min(scalar(@jobs)-1,
+									     ($i + $self->{'unroll'}))] );
+	$rules{"$i-cmd-run"} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null ) && echo finished job ' . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
@@ -111,8 +113,12 @@ sub runJobs {
     print "\n";
     $| = 0;
 
+    close $handle;
+    $code = $?;
+
     if( $code ne 0 ) {
 	$self->{"myDir"}->unlink_on_destroy( 0 );
+	$mfile->unlink_on_destroy( 0 );
 	croak( "make retured with nonzero exit code; see makefiles in " . $mfile . "\n" );
     }
 }
