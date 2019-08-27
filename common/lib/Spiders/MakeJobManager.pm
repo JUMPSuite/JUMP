@@ -72,7 +72,7 @@ sub _generateBatchMakefile {
     for( my $i = 0; $i < $njobs; $i += $self->{'unroll'} ) {
 	my $cmd = $jobs[$i]->{'cmd'};
 	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..($i + $self->{'unroll'})] );
-	$rules{"$i-cmd-run"} = $batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null ; echo finished job ' . $i;
+	$rules{"$i-cmd-run"} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null )  ; echo finished job ' . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
