@@ -32,8 +32,8 @@ sub new {
     $self->{'params'} = $params;
     $self->{'unroll'} = $self->{'config'}->get( 'batch_job_unroll' );
     $self->{'debug'} = defined($options->{'DEBUG'});
-    $self->{'myDir'} = File::Temp->newdir( TEMPLATE => (defined($options->{'DEBUG'} ? 
-								'MAKE_JOB_MANAGER_TEMPDIR' : 'MakeJobManager.XXXXXXXXXXX')),
+    $self->{'myDir'} = File::Temp->newdir( TEMPLATE => ($self->{'debug'} ?
+								'MAKE_JOB_MANAGER_TEMPDIRXXX' : 'MakeJobManager.XXXXXXXXXXX'),
 					   UNLINK => (!$self->{'debug'}),
 					   DIR => '.' );
     return $self;
@@ -50,7 +50,7 @@ sub _generateSMPMakefile {
 	$rules{"$i-cmd-run"} = "( $cmd ) &> /dev/null && echo finished job " . $i;
     }
 
-    my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
+    my $tfile = File::Temp->new( TEMPLATE => 'SMPXXXXXX',
 				 DIR => $self->{'myDir'},
 				 UNLINK => 0 );
     open( my $outf, ">".$tfile->filename );
