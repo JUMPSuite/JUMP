@@ -106,7 +106,7 @@ my @defaultParamKeys = ('PREFIX',
 #			'MAX_LARGE_MEMORY',
 #			'EXTRA_READWRITE_JOB_FLAGS',
 #			'EXTRA_READONLY_JOB_FLAGS',
-			'INPLACE');
+			);
 my @defaultParamValues = ($Config{'installprefix'},
 			  'ReAdW.exe',
 #			  '/usr/share/jump',
@@ -120,7 +120,7 @@ my @defaultParamValues = ($Config{'installprefix'},
 #			  'inf',
 #			  '',
 #			  '',
-			  '1');
+			  );
 my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
 			'command for Rawfile to mzXML converter',
 #			'location to install default databases',
@@ -134,7 +134,7 @@ my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
 #			'maximum memory to request for jobs in the LARGE_MEM_QUEUE (only if USE_BATCH_SYSTEM != no-batch)',
 #			'extra flags for jobs that perform intense IO',
 #			'extra flags for jobs that do not perform intense IO',
-			'perform an in-place configuration');
+			);
 my %defaultParams;
 my %defaultParamHelp;
 @defaultParams{@defaultParamKeys} = @defaultParamValues;
@@ -233,39 +233,5 @@ $options{'ENVIRONMENT'} = \%kwargs;
 my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 
 
-if($options{'INPLACE'} eq '1') {
-    configure_jump_driver(\%options);
-}
-else {
-    foreach my $dir (@subdirs) {
-	chdir($dir);
-	system('perl Makefile.PL PREFIX=' . File::Spec->join($options{'PREFIX'},$dir));
-	chdir($rootdir);
-    }
-
-    configure_jump_driver(\%options);
-    chdir('JUMP');
-    system('perl Makefile.PL PREFIX=' . $options{'PREFIX'});
-    chdir($rootdir);
-
-    open( my $makefile, '>Makefile' );
-    my $optstr = join( ' ', @ARGV );
-    print $makefile <<EOF;
-all: Makefile
-\t(for i in $subdirstr ; do cd \$\${i} && make && cd - ; done ; )
-
-install: Makefile
-\t(for i in $subdirstr ; do cd \$\${i} && make install && cd - ; done ; sh gen-site-config.sh )
-
-test: Makefile
-\t(for i in $subdirstr ; do cd \$\${i} && make test && cd - ; done)
-
-Makefile: Makefile.PL
-\t\@echo 'Your Makefile is out-of-date with respect to Makefile.PL...reconfiguring'
-\tmv Makefile Makefile.old
-\t$Config{'perlpath'} Makefile.PL $optstr
-\t\@echo 'Your makefiles have been rebuilt. Please re-execute your make command.'
-\tfalse
-EOF
-}
+configure_jump_driver(\%options);
 print("configuration complete.\n");
