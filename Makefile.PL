@@ -209,7 +209,7 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     }
 }
 
-$options{'CLUSTER'} = ($options{'USE_BATCH_SYSTEM'} ne 'no-batch-system');
+$options{'CLUSTER'} = ($options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ? 1 : 0);
 my $etcPath = get_etc_path(\%options);
 my $cfgFile = File::Spec->join($etcPath,'cfg.bin');
 if( ! -d $etcPath ) {
