@@ -603,6 +603,7 @@ sub runjobs
 # 	}
 # 	return $temp_file_array;
 	$jobManager->runJobs( @cmdArr );
+	sleep(2);
  	my $temp_file_array;
 	for(my $k=0;$k<=$#$file_array;$k++) {
 	    my $data_file = $file_array->[$k];
