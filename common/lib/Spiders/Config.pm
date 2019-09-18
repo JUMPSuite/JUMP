@@ -35,8 +35,11 @@ sub getUserCfg {
     my $cfg = {};
     open(my $infile, "<".File::Spec->join($ENV{'HOME'},'.jump','config')) || return $cfg;
     while(<$infile>) {
-	my ($k,$v) = split( /\s+/, $_ );
-	$cfg->{$k} = $v;
+	chomp($_);
+	if( length($_) > 0 ) {
+	    my ($k,$v) = split( /\s+/, $_ );
+	    $cfg->{$k} = $v;
+	}
     }
     return $cfg;
 }

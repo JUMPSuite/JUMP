@@ -68,24 +68,29 @@ sub _generateBatchMakefile {
     my @jobs = @_;
     my $batchSystem = new Spiders::BatchSystem();
 
-    my %rules;
+    my %cmds;
     my $njobs = scalar(@jobs);
+
+
     for( my $i = 0; $i < $njobs; $i += $self->{'unroll'} ) {
 	my $cmd = $jobs[$i]->{'cmd'};
 	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..min(scalar(@jobs)-1,
 									     ($i + $self->{'unroll'}))] );
-	$rules{"$i-cmd-run"} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null ) && echo finished job ' . $i;
+	$cmds{$i} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null  && echo finished job ' . $i . ')';
     }
 
+    my $config = new Spiders::Config();
+    my $lag = $config->get('batch_dispatch_lag');
     my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
 				 DIR => $self->{'myDir'} );
     open( my $outf, ">".$tfile->filename );
-    print $outf 'all: ' . join( ' ', keys(%rules) ) . "\n";
-    foreach my $k (keys(%rules)) {
-	print $outf "$k:\n\t@" .  $rules{$k} . "\n";
+    print $outf "all:\n";
+    foreach my $k (keys(%cmds)) {
+	print $outf "\t\@sleep $lag ; $cmds{$k} &\n";
     }
+    print $outf "\t\@wait\n";
     close( $outf );
-    return ($tfile,\%rules);
+    return ($tfile,\%cmds);
 }
 
 sub runJobs {
