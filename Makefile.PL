@@ -18,14 +18,7 @@ sub configure_jump_driver {
     my @lines;
     my $libpath;
     my $extra_jump_dir = '';
-    unless( $options{'INPLACE'} == 1 ) {
-	$libpath = $Config{'installsitelib'};
-	$libpath =~ s/$Config{'installprefix'}/$options{'prefix'}/g;
-    }
-    else {
-	$libpath = 'lib';
-	$extra_jump_dir = 'JUMP';
-    }
+    $libpath = 'lib';
     
     my $header = shift(@lines);
     my @jump_g_lib_dirs = ('c','f','g','s');
@@ -93,8 +86,7 @@ foreach my $arg (@ARGV) {
     }
 }
 
-my @defaultParamKeys = ('PREFIX',
-			'RAWFILE_CONVERTER',
+my @defaultParamKeys = ('RAWFILE_CONVERTER',
 #			'DEFAULT_DB_DIR',
 #			'BOOTSTRAP_DBS',
 			'USE_BATCH_SYSTEM',
@@ -107,8 +99,7 @@ my @defaultParamKeys = ('PREFIX',
 #			'EXTRA_READWRITE_JOB_FLAGS',
 #			'EXTRA_READONLY_JOB_FLAGS',
 			);
-my @defaultParamValues = ($Config{'installprefix'},
-			  'ReAdW.exe',
+my @defaultParamValues = ('ReAdW.exe',
 #			  '/usr/share/jump',
 #			  'UP000005640_9606,UP000000589_10090',
 			  'no-batch-system',
@@ -121,8 +112,7 @@ my @defaultParamValues = ($Config{'installprefix'},
 #			  '',
 #			  '',
 			  );
-my @defaultParamHelp = ('installation prefix (only used if INPLACE!=1)',
-			'command for Rawfile to mzXML converter',
+my @defaultParamHelp = ('command for Rawfile to mzXML converter',
 #			'location to install default databases',
 #			'bootstrap databases for all FASTA files in this colon-separated list',
 			'configure JUMP to use this batch system for job dispatch (e.g. PBS,LSF)',
@@ -178,9 +168,7 @@ while( my ($k,$v) = each %defaultParams ) {
 }
 
 my $rootdir = $ENV{"PWD"};
-if( $options{'INPLACE'} == 1 ) {
-    $options{'PREFIX'} = $rootdir;
-}
+$options{'PREFIX'} = $rootdir;
 
 my $batch_complete = 1;
 if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
