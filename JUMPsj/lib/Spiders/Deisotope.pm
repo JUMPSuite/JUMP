@@ -48,7 +48,7 @@ sub set_C_value
 sub get_C_value
 {
     my $self=shift;
-    if(!defined($self->{_C_value}))
+    if(!($self->{_C_value}))
     {
 	$self->{_C_value}=1.00335;
     }
@@ -64,7 +64,7 @@ sub set_H_value
 sub get_H_value
 {
     my $self=shift;
-    if(!defined($self->{_H_value}))
+    if(!($self->{_H_value}))
     {
 	$self->{_H_value}=1.007276466812;
     }
@@ -80,7 +80,7 @@ sub set_pho_neutral_loss
 sub get_pho_neutral_loss
 {
     my $self=shift;
-    if(!defined($self->{_pho_value}))
+    if(!($self->{_pho_value}))
     {
 	$self->{_pho_value}=97.984171671262;
     }
@@ -142,7 +142,7 @@ sub MS2_deisotope
     
 ### check whether there are phosphorylation losses
     my $pho_loss_num = 0;
-    if(defined($parameter->{'ion_losses_MS1'}))
+    if(($parameter->{'ion_losses_MS1'}))
     {
 	$pho_loss_num = $self->check_pho_loss($prec_mass,$prec_charge,\%mz_hash,10);
     }
@@ -175,12 +175,12 @@ sub MS2_deisotope
 	    print OUT $dta,"\t",$mz,"\t",$mz_hash{$mz},"\n";
 	    close(OUT);
 	}		
-	next if (!defined($mz_hash{$mz}));
+	next if (!($mz_hash{$mz}));
 # find charge and isotopes
 	my $charge = $self->define_charge(\%mz_hash,$parameter->{'ppm'},$mz,$prec_charge);
 ## define the isotopic peaks using the charge, tolerance and orignal peaks
 	next if ($charge == 0);
-	if(defined($charge))
+	if(($charge))
 	{
 	    $self->deisotope(\%mz_hash,$charge,$mz,$parameter->{'ppm'});
 	    $charge_hash{$mz}=$charge;
@@ -191,8 +191,8 @@ sub MS2_deisotope
 #	print "debuging........................\n";
     foreach my $mz (keys %mz_hash)
     {
-#		next if (!defined $charge_hash{$mz});
-	if(defined $charge_hash{$mz} && $charge_hash{$mz} >1)
+#		next if (! $charge_hash{$mz});
+	if( $charge_hash{$mz} && $charge_hash{$mz} >1)
 	{
 
 	    $self->changeMH(\%mz_hash,$charge_hash{$mz},$mz);
@@ -208,7 +208,7 @@ sub MS2_deisotope
     my (@new_mz, @new_int);
     foreach my $mz (sort {$a<=>$b} keys %mz_hash)
     {
-	if(defined($mz_hash{$mz}))
+	if(($mz_hash{$mz}))
 	{
 	    push( @new_mz, $mz );
 	    push( @new_int, $mz_hash{$mz} );
@@ -263,12 +263,12 @@ sub MS1_deisotope
     foreach my $mz (reverse sort {$mz_hash{$a}<=>$mz_hash{$b}} keys %mz_hash)
     {
 
-	next if (!defined($mz_hash{$mz}));
+	next if (!($mz_hash{$mz}));
 # find charge and isotopes
 	my $charge = $self->define_charge(\%mz_hash,$parameter->{'ppm'},$mz,3);
 ## define the isotopic peaks using the charge, tolerance and orignal peaks
 	next if ($charge == 0);
-	if(defined($charge))
+	if(($charge))
 	{
 	    #$self->deisotope(\%mz_hash,$charge,$mz,$parameter->{'ppm'});
 	    $charge_hash{$mz}=$charge;
@@ -279,8 +279,8 @@ sub MS1_deisotope
 #	print "debuging........................\n";
     foreach my $mz (keys %mz_hash)
     {
-#		next if (!defined $charge_hash{$mz});
-	if(defined $charge_hash{$mz} && $charge_hash{$mz} >1)
+#		next if (! $charge_hash{$mz});
+	if( $charge_hash{$mz} && $charge_hash{$mz} >1)
 	{
 	    $self->changeMH(\%mz_hash,$charge_hash{$mz},$mz);
 	}
@@ -294,7 +294,7 @@ sub MS1_deisotope
 
     foreach my $mz (sort {$a<=>$b} keys %mz_hash)
     {
-	if(defined($mz_hash{$mz}))
+	if(($mz_hash{$mz}))
 	{
 	    print OUT $mz," ",$mz_hash{$mz},"\n";
 	}
@@ -313,7 +313,7 @@ sub calculate_signal_noise_ratio
     my @signal_intensity_array=();
     my @noise_intensity_array=();
     my $i=0;
-    if(!(defined(%$mz_hash)))
+    if(!((%$mz_hash)))
     {
 	return "N/A";
     }
@@ -323,7 +323,7 @@ sub calculate_signal_noise_ratio
     }
     foreach my $mz (keys %$mz_hash)
     {
-	if(!defined($mz_hash->{$mz}))
+	if(!($mz_hash->{$mz}))
 	{
 	    delete $mz_hash->{$mz};			
 	}	
@@ -373,11 +373,11 @@ sub median
     }
     else #even
     {
-	if(!defined($vals[int($len/2)]))
+	if(!($vals[int($len/2)]))
 	{
 	    return $vals[int($len/2)-1];
 	}
-	elsif(!defined($vals[int($len/2)-1]))
+	elsif(!($vals[int($len/2)-1]))
 	{
 	    return 0;
 	}
@@ -389,7 +389,7 @@ sub median
 }
 
 ######### Remove un-fragmented ions #################################
-# remove the precursor mass according the window defined by user
+# remove the precursor mass according the window  by user
 # normally, the window size is 3
 # save the precursor mass in %prec_mz_hash
 # remove the keys and values from %mz_hash
@@ -475,7 +475,7 @@ sub define_charge
 	$charge = $round_diff;
 	last;
     }
-    if(!defined($charge))
+    if(!($charge))
     {
 	$charge=0;
     }
@@ -493,7 +493,7 @@ sub deisotope
 
     my $isotopic_peaks_mass_error=$self->{'_mass_error'};
     my $TMT_data_start_mz = 0;
-    if(defined($parameter->{'TMT_data'}))
+    if(($parameter->{'TMT_data'}))
     {
 	$TMT_data_start_mz = $parameter->{'TMT_data'};		
     }	
@@ -565,7 +565,7 @@ sub deisotope
 #			{
 #				delete $mz_hash->{$mz};
 #			}
-	    if(defined ($mz_hash->{$mz}) && defined ($mz_hash->{$select_mz}) )
+	    if( ($mz_hash->{$mz}) &&  ($mz_hash->{$select_mz}) )
 	    {
 
 
@@ -640,7 +640,7 @@ sub deisotope_charge_1
 ########## need discussion about it		
 #			if(($mz_hash->{$mz} / $mz_hash->{$selected_mz}) > $parameter->{'M_M1'})
 #			{
-	    if(defined($mz_hash->{$mz}))
+	    if(($mz_hash->{$mz}))
 	    {
 		$mz_hash->{$selected_mz} += $mz_hash->{$mz};
 ### remove the un-deisotope peak				
