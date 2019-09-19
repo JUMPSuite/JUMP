@@ -17,7 +17,7 @@ sub configure_jump_driver {
     my %options = %{shift(@_)};
     my @lines;
     my $libpath;
-    my $extra_jump_dir = '';
+    my $extra_jump_dir = 'JUMP';
     $libpath = 'lib';
     
     my $header = shift(@lines);
