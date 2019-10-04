@@ -14,9 +14,8 @@ use Clone qw(clone);
 use Spiders::ProcessingMzXML;
 use Spiders::Params;
 use List::Util qw(shuffle);
-use Parallel::ForkManager;
-use Spiders::LSFQueue;
-use Spiders::SGEQueue;
+use Spiders::JobManager;
+use Spiders::BatchSystem;
 
 my ($help,$parameter,$raw_file);
 GetOptions('-help|h'=>\$help,
@@ -60,19 +59,6 @@ printf LOGFILE "%4d-%02d-%02d %02d:%02d:%02d\n", $year + 1900, $mon + 1, $mday, 
 print "  Initializing jump -l program\n\n";
 print LOGFILE "  Initializing jump -l program\n\n";
 
-my $queue;
-if( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "LSF" || 
-				  $params->{'Job_Management_System'} == "LSF" ) ) {
-    $queue = Spiders::LSFQueue->new();
-}
-elsif( $params->{'cluster'} == 1 && ($params->{'cluster_type'} == "SGE" ||
-       				  $params->{'Job_Management_System'} == "SGE" ) ) {
-    $queue = Spiders::SGEQueue->new();
-}
-else {
-    die "cluster mode selected but queueing system $parars->{'cluster_type'} unknown";
-}
-
 ##########################
 ## Read IDmod.txt file	##
 ##########################
@@ -86,134 +72,136 @@ print LOGFILE "\n";
 my $MAX_PROCESSES = 32;
 print "  Extracting m/z and generating dta files for each fraction \n";
 print LOGFILE "  Extracting m/z and generating dta files for each fraction \n";
-if ($params -> {'cluster'} eq '1') {
-	my $nTotalJobs = 0;
-	my %jobIDs;
-	foreach my $fraction (keys %$frac_scan) {
-		my $basename = basename($fraction);
-		my $new_path = $dir."/$basename";
-		system(qq(mkdir $new_path >/dev/null 2>&1));
-		system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));	
-		my $jobName = "Extraction_".$nTotalJobs;
-		my$job = $queue->submit_job($new_path,$jobName,"Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n");
-
-		$jobIDs{$job} = 1;
-		$nTotalJobs++;
-		print "\r  $nTotalJobs jobs are submitted";
-	}
-	print "\n  You submitted $nTotalJobs job(s) for data extraction \n";
-	print LOGFILE "  You submitted $nTotalJobs job(s) for data extraction \n";
-	CheckJobStat($nTotalJobs, \%jobIDs, $queue);
-} elsif ($params -> {'cluster'} eq '0') {
-	my $nTotalJobs = 0;
-	my $pm = new Parallel::ForkManager($MAX_PROCESSES);
-	foreach my $fraction (keys %$frac_scan) {	
-		$nTotalJobs++;
-		print "\r  $nTotalJobs job(s) submitted";
-		$pm -> start and next;
-		my $basename = basename($fraction);
-		my $new_path = $dir."/$basename";
-		system(qq(mkdir $new_path >/dev/null 2>&1));
-		system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));
-		my $jobName = "Extraction_" . $nTotalJobs;
-		open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
-		print JOB "#!/bin/bash\n";
-		print JOB "#\$ -N $jobName\n";
-		print JOB "#\$ -e $new_path/$jobName.e\n";
-		print JOB "#\$ -o $new_path/$jobName.o\n";
-		print JOB "Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
-		close (JOB);
-		system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
-		$pm -> finish;
-	}
-	$pm -> wait_all_children;
-	print "\n  $nTotalJobs job(s) finished\n";
-	print LOGFILE "\n  $nTotalJobs job(s) finished\n";
+my $nTotalJobs = 0;
+my @jobs;
+foreach my $fraction (keys %$frac_scan) {
+    my $basename = basename($fraction);
+    my $new_path = $dir."/$basename";
+    system(qq(mkdir $new_path >/dev/null 2>&1));
+    system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));	
+    my $jobName = "Extraction_".$nTotalJobs;
+    push( @jobs, {'cmd' => 
+		      "Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter",
+		      'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
+    
+    $nTotalJobs++;
+    print "\r  $nTotalJobs jobs are submitted";
 }
+print "\n  You submitted $nTotalJobs job(s) for data extraction \n";
+print LOGFILE "  You submitted $nTotalJobs job(s) for data extraction \n";
+my $jobManager = Spiders::JobManager->newJobManager();
+$jobManager->runJobs( @jobs );
+
+# } elsif ($params -> {'cluster'} eq '0') {
+# 	my $nTotalJobs = 0;
+# 	my $pm = new Parallel::ForkManager($MAX_PROCESSES);
+# 	foreach my $fraction (keys %$frac_scan) {	
+# 		$nTotalJobs++;
+# 		print "\r  $nTotalJobs job(s) submitted";
+# 		$pm -> start and next;
+# 		my $basename = basename($fraction);
+# 		my $new_path = $dir."/$basename";
+# 		system(qq(mkdir $new_path >/dev/null 2>&1));
+# 		system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));
+# 		my $jobName = "Extraction_" . $nTotalJobs;
+# 		open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
+# 		print JOB "#!/bin/bash\n";
+# 		print JOB "#\$ -N $jobName\n";
+# 		print JOB "#\$ -e $new_path/$jobName.e\n";
+# 		print JOB "#\$ -o $new_path/$jobName.o\n";
+# 		print JOB "Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter\n\n";
+# 		close (JOB);
+# 		system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
+# 		$pm -> finish;
+# 	}
+# 	$pm -> wait_all_children;
+# 	print "\n  $nTotalJobs job(s) finished\n";
+# 	print LOGFILE "\n  $nTotalJobs job(s) finished\n";
+# }
 
 ##########################################################################################
 ## For each peptide, calculate localization scores of all possible modified peptides	##
 ##########################################################################################
 print "\n\n  Calculating localization scores\n";
 print LOGFILE "\n\n  Calculating localization scores";
-if ($params -> {'cluster'} eq '1') {
-	my $nEntriesPerJob = 100;
-	my $nTotalJobs = 0;
-	my $maxJobs = 100;
-	my %jobIDs;
-	foreach my $frac (keys %$frac_scan) {
-		my $basename = basename($frac);
-		my $new_path = $dir."/$basename";
-		my @outfiles = keys %{$frac_scan->{$frac}};
-		my $nEntries = scalar(@outfiles);
-		my $nJobs = int($nEntries / $nEntriesPerJob) + 1;
-		if ($nJobs > $maxJobs) {
-			$nEntriesPerJob = int($nEntries / $maxJobs) + 1;
-			$nJobs = int($nEntries / $nEntriesPerJob) + 1;
-		}      
-		for (my $i = 0; $i < $nJobs; $i++) {
-			my $jobName = "Job_PTM_".$nTotalJobs;
-			my $cmd = "";
-			unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
-			for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0 
-			     && $nEntriesPerJob * $i + $j < $nEntries; $j++) {
-				my $k = $nEntriesPerJob * $i + $j;
-				my $queryOutfile =  $outfiles[$k];
-				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-				$cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
-			}
-			if( $nEntries > 0 && $nEntriesPerJob * $i < $nEntries )  {
-			    my $job = $queue->submit_job($new_path,$jobName,$cmd);
-			    $jobIDs{$job} = 1;
-			    $nTotalJobs++;
-			    print "\r  $nTotalJobs jobs are submitted";
-			}
-		}
+my $nEntriesPerJob = 100;
+my $nTotalJobs = 0;
+my $maxJobs = 100;
+my %jobIDs;
+@jobs = ();
+foreach my $frac (keys %$frac_scan) {
+    my $basename = basename($frac);
+    my $new_path = $dir."/$basename";
+    my @outfiles = keys %{$frac_scan->{$frac}};
+    my $nEntries = scalar(@outfiles);
+    my $nJobs = int($nEntries / $nEntriesPerJob) + 1;
+    if ($nJobs > $maxJobs) {
+	$nEntriesPerJob = int($nEntries / $maxJobs) + 1;
+	$nJobs = int($nEntries / $nEntriesPerJob) + 1;
+    }      
+    for (my $i = 0; $i < $nJobs; $i++) {
+	my $jobName = "Job_PTM_".$nTotalJobs;
+	my $cmd = "";
+	unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
+	for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0 
+	     && $nEntriesPerJob * $i + $j < $nEntries; $j++) {
+	    my $k = $nEntriesPerJob * $i + $j;
+	    my $queryOutfile =  $outfiles[$k];
+	    my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
+	    $cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter";
 	}
-	print "\n  You submitted $nTotalJobs job(s) for local scoring \n";
-	print LOGFILE "\n  You submitted $nTotalJobs job(s) for local scoring \n";
-	CheckJobStat($nTotalJobs, \%jobIDs, $queue);
-} elsif ($params -> {'cluster'} eq '0') {
-	my $nEntriesPerJob = 100;
-	my $nTotalJobs = 0;
-	my $maxJobs = 100;
-	$pm = new Parallel::ForkManager($MAX_PROCESSES);
-	foreach my $frac (keys %$frac_scan) {
-		my $basename = basename($frac);
-		my $new_path = $dir."/$basename";
-		my @outfiles = keys %{$frac_scan->{$frac}};
-		my $nEntries = scalar(@outfiles);
-		my $nJobs = int($nEntries / $nEntriesPerJob) + 1;
-		if ($nJobs > $maxJobs) {
-			$nEntriesPerJob = int($nEntries / $maxJobs) + 1;
-			$nJobs = int($nEntries / $nEntriesPerJob) + 1;
-		}
-		for (my $i = 0; $i < $nJobs; $i++) {
-			$nTotalJobs++;
-			print "\r  $nTotalJobs job(s) submitted (some of them may be finished)";
-			my $jobName = "Job_PTM_".$nTotalJobs;
-			$pm -> start and next;
-			open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
-			print JOB "#!/bin/bash\n";
-			print JOB "#\$ -N $jobName\n";
-			print JOB "#\$ -e $new_path/$jobName.e\n";
-			print JOB "#\$ -o $new_path/$jobName.o\n";
-			for (my $j = 0; $j < $nEntriesPerJob; $j++) {
-				my $k = $nEntriesPerJob * $i + $j;
-				last if ($k >= $nEntries);
-				my $queryOutfile =  $outfiles[$k];
-				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-				print JOB "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
-			}
-			close (JOB);
-			system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
-			$pm -> finish;
-		}		
+	if( $nEntries > 0 && $nEntriesPerJob * $i < $nEntries )  {
+	    push( @jobs, {'cmd' => $cmd,
+			  'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
+	    $nTotalJobs++;
+	    print "\r  $nTotalJobs jobs are submitted";
 	}
-	$pm -> wait_all_children;
-	print "\n  $nTotalJobs job(s) finished\n";
-	print LOGFILE "\n  $nTotalJobs job(s) finished\n";
+    }
 }
+print "\n  You submitted $nTotalJobs job(s) for local scoring \n";
+print LOGFILE "\n  You submitted $nTotalJobs job(s) for local scoring \n";
+$jobManager->runJobs( @jobs );
+# } elsif ($params -> {'cluster'} eq '0') {
+# 	my $nEntriesPerJob = 100;
+# 	my $nTotalJobs = 0;
+# 	my $maxJobs = 100;
+# 	$pm = new Parallel::ForkManager($MAX_PROCESSES);
+# 	foreach my $frac (keys %$frac_scan) {
+# 		my $basename = basename($frac);
+# 		my $new_path = $dir."/$basename";
+# 		my @outfiles = keys %{$frac_scan->{$frac}};
+# 		my $nEntries = scalar(@outfiles);
+# 		my $nJobs = int($nEntries / $nEntriesPerJob) + 1;
+# 		if ($nJobs > $maxJobs) {
+# 			$nEntriesPerJob = int($nEntries / $maxJobs) + 1;
+# 			$nJobs = int($nEntries / $nEntriesPerJob) + 1;
+# 		}
+# 		for (my $i = 0; $i < $nJobs; $i++) {
+# 			$nTotalJobs++;
+# 			print "\r  $nTotalJobs job(s) submitted (some of them may be finished)";
+# 			my $jobName = "Job_PTM_".$nTotalJobs;
+# 			$pm -> start and next;
+# 			open (JOB, ">", "$new_path/$jobName.sh") or die "Cannot creat a job file\n";
+# 			print JOB "#!/bin/bash\n";
+# 			print JOB "#\$ -N $jobName\n";
+# 			print JOB "#\$ -e $new_path/$jobName.e\n";
+# 			print JOB "#\$ -o $new_path/$jobName.o\n";
+# 			for (my $j = 0; $j < $nEntriesPerJob; $j++) {
+# 				my $k = $nEntriesPerJob * $i + $j;
+# 				last if ($k >= $nEntries);
+# 				my $queryOutfile =  $outfiles[$k];
+# 				my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
+# 				print JOB "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter\n\n";
+# 			}
+# 			close (JOB);
+# 			system(qq(sh "$new_path/$jobName.sh" > /dev/null 2>&1));
+# 			$pm -> finish;
+# 		}		
+# 	}
+# 	$pm -> wait_all_children;
+# 	print "\n  $nTotalJobs job(s) finished\n";
+# 	print LOGFILE "\n  $nTotalJobs job(s) finished\n";
+# }
 
 sub CheckJobStat {
 	my ($nJobs, $jobIDs,$queue) = @_;

@@ -35,7 +35,7 @@ GetOptions('-help|h'=>\$help,
 	   '--queue=s'=>\$queue, '--memory=s'=>\$mem);
 
 if(!defined($queue) && !defined($mem)) {
-    $queue = 'normal';
+    $queue = 'standard';
     $mem = 200000;
 }
 elsif(!defined($queue) && defined($mem)) { 

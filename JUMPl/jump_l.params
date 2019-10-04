@@ -2,7 +2,7 @@
 # JUMPl identifies (localizes) the modification sites (e.g. phosphorylation)
 
 # Input and output settings
-IDmod = /hpcf/restricted_apps/proteomics_apps/pipeline/release/version12.0.0/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt
+IDmod = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version12.0.0/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt
 
 # Preprocessing parameters
 peptide_score_tolerance = 10							# tolerance for peptide localization score (percentage)
