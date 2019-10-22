@@ -48,6 +48,7 @@ sub _generateSMPMakefile {
     for( my $i = 0; $i < $njobs; $i += 1 ) {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
+	$cmd =~ s/\$/\$\$/g;
 	$rules{"$i-cmd-run"} = "( $cmd ) &> /dev/null && echo finished job " . $i;
     }
 
@@ -76,6 +77,7 @@ sub _generateBatchMakefile {
     for( my $i = 0; $i < $njobs; $i += $self->{'unroll'} ) {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
+	$cmd =~ s/\$/\$\$/g;
 	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..min(scalar(@jobs)-1,
 									     ($i + $self->{'unroll'}))] );
 	$cmds{$i} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null  && echo finished job ' . $i . ')';
@@ -114,6 +116,7 @@ sub runJobs {
     }
 
     $| = 1;
+    print "\r  0 jobs are done";
     for( my $jobsDone = 1; <$handle>; $jobsDone += 1 ) {
 	print "\r  $jobsDone jobs are done";
     }

@@ -92,7 +92,7 @@ if( $dispatch eq "batch-interactive" && $config->get('compute_on_login_node') eq
 #     system( "bsub -env all -P prot -q $queue -R \"rusage[mem=32768]\" \"$cmd --dispatch=localhost | jump_sj_log.pl\"" );
 # }
 elsif( $dispatch eq "localhost" || 
-       Spiders::Config::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP || 
+       Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP || 
        $config->get('compute_on_login_node') eq '1' ) {
     my $library = $Bin;
     my $main = new Spiders::JUMPmain();

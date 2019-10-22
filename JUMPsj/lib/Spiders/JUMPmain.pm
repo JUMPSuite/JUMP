@@ -603,6 +603,7 @@ sub runjobs
 # 	}
 # 	return $temp_file_array;
 	$jobManager->runJobs( @cmdArr );
+	my $config = new Spiders::Config();
 	sleep(2);
  	my $temp_file_array;
 	for(my $k=0;$k<=$#$file_array;$k++) {
@@ -649,62 +650,62 @@ sub LuchParallelJob{
 	
 	my($FileName,$cmd,$GridType,$outputName,$dta_path)= @_;
 	my $retval;
-	open(JOB,">$FileName") || die "can not open $FileName\n";
-	if($GridType eq 'LSF')
-	{	
-			print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
-			print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
-			print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
-			print JOB "#BSUB -M 20000\n";
-			print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
+	# open(JOB,">$FileName") || die "can not open $FileName\n";
+	# if($GridType eq 'LSF')
+	# {	
+	# 		print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+	# 		print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+	# 		print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
+	# 		print JOB "#BSUB -M 20000\n";
+	# 		print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
 			
-			print JOB "#BSUB -eo $dta_path/$outputName.e\n";
-			print JOB "#BSUB -oo $dta_path/$outputName.o\n";
-			print JOB $cmd;		
-			close(JOB);
-			my $cmd = "bsub <$FileName";	
-			my $job = qx[$cmd];
-			chomp $job;
-			if($job=~/Job \<(\d*)\>/)
-			{
-			    $retval=$1;
-			}
-			else {
-			    croak "could not parse job id $job";
-			}
-	}
-	if($GridType eq 'SGE')
-	{
+	# 		print JOB "#BSUB -eo $dta_path/$outputName.e\n";
+	# 		print JOB "#BSUB -oo $dta_path/$outputName.o\n";
+	# 		print JOB $cmd;		
+	# 		close(JOB);
+	# 		my $cmd = "bsub <$FileName";	
+	# 		my $job = qx[$cmd];
+	# 		chomp $job;
+	# 		if($job=~/Job \<(\d*)\>/)
+	# 		{
+	# 		    $retval=$1;
+	# 		}
+	# 		else {
+	# 		    croak "could not parse job id $job";
+	# 		}
+	# }
+	# if($GridType eq 'SGE')
+	# {
 
-		print JOB "#!/bin/bash\n";
-		print JOB "#\$ \-S /bin/bash\n";  #In our cluster this line is esential for executing some bash commands such as for
-		print JOB "#\$ \-N $outputName\n";
-		print JOB "#\$ \-e $dta_path/$outputName.e\n";
-		print JOB "#\$ \-o $dta_path/$outputName.o\n";
-		print JOB $cmd;
-		close(JOB);
-		if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial')
-		{
-			system(qq(qsub -cwd -cwd -pe mpi 64 -l mem_free=100G,h_vmem=100G $FileName >/dev/null 2>&1));
-		}
-		else
-		{
-			system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
-		}
-		#system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
-	}
-	if($GridType eq 'PBS')
-	{
+	# 	print JOB "#!/bin/bash\n";
+	# 	print JOB "#\$ \-S /bin/bash\n";  #In our cluster this line is esential for executing some bash commands such as for
+	# 	print JOB "#\$ \-N $outputName\n";
+	# 	print JOB "#\$ \-e $dta_path/$outputName.e\n";
+	# 	print JOB "#\$ \-o $dta_path/$outputName.o\n";
+	# 	print JOB $cmd;
+	# 	close(JOB);
+	# 	if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial')
+	# 	{
+	# 		system(qq(qsub -cwd -cwd -pe mpi 64 -l mem_free=100G,h_vmem=100G $FileName >/dev/null 2>&1));
+	# 	}
+	# 	else
+	# 	{
+	# 		system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
+	# 	}
+	# 	#system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
+	# }
+	# if($GridType eq 'PBS')
+	# {
 
-		print JOB "#!/bin/bash\n";
-		print JOB "#PBS -N $outputName\n";
-		print JOB "#PBS -e $dta_path/$outputName.e\n"; 
-		print JOB "#PBS -o $dta_path/$outputName.o"; 			
-		print JOB $cmd;
-		close(JOB);
-		system(qq(qsub -cwd $FileName >/dev/null 2>&1));
-	}
-        close(JOB);
+	# 	print JOB "#!/bin/bash\n";
+	# 	print JOB "#PBS -N $outputName\n";
+	# 	print JOB "#PBS -e $dta_path/$outputName.e\n"; 
+	# 	print JOB "#PBS -o $dta_path/$outputName.o"; 			
+	# 	print JOB $cmd;
+	# 	close(JOB);
+	# 	system(qq(qsub -cwd $FileName >/dev/null 2>&1));
+	# }
+        # close(JOB);
         return $retval;
 }
 
@@ -924,418 +925,392 @@ sub database_creation
 	elsif(!(-e ($databasename) and $databasename=~/.mdx/))
 	{
 ######## Needs further test
-=head	
-		if($param->{'inclusion_decoy'}==1)
+	    
+	    print "  Creating database\n";
+	    my $jobManager = Spiders::JobManager->newJobManager($params);
+	    
+	    my $mass_index = $databasename . ".mdx";
+	    
+	    my $peptide_index = $databasename . ".pdx";
+	    my $protein_index = $databasename . ".prdx";
+	    if(-e($mass_index))
+	    {
+		croak("database of same name already exists; refusing to overwrite\n");
+	    }
+	    $params->{'database_name'} = $mass_index;
+	    ################# create database using cluster system ########################
+	    my $total_protein_number=0;
+	    open(FASTA, $databasename) || die "can not open the database\n";
+	    while(<FASTA>)
+	    {
+		$total_protein_number++ if($_=~/^\>/);
+	    }		
+	    close(FASTA);
+	    
+	    my $num_protein_per_job;
+	    #my $num_protein_per_job = int($total_protein_number/(200*$num_dynamic_mod))+1;
+	    if ($total_protein_number>2000) {
+		$num_protein_per_job = int($total_protein_number/(200*$num_dynamic_mod))+1; # v12 statement (for regular database, e.g., human proteome)
+	    } else {
+		$num_protein_per_job = int($total_protein_number/(5*$num_dynamic_mod))+1; # for small test
+	    }
+
+	    my $protein_num=0;
+	    my $k=0;
+	    
+	    open(FASTA, $databasename) || die "can not open the database\n";
+	    system(qq(mkdir $tmp_database_path >/dev/null 2>&1));
+	    while(<FASTA>)
+	    {
+		$protein_num++ if($_=~/^\>/);
+		if(($protein_num % $num_protein_per_job)==1)
 		{
-			print "  Generating reverse database\n";
-			my $makedb = new Spiders::MakeDB('db_file'=>$databasename);
-			$makedb->set_parameter($params);
-			$makedb->make_db_with_decoy();
-		}
-=cut	
-	
-		print "  Creating database\n";
-		my $mass_index = $databasename . ".mdx";
+		    if($_=~/^\>/)
+		    {
+			$k++;
+			print "\r  Generating $k temporary files";
+			open(FASTATEMP,">$tmp_database_path/temp_${k}_${database_basename}");
+		    }
+		    print FASTATEMP "$_";
 
-		my $peptide_index = $databasename . ".pdx";
-		my $protein_index = $databasename . ".prdx";
-		if(-e($mass_index))
+		}
+		else
 		{
-			print "  Do you want to remove the old database with same name? (y/n): ";
-			chomp(my $choice = <STDIN>);
-			if($choice eq "yes" || $choice eq "y")
-			{
-				print "  Removing old database\n";
-				system(qq(rm -f $mass_index >/dev/null 2>&1));
-				system(qq(rm -f $peptide_index >/dev/null 2>&1));
-				system(qq(rm -f $protein_index >/dev/null 2>&1));
-			}	
+		    print FASTATEMP "$_";		
 		}
-		$params->{'database_name'} = $mass_index;
-		################# create database using cluster system ########################
-		my $total_protein_number=0;
-		open(FASTA, $databasename) || die "can not open the database\n";
-		while(<FASTA>)
-		{
-			$total_protein_number++ if($_=~/^\>/);
-		}		
-		close(FASTA);
-		
-		my $num_protein_per_job;
-		#my $num_protein_per_job = int($total_protein_number/(200*$num_dynamic_mod))+1;
-		if ($total_protein_number>2000) {
-			$num_protein_per_job = int($total_protein_number/(200*$num_dynamic_mod))+1; # v12 statement (for regular database, e.g., human proteome)
-		} else {
-			$num_protein_per_job = int($total_protein_number/(5*$num_dynamic_mod))+1; # for small test
-		}
+	    }
+	    close(FASTA);
+	    print "\n";
+	    
+ 	########### make job file ##############
+	    my $library = $self->get_library();	
+	    my $job = new Spiders::Job();
+	    my $abs_parameter = abs_path ($parameter);
+	    $job->set_library_path($library);			
+	    #	my $num_mass_region = 20 * $num_dynamic_mod;
+	    ## Modified by JCho on 12/02/2014
+	    my $num_mass_region = 40;
 
-		my $protein_num=0;
-		my $k=0;
-		
-		open(FASTA, $databasename) || die "can not open the database\n";
-		system(qq(mkdir $tmp_database_path >/dev/null 2>&1));
-		while(<FASTA>)
-		{
-			$protein_num++ if($_=~/^\>/);
-			if(($protein_num % $num_protein_per_job)==1)
-			{
-				if($_=~/^\>/)
-				{
-					$k++;
-					print "\r  Generating $k temporary files";
-					open(FASTATEMP,">$tmp_database_path/temp_${k}_${database_basename}");
-				}
-				print FASTATEMP "$_";
+	    $job->make_createdb_script($tmp_database_path,$abs_parameter,$num_mass_region,$num_protein_per_job);
 
-			}
-			else
-			{
-				print FASTATEMP "$_";		
-			}
-		}
-		close(FASTA);
-		print "\n";
-		
-	########### make job file ##############
-		my $library = $self->get_library();	
-		my $job = new Spiders::Job();
-		my $abs_parameter = abs_path ($parameter);
-		$job->set_library_path($library);			
-	#	my $num_mass_region = 20 * $num_dynamic_mod;
-		## Modified by JCho on 12/02/2014
-		my $num_mass_region = 40;
+# 	######### submit job file ##############	
+	    my $job_num=int($protein_num/$num_protein_per_job)+1;	
+	    my @cmdArr;
+ 	    for($i=1;$i<=$job_num;$i++)
+	    {
+#		open(JOB,">$tmp_database_path/job_db_$i.sh") || die "can not open the job db files\n";
+		#		print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e\n";
+		push( @cmdArr, {'cmd' => 
+				    "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e ; rm -rf $tmp_database_path/temp_${i}_${database_basename}",
+				    'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
+		 # print JOB "\n";
+		# close(JOB);
+	    }
+	    
 
-		$job->make_createdb_script($tmp_database_path,$abs_parameter,$num_mass_region,$num_protein_per_job);
-
-	######### submit job file ##############	
-		my $job_num=int($protein_num/$num_protein_per_job)+1;	
-		for($i=1;$i<=$job_num;$i++)
-		{
-			open(JOB,">$tmp_database_path/job_db_$i.sh") || die "can not open the job db files\n";
-			if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
-			if($params->{'Job_Management_System'} eq 'LSF')
-			{
-				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
-				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
-				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
-				print JOB "#BSUB -M 20000\n";
-				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-				print JOB "#BSUB -eo $tmp_database_path/$i.e\n";
-				print JOB "#BSUB -oo $tmp_database_path/$i.o\n";
-				print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename}\n";
-#				print JOB "rm -f $tmp_database_path/temp_${i}_${database_basename}";
-				close(JOB);
-				#system(qq(cd $tmp_database_path && bsub <job_db_$i.sh >/dev/null 2>&1));	
-				
-			}
-			if($params->{'Job_Management_System'} eq 'SGE')
-			{
-				print JOB "#!/bin/bash\n";
-				print JOB "#\$ \-N job_db_$i\n";
-				print JOB "#\$ \-e $tmp_database_path/$i.e\n";
-				print JOB "#\$ \-o $tmp_database_path/$i.o\n";
-				print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename}\n";
-				print JOB "rm -rf $tmp_database_path/temp_${i}_${database_basename}\n";
-				close(JOB);
-				#system(qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$tmp_database_path/job_db_$i.sh" >/dev/null 2>&1));
-			}
-			} else {
-				print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e\n";
-				print JOB "rm -rf $tmp_database_path/temp_${i}_${database_basename}\n";
-			}
-			close(JOB);
-		}
-
-		my ($MAX_PROCESSES);
+# my ($MAX_PROCESSES);
 
 
-		# submit jobs
-                my %jobhash;
-		if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
-			if($params->{'Job_Management_System'} eq 'LSF') {
-			    for( my $i = 1; $i <= $job_num; $i += 1 ) {
-				my $cmd = "cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < job_db_$i.sh";
-				my $job = qx[$cmd];
-				chomp $job;
-				my $job_id=0;
-				if($job=~/Job \<(\d*)\>/)
-				{
-					$job_id=$1;
-				}
-				else {
-				    croak "could not parse job id $job";
-				}
-				$jobhash{$job_id}=1;
+# 		# submit jobs
+# my %jobhash;
+# 		# if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
+# 		# 	if($params->{'Job_Management_System'} eq 'LSF') {
+# for( my $i = 1; $i <= $job_num; $i += 1 ) {
+# 				my $cmd = "cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < job_db_$i.sh";
+# 				my $job = qx[$cmd];
+# 				chomp $job;
+# 				my $job_id=0;
+# 				if($job=~/Job \<(\d*)\>/)
+# 				{
+# 					$job_id=$1;
+# 				}
+# 				else {
+# 				    croak "could not parse job id $job";
+# 				}
+# 				$jobhash{$job_id}=1;
 								
-			    }
-			} elsif($params->{'Job_Management_System'} eq 'SGE') {
-				for($i=1;$i<=$job_num;$i++) {
-					system(qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$tmp_database_path/job_db_$i.sh" >/dev/null 2>&1));
-				}
-			}
+# 			    }
+# 			} elsif($params->{'Job_Management_System'} eq 'SGE') {
+# 				for($i=1;$i<=$job_num;$i++) {
+# 					system(qq(qsub -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G "$tmp_database_path/job_db_$i.sh" >/dev/null 2>&1));
+# 				}
+# 			}
 		
-			print "  You submit $job_num jobs for creating index files\n";
+# 			print "  You submit $job_num jobs for creating index files\n";
 
-			if($params->{'Job_Management_System'} eq 'LSF') {
-			    Check_Job_stat("job_db_",$job_num,$tmp_database_path,\%jobhash);
-			}
-			else {
-			    Check_Job_stat("job_db_",$job_num);
-			}
-		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
-			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
-			for my $i ( 1 .. $job_num ) {
-				$pm->start and next;
-				system(qq(sh $tmp_database_path/job_db_$i.sh >/dev/null 2>&1));
-				print "\r  $i jobs were submitted";
-				$pm->finish;
-			}
-			$pm->wait_all_children;
-		}
+# 			if($params->{'Job_Management_System'} eq 'LSF') {
+# 			    Check_Job_stat("job_db_",$job_num,$tmp_database_path,\%jobhash);
+# 			}
+# 			else {
+# 			    Check_Job_stat("job_db_",$job_num);
+# 			}
+# 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
+# 			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
+# 			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
+# 			for my $i ( 1 .. $job_num ) {
+# 				$pm->start and next;
+# 				system(qq(sh $tmp_database_path/job_db_$i.sh >/dev/null 2>&1));
+# 				print "\r  $i jobs were submitted";
+# 				$pm->finish;
+# 			}
+# 			$pm->wait_all_children;
+# 		}
 
-	###### Merge all temp_ files into big data file #######################
+	    $jobManager->runJobs( @cmdArr );
+# 	###### Merge all temp_ files into big data file #######################
 		
-		my $j=0;
-		my $l=0;
-		my $prev_run = 0;
-		print "\n  Sorting indexes\n";
+	    my $j=0;
+	    my $l=0;
+	    my $prev_run = 0;
+	    print "\n  Sorting indexes\n";
 
-		$job->make_partialidx_script($tmp_database_path);
+	    $job->make_partialidx_script($tmp_database_path);
+	    
+	    my $prot_job_num = int($num_mass_region/2);
+
+	    #		my $inclusion_decoy = $params->{'inclusion_decoy'};
+
+	    my $tmp_mass_index = "$tmp_database_path/$database_basename" . ".mdx";
+	    my $tmp_peptide_index = "$tmp_database_path/$database_basename" . ".pdx";
+	    my $tmp_protein_index = "$tmp_database_path/$database_basename" . ".prdx";
+	    @cmdArr = ();
+	    for($m=0;$m<$num_mass_region;$m++)
+	    { 		
 		
-		my $prot_job_num = int($num_mass_region/2);
+		my ($mass_hash,$peptide_hash,$protein_hash);	
+ 			#create bash files
+		my $Params = {'range'=> $m,				
+			      'GridType'=> $params->{'Job_Management_System'},
+			      'JobNum'=>$job_num,
+			      'database_path'=> $tmp_database_path,
+			      'dta_path'=> $tmp_database_path,
+			      'mass_index'=>  $tmp_mass_index.".$m",
+			      'peptide_index'=> $tmp_peptide_index.".$m",
+			      'protein_index'=> $protein_index,
+			      'databasename'=> $database_basename,
+			      'num_pro_per_job'=>$num_protein_per_job,
+			      'prot_job_num'=>$prot_job_num,
+			      'digestion'=>$digestion,
+		};
+		
 
-#		my $inclusion_decoy = $params->{'inclusion_decoy'};
-
-		my $tmp_mass_index = "$tmp_database_path/$database_basename" . ".mdx";
-		my $tmp_peptide_index = "$tmp_database_path/$database_basename" . ".pdx";
-		my $tmp_protein_index = "$tmp_database_path/$database_basename" . ".prdx";
-		for($m=0;$m<$num_mass_region;$m++)
-		{ 		
-			
-			my ($mass_hash,$peptide_hash,$protein_hash);	
-			#create bash files
-			my $Params = {'range'=> $m,				
-							  'GridType'=> $params->{'Job_Management_System'},
-							  'JobNum'=>$job_num,
-							  'database_path'=> $tmp_database_path,
-							  'dta_path'=> $tmp_database_path,
-							  'mass_index'=>  $tmp_mass_index.".$m",
-							  'peptide_index'=> $tmp_peptide_index.".$m",
-							  'protein_index'=> $protein_index,
-							   'databasename'=> $database_basename,
-							   'num_pro_per_job'=>$num_protein_per_job,
-							   'prot_job_num'=>$prot_job_num,
-							   'digestion'=>$digestion,
-							   };
-							   
-
-										
-			my $dta_path=$tmp_database_path;
-			my $FileName = "$dta_path/sort_db_".$Params->{"range"}.".sh"; #print "$FileName\n";
-			my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"},"\n");
-			
-			my $outputName="sort_db_".$Params->{"range"};
-
-			open(JOB,">$FileName") || die "can not open $FileName\n";
-
-			if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
-			    if($params->{'Job_Management_System'} eq 'LSF') {
-				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
-				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
-				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
-				print JOB "#BSUB -M 200000\n";
-				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
-				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
-				print JOB "#BSUB -oo $dta_path/$outputName.o\n";
-				print JOB $cmd;
-			    } elsif($params->{'Job_Management_System'} eq 'SGE') {
-				print JOB "#!/bin/bash\n";
-				print JOB "#\$ \-S /bin/bash\n";
-				print JOB "#\$ \-N $outputName\n";
-				print JOB "#\$ \-e $dta_path/$outputName.e\n";
-				print JOB "#\$ \-o $dta_path/$outputName.o\n";
-				print JOB $cmd;
-			    }
-			} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-				print JOB "#!/bin/bash\n";
-				print JOB "$cmd >$dta_path/$outputName.o 2>$dta_path/$outputName.e";
-			}
-
-			close JOB;
-		}
-
-                %jobhash = ();
-		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
-
-			if($params->{'Job_Management_System'} eq 'LSF') {
-			    for(my $i=0;$i<$num_mass_region;$i += 1) {
-				my $job_name = "sort_db_${i}.sh";
-				$command_line = qq(cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < $job_name);
-				my $job=qx[$command_line];
-				chomp $job;
-				my $job_id=0;
-				if($job=~/Job \<(\d*)\>/)
-				{
-					$job_id=$1;
-				}
-				else {
-				    croak "could not parse job id $job";
-				}				
-				$jobhash{$job_id}=1;
-			    }	
-			} elsif($params->{'Job_Management_System'} eq 'SGE') {
-				for($m=0;$m<$num_mass_region;$m++) {
-					my $dta_path=$tmp_database_path;
-					my $FileName = "$dta_path/sort_db_".$m.".sh";
-					if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-						system(qq(qsub -cwd -cwd -pe mpi 64 -l mem_free=100G,h_vmem=100G $FileName >/dev/null 2>&1));
-					} else {
-						system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
-					}
-				}
-			}
-
-			print "  You submit $num_mass_region jobs for sorting index files\n";
-			
-			if($params->{'Job_Management_System'} eq 'LSF') {
-			    Check_Job_stat("sort_",$num_mass_region,$dta_path,\%jobhash);
-			}
-			else {
-			    Check_Job_stat("sort_",$num_mass_region);
-			}
-		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-			my $pm;
-			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-				my $k=int($MAX_PROCESSES/10)+1;
-			} else {
-				my $k=int($MAX_PROCESSES/2)+1;
-			}
-			$pm = new Parallel::ForkManager($k); # the sorting usually requires large memory
-			for($m=0;$m<$num_mass_region;$m++) {
-				my $dta_path=$tmp_database_path;
-				my $FileName = "$dta_path/sort_db_".$m.".sh";
-				$pm->start and next;
-				system(qq(sh $FileName >/dev/null 2>&1));
-				$pm->finish;
-			}
-			$pm->wait_all_children;
-		}
-		print "  $num_mass_region jobs finished";
-
-
-		#Merge all the files
-		print "\n  Mergering files\n";
-		my $merge_job_num = $num_mass_region-1;
+		
 		my $dta_path=$tmp_database_path;
-                %jobhash = ();
-		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
-			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
-			my $FileName = "$tmp_database_path/merge_mass_index.sh";
-			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
-			if(defined($job)) {
-			    $jobhash{$job} = 1;
-			}
-			$cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
-			$FileName = "$tmp_database_path/merge_peptide_index.sh";
-			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
-			if(defined($job)) {
-			    $jobhash{$job} = 1;
-			}
-		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
-			my $FileName = "$tmp_database_path/merge_mass_index.sh";
-			open(JOB,">$FileName") || die "can not open $FileName\n";
-			print JOB "$cmd >$dta_path/merge_mass_index.o 2>$dta_path/merge_mass_index.e";
-			close(JOB);
-			system(qq(sh $FileName >/dev/null 2>&1));
+#		my $FileName = "$dta_path/sort_db_".$Params->{"range"}.".sh"; #print "$FileName\n";
+			
+		my $outputName="sort_db_".$Params->{"range"};
+		my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"}," &> $dta_path/$outputName");
 
-			$cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
-			$FileName = "$tmp_database_path/merge_peptide_index.sh";
-			open(JOB,">$FileName") || die "can not open $FileName\n";
-			print JOB "$cmd  >$dta_path/merge_peptide_index.o 2>$dta_path/merge_peptide_index.e";
-			close(JOB);
-			system(qq(sh $FileName >/dev/null 2>&1));
+		push( @cmdArr, {'cmd' => $cmd,
+				'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
+# 			open(JOB,">$FileName") || die "can not open $FileName\n";
+
+# 			if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
+# 			    if($params->{'Job_Management_System'} eq 'LSF') {
+# 				print JOB "#BSUB -P " . $config->get("allocation_project") . "\n";
+# 				print JOB "#BSUB " . $config->get("extra_readonly_job_flags") . "\n";
+# 				print JOB "#BSUB -q " . $config->get("normal_queue") . "\n";
+# 				print JOB "#BSUB -M 200000\n";
+# 				print JOB "#BSUB -R \"rusage[mem=20000]\"\n";			
+# 				print JOB "#BSUB -eo $dta_path/$outputName.e\n";
+# 				print JOB "#BSUB -oo $dta_path/$outputName.o\n";
+# 				print JOB $cmd;
+# 			    } elsif($params->{'Job_Management_System'} eq 'SGE') {
+# 				print JOB "#!/bin/bash\n";
+# 				print JOB "#\$ \-S /bin/bash\n";
+# 				print JOB "#\$ \-N $outputName\n";
+# 				print JOB "#\$ \-e $dta_path/$outputName.e\n";
+# 				print JOB "#\$ \-o $dta_path/$outputName.o\n";
+# 				print JOB $cmd;
+# 			    }
+# 			} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
+# 				print JOB "#!/bin/bash\n";
+# 				print JOB "$cmd >$dta_path/$outputName.o 2>$dta_path/$outputName.e";
+# 			}
+
+# 			close JOB;
+# 		}
+	    }
+	    $jobManager->runJobs( @cmdArr );
+#                 %jobhash = ();
+# 		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
+
+# 			if($params->{'Job_Management_System'} eq 'LSF') {
+# 			    for(my $i=0;$i<$num_mass_region;$i += 1) {
+# 				my $job_name = "sort_db_${i}.sh";
+# 				$command_line = qq(cd $tmp_database_path && LSB_JOB_REPORT_MAIL=N bsub < $job_name);
+# 				my $job=qx[$command_line];
+# 				chomp $job;
+# 				my $job_id=0;
+# 				if($job=~/Job \<(\d*)\>/)
+# 				{
+# 					$job_id=$1;
+# 				}
+# 				else {
+# 				    croak "could not parse job id $job";
+# 				}				
+# 				$jobhash{$job_id}=1;
+# 			    }	
+# 			} elsif($params->{'Job_Management_System'} eq 'SGE') {
+# 				for($m=0;$m<$num_mass_region;$m++) {
+# 					my $dta_path=$tmp_database_path;
+# 					my $FileName = "$dta_path/sort_db_".$m.".sh";
+# 					if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
+# 						system(qq(qsub -cwd -cwd -pe mpi 64 -l mem_free=100G,h_vmem=100G $FileName >/dev/null 2>&1));
+# 					} else {
+# 						system(qq(qsub -cwd -cwd -pe mpi 8 -l mem_free=16G,h_vmem=16G $FileName >/dev/null 2>&1));
+# 					}
+# 				}
+# 			}
+
+# 			print "  You submit $num_mass_region jobs for sorting index files\n";
+			
+# 			if($params->{'Job_Management_System'} eq 'LSF') {
+# 			    Check_Job_stat("sort_",$num_mass_region,$dta_path,\%jobhash);
+# 			}
+# 			else {
+# 			    Check_Job_stat("sort_",$num_mass_region);
+# 			}
+# 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
+# 			my $pm;
+# 			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
+# 				my $k=int($MAX_PROCESSES/10)+1;
+# 			} else {
+# 				my $k=int($MAX_PROCESSES/2)+1;
+# 			}
+# 			$pm = new Parallel::ForkManager($k); # the sorting usually requires large memory
+# 			for($m=0;$m<$num_mass_region;$m++) {
+# 				my $dta_path=$tmp_database_path;
+# 				my $FileName = "$dta_path/sort_db_".$m.".sh";
+# 				$pm->start and next;
+# 				system(qq(sh $FileName >/dev/null 2>&1));
+# 				$pm->finish;
+# 			}
+# 			$pm->wait_all_children;
+# 		}
+# 		print "  $num_mass_region jobs finished";
+
+
+	    #Merge all the files
+	    print "\n  Merging files\n";
+	    my $merge_job_num = $num_mass_region-1;
+	    my $dta_path=$tmp_database_path;
+#                 %jobhash = ();
+# 		if (Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::CLUSTER) {
+	    my $cmd = "for i in \$(seq 0 1 $merge_job_num) ; do cat $tmp_mass_index.".'$i'." >> $mass_index ; done";
+	    @jobArr = ();
+	    push( @jobArr, {'cmd' => $cmd,
+			    'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
+	    
+# 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
+# 			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
+# 			if(defined($job)) {
+# 			    $jobhash{$job} = 1;
+# 			}
+	    $cmd = "for i in \$(seq 0 1 $merge_job_num) ; do cat $tmp_peptide_index.".'$i'." >> $peptide_index ; done";
+	    push( @jobArr, {'cmd' => $cmd,
+			    'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
+	    $jobManager->runJobs( @jobArr );
+	    
+# 			$FileName = "$tmp_database_path/merge_peptide_index.sh";
+# 			my $job = LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
+# 			if(defined($job)) {
+# 			    $jobhash{$job} = 1;
+# 			}
+# 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
+# 			my $cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
+# 			my $FileName = "$tmp_database_path/merge_mass_index.sh";
+# 			open(JOB,">$FileName") || die "can not open $FileName\n";
+# 			print JOB "$cmd >$dta_path/merge_mass_index.o 2>$dta_path/merge_mass_index.e";
+# 			close(JOB);
+# 			system(qq(sh $FileName >/dev/null 2>&1));
+
+# 			$cmd = "for i in \$(seq 0 1 $merge_job_num) \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
+# 			$FileName = "$tmp_database_path/merge_peptide_index.sh";
+# 			open(JOB,">$FileName") || die "can not open $FileName\n";
+# 			print JOB "$cmd  >$dta_path/merge_peptide_index.o 2>$dta_path/merge_peptide_index.e";
+# 			close(JOB);
+# 			system(qq(sh $FileName >/dev/null 2>&1));
 
 			
-		}
+# 		}
 
-# to implement standalone version, old code deactiavted by Yuxin on 9/6/16
-=head		
-		for($m=0;$m<$num_mass_region;$m++)
-		{ 		
-			#print $m,"\n";
-			my ($mass_hash,$peptide_hash,$protein_hash);	
-			#create bash files
-			my $parameters = {'range'=> $m,				
-							  'GridType'=> $params->{'Job_Management_System'},
-							  'JobNum'=>$job_num,
-							  'database_path'=> $tmp_database_path,
-							  'dta_path'=> $tmp_database_path,
-							  'mass_index'=>  $tmp_mass_index.".$m",
-							  'peptide_index'=> $tmp_peptide_index.".$m",
-							  'protein_index'=> $protein_index,
-							   'databasename'=> $database_basename,
-							   'num_pro_per_job'=>$num_protein_per_job,
-							   'prot_job_num'=>$prot_job_num,
-							   'digestion'=>$digestion,
-							   };
-							   #'inclusion_decoy'=>$inclusion_decoy,
+# # to implement standalone version, old code deactiavted by Yuxin on 9/6/16
+# =head		
+# 		for($m=0;$m<$num_mass_region;$m++)
+# 		{ 		
+# 			#print $m,"\n";
+# 			my ($mass_hash,$peptide_hash,$protein_hash);	
+# 			#create bash files
+# 			my $parameters = {'range'=> $m,				
+# 							  'GridType'=> $params->{'Job_Management_System'},
+# 							  'JobNum'=>$job_num,
+# 							  'database_path'=> $tmp_database_path,
+# 							  'dta_path'=> $tmp_database_path,
+# 							  'mass_index'=>  $tmp_mass_index.".$m",
+# 							  'peptide_index'=> $tmp_peptide_index.".$m",
+# 							  'protein_index'=> $protein_index,
+# 							   'databasename'=> $database_basename,
+# 							   'num_pro_per_job'=>$num_protein_per_job,
+# 							   'prot_job_num'=>$prot_job_num,
+# 							   'digestion'=>$digestion,
+# 							   };
+# 							   #'inclusion_decoy'=>$inclusion_decoy,
 
-			Create_Sort_BashFile($parameters,$tmp_database_path)							
-		}
-		print "  You submit $num_mass_region jobs for sorting index files\n";
-		#Waint For the jobs until they get finished
-		Check_Job_stat("sort_",$num_mass_region);
-		print "  $num_mass_region jobs finished";		
+# 			Create_Sort_BashFile($parameters,$tmp_database_path)							
+# 		}
+# 		print "  You submit $num_mass_region jobs for sorting index files\n";
+# 		#Waint For the jobs until they get finished
+# 		Check_Job_stat("sort_",$num_mass_region);
+# 		print "  $num_mass_region jobs finished";		
 
 
-		#Merge all the files		
-		print "\n  Mergering files\n";
-		my $merge_job_num = $num_mass_region-1;
+# 		#Merge all the files		
+# 		print "\n  Mergering files\n";
+# 		my $merge_job_num = $num_mass_region-1;
 		
-		my $cmd = "for i in {0..$merge_job_num} \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
-		my $FileName = "$tmp_database_path/merge_mass_index.sh";
-		LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
-		$cmd = "for i in {0..$merge_job_num} \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
-		$FileName = "$tmp_database_path/merge_peptide_index.sh";
-		LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
-=cut
+# 		my $cmd = "for i in {0..$merge_job_num} \n do\n cat $tmp_mass_index.".'$i'." >> $mass_index\n done\n";
+# 		my $FileName = "$tmp_database_path/merge_mass_index.sh";
+# 		LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_mass_index",$tmp_database_path);		
+# 		$cmd = "for i in {0..$merge_job_num} \n do\n cat $tmp_peptide_index.".'$i'." >> $peptide_index\n done\n";
+# 		$FileName = "$tmp_database_path/merge_peptide_index.sh";
+# 		LuchParallelJob($FileName,$cmd,$params->{'Job_Management_System'},"merge_peptide_index",$tmp_database_path);
+# =cut
 		
-	### create a script to sum the numbers #############	
-		my @summaryfiles=();
-		for($i=0;$i<$merge_job_num;$i++)
-		{
-			my $sumfile = "$tmp_mass_index.${i}.summary";
-			push(@summaryfiles,$sumfile);
-		}
-	## generate a database summary file#####	
-		my $outfile = $mass_index;
-		$outfile =~ s/mdx/sdx/;
-		summary_db(\@summaryfiles,$outfile);
+	    ### create a script to sum the numbers #############	
+	    my @summaryfiles=();
+	    for($i=0;$i<$merge_job_num;$i++)
+	    {
+		my $sumfile = "$tmp_mass_index.${i}.summary";
+		push(@summaryfiles,$sumfile);
+	    }
+	    ## generate a database summary file#####	
+	    my $outfile = $mass_index;
+	    $outfile =~ s/mdx/sdx/;
+	    summary_db(\@summaryfiles,$outfile);
 
-	####################################################	
-		print "  You submit 2 jobs for merging index files\n";
-                if(scalar(%jobhash) > 0) {
-		    Check_Job_stat("merge_mass_index_",2,$dta_path,\%jobhash);			    
-		}
-                else {
-		    Check_Job_stat("merge_","2");		
-		}
-		print "  2 jobs finished";			
+# 	####################################################	
+# 		print "  You submit 2 jobs for merging index files\n";
+#                 if(scalar(%jobhash) > 0) {
+# 		    Check_Job_stat("merge_mass_index_",2,$dta_path,\%jobhash);			    
+# 		}
+#                 else {
+# 		    Check_Job_stat("merge_","2");		
+# 		}
+# 		print "  2 jobs finished";			
 		#Clean Temporary files
-		print "\n  Removing temporary files\n";
-	#	system(qq(mv $tmp_database_path/$mass_index $database_path/$mass_index >/dev/null 2>&1));
-	#	system(qq(mv $tmp_database_path/$peptide_index $database_path/$peptide_index >/dev/null 2>&1));
-	#	system(qq(mv $tmp_database_path/$protein_index $database_path/$protein_index >/dev/null 2>&1));		
-	#	system(qq(mv $tmp_database_path/$outfile $database_path/$outfile >/dev/null 2>&1));
-	#	system(qq(rm -rf $tmp_database_path >/dev/null 2>&1));
-		if (defined($params->{'temp_file_removal'}) and $params->{'temp_file_removal'}==1) {
-			system(qq(rm -rf $tmp_database_path >/dev/null 2>&1)); # deactivated for debug
-		}
-				
-		print "  Database creation completed\n";
-	}		
+	    print "\n  Removing temporary files\n";
+	    #	system(qq(mv $tmp_database_path/$mass_index $database_path/$mass_index >/dev/null 2>&1));
+	    #	system(qq(mv $tmp_database_path/$peptide_index $database_path/$peptide_index >/dev/null 2>&1));
+	    #	system(qq(mv $tmp_database_path/$protein_index $database_path/$protein_index >/dev/null 2>&1));		
+	    #	system(qq(mv $tmp_database_path/$outfile $database_path/$outfile >/dev/null 2>&1));
+	    #	system(qq(rm -rf $tmp_database_path >/dev/null 2>&1));
+	    if (defined($params->{'temp_file_removal'}) and $params->{'temp_file_removal'}==1) {
+#		system(qq(rm -rf $tmp_database_path >/dev/null 2>&1)); # deactivated for debug
+	    }
+	    
+	    print "  Database creation completed\n";
+	}
 }
 
 sub summary_db
