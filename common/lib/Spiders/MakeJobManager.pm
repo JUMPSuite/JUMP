@@ -33,7 +33,7 @@ sub new {
     $self->{'unroll'} = $self->{'config'}->get( 'batch_job_unroll' );
     $self->{'debug'} = defined($options->{'DEBUG'});
     $self->{'myDir'} = File::Temp->newdir( TEMPLATE => ($self->{'debug'} ?
-								'MAKE_JOB_MANAGER_TEMPDIRXXX' : 'MakeJobManager.XXXXXXXXXXX'),
+								'MAKE_JOB_MANAGER_TEMPDIRXXXX' : 'MakeJobManager.XXXXXXXXXXX'),
 					   UNLINK => (!$self->{'debug'}),
 					   DIR => '.' );
     return $self;

@@ -15,7 +15,7 @@ print <<EOF;
 #                                                              #
 #       **************************************************     #
 #       ****                                          ****     #
-#       ****  jump quantifiction                      ****     #
+#       ****  jump localization                       ****     #
 #       ****  Version 1.13.1                          ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #

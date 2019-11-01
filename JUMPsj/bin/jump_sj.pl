@@ -11,6 +11,7 @@ use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::Params;
 use Spiders::JobManager;
+use Spiders::BatchSystem;
 my $config = new Spiders::Config();
 our $VERSION = 1.13.1;
 

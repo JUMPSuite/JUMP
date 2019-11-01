@@ -20,6 +20,7 @@ use constant {
     JUMP_SEARCH => "jump_search",
     JUMP_DATABASE => "jump_database",
     JUMP_QUANTIFICATION => "jump_quantification",
+    JUMP_FILTER => "jump_filter",
     JUMP_LOCALIZATION => "jump_localization",
     RUNSEARCH_SHELL => "runsearch_shell"
 };

@@ -8,6 +8,7 @@ use File::Spec;
 use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
+use Spiders::BatchSystem;
 print <<EOF;
 
 ################################################################
@@ -15,7 +16,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump filter                             ****     #
-#       ****  Version 1.13.1                        ****     #
+#       ****  Version 1.13.1                          ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #
@@ -45,7 +46,9 @@ unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exi
 
 my $cmd;
 if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
-    $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_f.pl" . " " . $ARGV[0];
+    my $batchSystem = new Spiders::BatchSystem();
+    my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_FILTER);
+    $cmd="$batchCmd _jump_f.pl" . " " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="_jump_f.pl " . $ARGV[0];
 }
