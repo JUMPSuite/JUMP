@@ -26,6 +26,9 @@ print <<EOF;
 EOF
 
 use Getopt::Long;
+use Spiders::Config;
+use Spiders::ClusterConfig;
+use Spiders::BatchSystem;
 
 my ($help,$parameter,$raw_file);
 my $queue;
@@ -48,5 +51,12 @@ elsif(!defined($mem)) {
 
 usage() if ($help || !defined($parameter));
 
-my $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_l.pl" . " -p " . $parameter;
+my $cmd;
+if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
+    my $batchSystem = new Spiders::BatchSystem();
+    my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_LOCALIZATION);
+    $cmd="$batchCmd _jump_l.pl" . " " . $ARGV[0];
+} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
+    $cmd="_jump_l.pl " . $ARGV[0];
+}
 system($cmd);

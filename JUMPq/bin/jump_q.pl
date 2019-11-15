@@ -9,6 +9,7 @@ use File::Spec;
 use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
+use Spiders::BatchSystem;
 use Utils::Parse;
 my $config = new Spiders::Config();
 
@@ -19,7 +20,7 @@ print <<EOF;
 #       **************************************************     #
 #       ****                                          ****     #
 #       ****  jump quantifiction                      ****     #
-#       ****  Version 1.13.1                        ****     #
+#       ****  Version 1.13.1                          ****     #
 #       ****  Copyright (C) 2012 - 2017               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #
@@ -51,7 +52,9 @@ elsif(!defined($mem)) {
 
 my $cmd;
 if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
-    $cmd="bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_q.pl" . " " . $ARGV[0];
+    my $batchSystem = new Spiders::BatchSystem();
+    my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_QUANTIFICATION);
+    $cmd="$batchCmd _jump_q.pl" . " " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="_jump_q.pl " . $ARGV[0];
 }
