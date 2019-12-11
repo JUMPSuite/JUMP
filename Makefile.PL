@@ -5,8 +5,17 @@ use strict;
 use Config;
 use Spiders::Config;
 use Storable;
+use File::Find;
 use Spiders::BatchSystem;
 use Fcntl qw( :mode );
+
+sub set_exec_permissions {
+    my $file = $_;
+    if( $file =~ /.*\.(pl|sh)/ || $file eq "jump" ) {
+	my $perm = (stat $file)[2] & 07777;
+	chmod( 0700 | $perm, $file );
+    }
+}
 
 sub get_etc_path {
     my %options = %{shift(@_)};
@@ -222,4 +231,5 @@ my $subdirstr = join( ' ', @subdirs ) . ' JUMP';
 
 
 configure_jump_driver(\%options);
+find( \&set_exec_permissions, '.' );
 print("configuration complete.\n");
