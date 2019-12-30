@@ -7,7 +7,7 @@ source activate $PWD/conda/jump
 cpanm File::Copy
 cpanm File::Basename
 cpanm Scalar::Util
-cpanm Lwp::Useragent
+cpanm LWP::UserAgent
 cpanm Set::Partition
 cpanm Sys::Hostname
-source decativate
+source deactivate
