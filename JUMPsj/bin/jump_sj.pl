@@ -101,7 +101,7 @@ elsif( $dispatch eq "localhost" ||
     $main->main($parameter,\@ARGV,\%options);
 }
 else {
-    print "argument to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
+    print "argument $dispatch to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
     exit -1;
 }
 sub usage {

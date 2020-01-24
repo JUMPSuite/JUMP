@@ -9,11 +9,24 @@ use File::Find;
 use Spiders::BatchSystem;
 use Fcntl qw( :mode );
 
+my $envpath = ( -e '/bin/env' ? '/bin/env' : ( -e '/usr/bin/env' ? '/usr/bin/env' : die 'cannot find env command, is required for configuration' ) );
 sub set_exec_permissions {
     my $file = $_;
+    our $envpath;
     if( $file =~ /.*\.(pl|sh)/ || $file eq "jump" ) {
 	my $perm = (stat $file)[2] & 07777;
 	chmod( 0700 | $perm, $file );
+    }
+    if( $file =~ /.*\.(pl)/ && $envpath ne '/bin/env' ) {
+	open( my $filehandle, "<$file" );
+	my $script = '';
+	while(<$filehandle>) {
+	    $script .= $_;
+	}
+	close( $filehandle );
+	$script =~ s/bin\/env/$envpath/;
+	open( $filehandle, "$>file" );
+	print $filehandle $script;
     }
 }
 

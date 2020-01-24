@@ -3,6 +3,7 @@
 use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
+use Spiders::BatchSystem;
 use File::Spec;
 
 my $queue;
@@ -27,8 +28,10 @@ if (!defined($queue) && !defined($mem)) {
 
 my $cmd;
 if (defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->CLUSTER) {
-	$cmd = "bsub -P prot -q $queue -R \"rusage[mem=$mem]\" -Ip _jump_d.pl" . " " . $ARGV[0];
+    my $batchSystem = new Spiders::BatchSystem();
+    my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_DATABASE);    
+    $cmd = "$batchCmd \"_jump_d.pl" . " " . $ARGV[0] ."\"";
 } elsif (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
-	$cmd = "_jump_d.pl " . $ARGV[0];
+    $cmd = "_jump_d.pl " . $ARGV[0];
 }
 system($cmd); 
