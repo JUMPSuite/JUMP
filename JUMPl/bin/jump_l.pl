@@ -31,28 +31,14 @@ use Spiders::ClusterConfig;
 use Spiders::BatchSystem;
 
 my ($help,$parameter,$raw_file);
-my $queue;
-my $mem;
+my $dispatch;
 GetOptions('-help|h'=>\$help,
-	   '-p=s'=>\$parameter,
-	   '--queue=s'=>\$queue, '--memory=s'=>\$mem);
-
-if(!defined($queue) && !defined($mem)) {
-    $queue = 'standard';
-    $mem = 200000;
-}
-elsif(!defined($queue) && defined($mem)) { 
-    print "\t--mem cannot be used without --queue\n";
-    exit(1);
-}
-elsif(!defined($mem)) {
-    $mem = 200000;
-}
+	   '--dispatch'=>\$dispatch );
 
 usage() if ($help || !defined($parameter));
 
 my $cmd;
-if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
+if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_LOCALIZATION);
     $cmd="$batchCmd _jump_l.pl" . " " . $ARGV[0];

@@ -30,28 +30,14 @@ print <<EOF;
 EOF
     unless( scalar(@ARGV) > 0 ) { help(); }
 
-my $queue;
-my $mem;
 my $dispatch;
-GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch);
+GetOptions('--dispatch=s'=>\$dispatch);
 
 my %params;
 Utils::Parse->new($ARGV[0],\%params);
 
-if(!defined($queue) && !defined($mem)) {
-    $queue = $config->get("normal_queue");
-    $mem = 200000;
-}
-elsif(!defined($queue) && defined($mem)) { 
-    print "\t--mem cannot be used without --queue\n";
-    exit(1);
-}
-elsif(!defined($mem)) {
-    $mem = 200000;
-}
-
 my $cmd;
-if(defined($dispatch) || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
+if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_QUANTIFICATION);
     $cmd="$batchCmd _jump_q.pl" . " " . $ARGV[0];
