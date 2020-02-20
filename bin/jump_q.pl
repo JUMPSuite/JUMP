@@ -31,14 +31,14 @@ GetOptions('--queue=s'=>\$queue, '--memory=s'=>\$mem, '--dispatch=s'=>\$dispatch
 
 if(!defined($queue) && !defined($mem)) {
     $queue = 'standard';
-    $mem = 200000;
+    $mem = 8192;
 }
 elsif(!defined($queue) && defined($mem)) { 
     print "\t--mem cannot be used without --queue\n";
     exit(1);
 }
 elsif(!defined($mem)) {
-    $mem = 200000;
+    $mem = 8192;
 }
 
 my $cmd;
