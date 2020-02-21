@@ -1,12 +1,26 @@
 ## Basic installation
 There are three steps to a basic install:
 
+1. Place the JUMP distribution source in the desired location (call
 1. Obtain a PERL and python executable and install all the requisite
 dependencies
-1. Place the JUMP distribution source in the desired location (call
 this `<path to JUMP>`)
 1. Change your working directory to the top level of the JUMP install
 and run `Makefile.PL`
+
+### Obtaining JUMP source
+You can obtain the latest version of JUMP from git; simple clone the
+git repository:
+
+```
+    git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git JUMPsuite
+```
+
+in the directory _where you would like JUMP to be installed_ (call
+this directory <path to JUMP>).  Note
+that JUMP does not support out-of-place installs; the JUMP git
+repository _is_ the entire installation.  History of JUMP releases is
+provided by git tags.
 
 ### Installing PERL, python and dependencies
 To get dependencies installed, we recommend Conda, and we have
@@ -27,20 +41,6 @@ environment with
 
 Once the PERL and python dependencies for JUMP have been installed,
 one is ready to perform the configuration and install of JUMP.
-
-### Obtaining JUMP source
-You can obtain the latest version of JUMP from git; simple clone the
-git repository:
-
-```
-    git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git JUMPsuite
-```
-
-in the directory _where you would like JUMP to be installed_ (call
-this directory <path to JUMP>).  Note
-that JUMP does not support out-of-place installs; the JUMP git
-repository _is_ the entire installation.  History of JUMP releases is
-provided by git tags.
 
 ### Configuring JUMP
 To complete installation of JUMP, one must execute `Makefile.PL`; that
