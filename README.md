@@ -56,7 +56,7 @@ would like JUMP to use.  For most purposes, you can set `<num cores>`
 to be the total number of cores on your machine; if your workstation
 has 20 cores, then execute `perl Makefile.PL MAX_SEARCH_WORKER_PROCS=20`
 
-The JUMP suite will then be configured.  Once, complete, JUMP
+The JUMP suite will then be configured.  Once complete, JUMP
 components are available via the executable script `<path to
 JUMP>/JUMP/bin/jump`.  For convenience, you may simply append `<path to
 JUMP>/JUMP/bin` to your `PATH` environment variable as `PATH=$PATH:<path to
