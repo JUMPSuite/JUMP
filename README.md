@@ -1,5 +1,5 @@
 ## Basic installation
-There are two steps to a basic install:
+There are three steps to a basic install:
 
 1. Obtain a PERL and python executable and install all the requisite
 dependencies
@@ -33,7 +33,7 @@ You can obtain the latest version of JUMP from git; simple clone the
 git repository:
 
 ```
-    git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git
+    git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git JUMPsuite
 ```
 
 in the directory _where you would like JUMP to be installed_ (call
@@ -48,7 +48,7 @@ script is in the top-level of the JUMP distribution.  Therefore:
 
 1. Activate the conda environment with
 `conda activate <path to directory where you executed boostrap_conda.sh>/conda/jump`
-1. `cd <path to JUMP>/JUMP_v1.13.1.git`
+1. `cd <path to JUMP>/JUMPsuite`
 1. `perl Makefile.PL MAX_SEARCH_WORKER_PROCS=<num cores>`
 
 For the last step, set `<num cores>` to be the maximum number of cores you
