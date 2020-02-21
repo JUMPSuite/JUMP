@@ -47,11 +47,11 @@ my ($msms_hash_corrected,$mz_array_corrected) = $masscorr->massCorrection(\%ms_h
 foreach my $scan (keys %{$frac_scan->{$fraction}})
 {
 	my $mz = $frac_scan->{$fraction}->{$scan}->{'MH1'};
-	my $scan_num = $scan;
-	my @data = split(/\./,$scan_num);
+	my $scanNum = (split(/\./, $scan))[1];
+	$scanNum =~ s/^0+//;
 
-	my $mz_array = $msms_hash{$data[1]}{'msms_mz'};
-	my $int_array = $msms_hash{$data[1]}{'msms_int'};
+	my $mz_array = $msms_hash{$scanNum}{'msms_mz'};
+	my $int_array = $msms_hash{$scanNum}{'msms_int'};
 	
 	$proc_xml->generate_dta_file($scan,$mz,$mz_array,$int_array);
 }
