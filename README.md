@@ -2,9 +2,9 @@
 There are three steps to a basic install:
 
 1. Place the JUMP distribution source in the desired location (call
+this `<path to JUMP>`)
 1. Obtain a PERL and python executable and install all the requisite
 dependencies
-this `<path to JUMP>`)
 1. Change your working directory to the top level of the JUMP install
 and run `Makefile.PL`
 
@@ -16,8 +16,7 @@ git repository:
     git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git JUMPsuite
 ```
 
-in the directory _where you would like JUMP to be installed_ (call
-this directory <path to JUMP>).  Note
+in the directory _where you would like JUMP to be installed_ (call this directory <path to JUMP>).  Note
 that JUMP does not support out-of-place installs; the JUMP git
 repository _is_ the entire installation.  History of JUMP releases is
 provided by git tags.
