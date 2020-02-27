@@ -546,6 +546,8 @@ sub get_RT{
 	my $tree = $self->parse_scan(\*XML,$scan_index);
 	my $attrs = $self->get_node_attrs($tree);
 	$rttime = $$attrs{"retentionTime"};
+	$rttime =~ s/PT//g;
+	$rttime =~ s/S//g;
 # ####### debug by xusheng ###
 # #	print $scan_index,"aa\n";
 # ############################
