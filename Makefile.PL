@@ -223,7 +223,7 @@ foreach my $k (keys %kwargs) {
 	delete $kwargs{$k};
     }
 } 
-$config->put('cluster',$options{'CLUSTER'});
+$config->put('cluster',$options{'cluster'});
 $config->put('compute_on_login_node', $options{'compute_on_login_node'});
 $config->put('max_search_worker_procs',$options{'max_search_worker_procs'});
 $config->put('batch_dispatch_lag',$options{'batch_dispatch_lag'});
