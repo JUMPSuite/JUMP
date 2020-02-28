@@ -108,18 +108,11 @@ foreach my $arg (@ARGV) {
     }
 }
 
-my @defaultParamKeys = ('RAWFILE_CONVERTER',
-#			'DEFAULT_DB_DIR',
-#			'BOOTSTRAP_DBS',
-			'USE_BATCH_SYSTEM',
-			'DEFAULT_BATCH_CMD',
-			'BATCH_DISPATCH_LAG',
-			'MAX_SEARCH_WORKER_PROCS',
-#			'MAX_TIME',
-#			'MAX_NORMAL_MEMORY',
-#			'MAX_LARGE_MEMORY',
-#			'EXTRA_READWRITE_JOB_FLAGS',
-#			'EXTRA_READONLY_JOB_FLAGS',
+my @defaultParamKeys = ('rawfile_converter',
+			'use_batch_system',
+			'default_batch_cmd',
+			'batch_dispatch_lag',
+			'max_search_worker_procs',
 			);
 my @defaultParamValues = ('ReAdW.exe',
 #			  '/usr/share/jump',
@@ -193,20 +186,20 @@ my $rootdir = $ENV{"PWD"};
 $options{'PREFIX'} = $rootdir;
 
 my $batch_complete = 1;
-if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
-    foreach my $k ('DEFAULT_BATCH_CMD') {
+if( $options{'use_batch_system'} ne 'no-batch-system' ) {
+    foreach my $k ('default_batch_cmd') {
 	if($options{$k} eq '') {
-	    print "You must define $k since you have selected USE_BATCH_SYSTEM=$options{'USE_BATCH_SYSTEM'}\n";
+	    print "You must define $k since you have selected use_batch_system=$options{'use_batch_system'}\n";
 	    $batch_complete = 0;
 	}
     }
-    if(!defined($kwargs{'COMPUTE_ON_LOGIN_NODE'})) {
-	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with COMPUTE_ON_LOGIN_NODE=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration\n");
-	$options{'COMPUTE_ON_LOGIN_NODE'} = 1;
+    if(!defined($kwargs{'compute_on_login_node'})) {
+	print("configuring JUMP to use login node for preprocessing; to change this either\n\tconfigure with compute_on_login_node=0\nor\n\texecute jump -config compute_on_login_node 0\nafter configuration\n");
+	$options{'compute_on_login_node'} = 1;
     } 
     else {
-	$options{'COMPUTE_ON_LOGIN_NODE'} = $kwargs{'COMPUTE_ON_LOGIN_NODE'};
-	delete $kwargs{'COMPUTE_ON_LOGIN_NODE'};
+	$options{'compute_on_login_node'} = $kwargs{'compute_on_login_node'};
+	delete $kwargs{'compute_on_login_node'};
     }
     
     if( ! $batch_complete ) {
@@ -214,7 +207,7 @@ if( $options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ) {
     }
 }
 
-$options{'CLUSTER'} = ($options{'USE_BATCH_SYSTEM'} ne 'no-batch-system' ? 1 : 0);
+$options{'cluster'} = ($options{'use_batch_system'} ne 'no-batch-system' ? 1 : 0);
 my $etcPath = get_etc_path(\%options);
 my $cfgFile = File::Spec->join($etcPath,'cfg.bin');
 if( ! -d $etcPath ) {
@@ -231,9 +224,9 @@ foreach my $k (keys %kwargs) {
     }
 } 
 $config->put('cluster',$options{'CLUSTER'});
-$config->put('compute_on_login_node', $options{'COMPUTE_ON_LOGIN_NODE'});
-$config->put('max_search_worker_procs',$options{'MAX_SEARCH_WORKER_PROCS'});
-$config->put('batch_dispatch_lag',$options{'BATCH_DISPATCH_LAG'});
+$config->put('compute_on_login_node', $options{'compute_on_login_node'});
+$config->put('max_search_worker_procs',$options{'max_search_worker_procs'});
+$config->put('batch_dispatch_lag',$options{'batch_dispatch_lag'});
 $config->put('batch_job_unroll',1);
 
 $ENV{'JUMP_CONFIG_PATH'} = '';

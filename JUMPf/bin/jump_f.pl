@@ -1,5 +1,3 @@
-#!/usr/bin/perl 
-
 our $VERSION = 12.1.0;
 
 use File::Basename;
@@ -9,6 +7,7 @@ use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::BatchSystem;
+use Spiders::Which;
 print <<EOF;
 
 ################################################################
@@ -31,11 +30,12 @@ GetOptions('--dispatch=s'=>\$dispatch);
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
 
 my $cmd;
+my $jumpf = Spiders::Which::which( "_jump_f.pl" );
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_FILTER);
-    $cmd="$batchCmd _jump_f.pl" . " " . $ARGV[0];
+    $cmd="$batchCmd $jumpf " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="_jump_f.pl " . $ARGV[0];
+    $cmd="$jumpf " . $ARGV[0];
 }
 system($cmd);

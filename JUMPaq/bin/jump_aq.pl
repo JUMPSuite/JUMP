@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 use Getopt::Long;
 our $VERSION = "1.13.1";
 

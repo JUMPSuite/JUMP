@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 use strict;
 use Clone 'clone';
 use Statistics::R;

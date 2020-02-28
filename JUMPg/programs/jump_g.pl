@@ -1,5 +1,3 @@
-#!/bin/env perl 
-
 our $VERSION = 2.3.5;
 
 use File::Basename;

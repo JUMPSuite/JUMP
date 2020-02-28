@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 our $VERSION = 1.13.1;
 use lib $ENV{"JUMP_Q_LIB"};
 

@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
@@ -12,6 +10,7 @@ use Spiders::ClusterConfig;
 use Spiders::Params;
 use Spiders::JobManager;
 use Spiders::BatchSystem;
+use Spiders::Which;
 my $config = new Spiders::Config();
 our $VERSION = 1.13.1;
 
@@ -85,8 +84,10 @@ if( $dispatch eq "batch-interactive" && $config->get('compute_on_login_node') eq
     my ($handle,$tname) = File::Temp::mkstemp( "JUMPSJXXXXXXXXXXXXXX" );
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_SEARCH);
-    my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
-    system( "$batchCmd \"$cmd --dispatch=localhost 2>&1 | tee $tname ; jump_sj_log.pl < $tname ; rm $tname\"" );
+
+    my $cmd = 'perl ' . Spiders::Which::which("jump_sj.pl") . ' ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;
+    my $logCmd = 'perl ' . Spiders::Which::which("jump_sj_log.pl");
+    system( "$batchCmd \"$cmd --dispatch=localhost 2>&1 | tee $tname ; $logCmd < $tname ; rm $tname\"" );
 }
 # elsif( $dispatch eq "batch" ) {
 #     my $cmd = 'jump_sj.pl ' . join( ' ', @ARGV ) . " -p " . $parameter . " " . $options_str;

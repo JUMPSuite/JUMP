@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 sub usage {
 print <<"EOF";
 Usage: $progname -p parameterfile
@@ -29,6 +27,7 @@ use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::BatchSystem;
+use Spiders::Which;
 
 my ($help,$parameter,$raw_file);
 my $dispatch;
@@ -38,11 +37,12 @@ GetOptions('-help|h'=>\$help,
 usage() if ($help || !defined($parameter));
 
 my $cmd;
+my $jumpl = Spiders::Which::which("jump_l.pl");
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_LOCALIZATION);
-    $cmd="$batchCmd _jump_l.pl" . " " . $ARGV[0];
+    $cmd="$batchCmd $jumpl" . " " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="_jump_l.pl " . $ARGV[0];
+    $cmd="$jumpl " . $ARGV[0];
 }
 system($cmd);

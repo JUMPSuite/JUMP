@@ -1,5 +1,3 @@
-#!/bin/env perl 
-
 our $VERSION = 1.13.1;
 
 use lib $ENV{"JUMP_Q_LIB"};
@@ -10,6 +8,7 @@ use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::BatchSystem;
+use Spiders::Which;
 use Utils::Parse;
 my $config = new Spiders::Config();
 
@@ -37,12 +36,13 @@ my %params;
 Utils::Parse->new($ARGV[0],\%params);
 
 my $cmd;
+my $jumpq = Sipders::Which::which("_jump_q.pl");
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_QUANTIFICATION);
-    $cmd="$batchCmd _jump_q.pl" . " " . $ARGV[0];
+    $cmd="$batchCmd $jumpq " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="_jump_q.pl " . $ARGV[0];
+    $cmd="$jumpq " . $ARGV[0];
 }
 system($cmd);
 

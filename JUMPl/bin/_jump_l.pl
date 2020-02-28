@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 use Getopt::Long;
 
 use Cwd;

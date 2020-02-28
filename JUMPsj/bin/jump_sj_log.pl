@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 use Scalar::Util;
 use File::Temp;
 

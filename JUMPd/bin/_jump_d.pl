@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 ##################################################
 ## Generation of JUMP/SEQUEST search databases	##
 ## Generation of PIT (protein inference table)	##
