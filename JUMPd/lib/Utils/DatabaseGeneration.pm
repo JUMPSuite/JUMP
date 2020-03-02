@@ -1,6 +1,7 @@
 #!/bin/env perl
 
 package Utils::DatabaseGeneration;
+use Spiders::Which;
 use strict;
 use warnings;
 use File::Basename;
@@ -27,7 +28,8 @@ sub generateDb {
 		generateJumpParams($jumpParams, $dbName, $log);
 		print "JUMP search database is being generated\n";
 		print $log "JUMP search database is being generated\n";
-		system("jump_sj.pl -p jumpdb.params --dispatch=localhost");
+		my $jumpsj = Spiders::Which::which("jump_sj.pl");
+		system("perl $jumpsj -p jumpdb.params --dispatch=localhost");
 #		system("rm jumpdb.params");
 		my $generatedDb = $dbName.".fasta.mdx";
 		if (!-e $generatedDb) {

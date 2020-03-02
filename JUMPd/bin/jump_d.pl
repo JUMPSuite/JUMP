@@ -21,8 +21,8 @@ my $jumpd = Spiders::Which::which( "_jump_d.pl" );
 if ((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_DATABASE);    
-    $cmd = "$batchCmd \"$jumpd" . " " . $ARGV[0] ."\"";
+    $cmd = "$batchCmd \"perl $jumpd" . " " . $ARGV[0] ."\"";
 } elsif (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
-    $cmd = "$jumpd " . $ARGV[0];
+    $cmd = "perl $jumpd " . $ARGV[0];
 }
 system($cmd); 
