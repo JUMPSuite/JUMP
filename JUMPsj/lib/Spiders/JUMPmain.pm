@@ -1100,7 +1100,7 @@ sub database_creation
 #		my $FileName = "$dta_path/sort_db_".$Params->{"range"}.".sh"; #print "$FileName\n";
 			
 		my $outputName="sort_db_".$Params->{"range"};
-		my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"}," &> $dta_path/$outputName");
+		my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"}," 2>&1 > $dta_path/$outputName");
 
 		push( @cmdArr, {'cmd' => $cmd,
 				'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
@@ -1465,7 +1465,7 @@ sub dispatch_batch_run {
 	print JOB "#BSUB -M 8192\n";
 	print JOB "#BSUB -oo $dir/jump.o\n";
 	print JOB "#BSUB -eo $dir/jump.e\n";
-	print JOB "yes | jump_sj.pl -p $parameter $args &> $dir/jump.out\n";
+	print JOB "yes | jump_sj.pl -p $parameter $args 2>&1 > $dir/jump.out\n";
 	close(JOB);
 	my $output = qx[bsub <"$dir/jump_dispatch.sh"];
 
