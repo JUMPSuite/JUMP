@@ -21,6 +21,7 @@ use Storable;
 use Clone qw(clone);
 use Carp;
 use File::Basename;
+use File::Path;
 use File::Spec;
 use File::Copy;
 use Spiders::Params;
@@ -1306,7 +1307,7 @@ sub database_creation
 	    #	system(qq(mv $tmp_database_path/$outfile $database_path/$outfile >/dev/null 2>&1));
 	    #	system(qq(rm -rf $tmp_database_path >/dev/null 2>&1));
 	    if (defined($params->{'temp_file_removal'}) and $params->{'temp_file_removal'}==1) {
-#		system(qq(rm -rf $tmp_database_path >/dev/null 2>&1)); # deactivated for debug
+		File::Path::rmtree($tmp_database_path);
 	    }
 	    
 	    print "  Database creation completed\n";
