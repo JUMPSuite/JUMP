@@ -30,8 +30,8 @@ dependencies and installs them alongside JUMP.  Execute
     bash bootstrap.sh
 ```
 
-and it will create a new directory `conda/jump` in the current working
-directory.  The directory `conda/jump` will contain the conda
+and it will create a new directory `conda` in the current working
+directory.  The directory `conda` will contain the conda
 environment to be used by JUMP.  JUMP will be set up to use the PERL
 and python interpreters in that environment.
 
