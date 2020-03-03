@@ -1,12 +1,12 @@
 ## Basic installation
-There are three steps to a basic install:
+A basic install is sufficient for multicore laptops, desktops,
+workstations and servers.  For a basic install, use the `bootstrap.sh`
+script provided in the repo.  Then, 
 
 1. Place the JUMP distribution source in the desired location (call
 this `<path to JUMP>`)
-1. Obtain a PERL and python executable and install all the requisite
-dependencies
 1. Change your working directory to the top level of the JUMP install
-and run `Makefile.PL`
+and run ` bashbootstrap.sh`
 
 ### Obtaining JUMP source
 You can obtain the latest version of JUMP from git; simple clone the
@@ -21,41 +21,21 @@ that JUMP does not support out-of-place installs; the JUMP git
 repository _is_ the entire installation.  History of JUMP releases is
 provided by git tags.
 
-### Installing PERL, python and dependencies
+### Bootstrapping
 To get dependencies installed, we recommend Conda, and we have
-provided a bootstrapping script `bootstrap_conda.sh`; just execute
+provided a bootstrapping script `bootstrap.sh` that downloads all
+dependencies and installs them alongside JUMP.  Execute
 
 ```
-    sh bootstrap_conda.sh
+    bash bootstrap.sh
 ```
 
 and it will create a new directory `conda/jump` in the current working
 directory.  The directory `conda/jump` will contain the conda
-environment to be used by JUMP.  One can then activate that
-environment with
+environment to be used by JUMP.  JUMP will be set up to use the PERL
+and python interpreters in that environment.
 
-```
-    conda activate <path to directory where you executed boostrap_conda.sh>/conda/jump
-```
-
-Once the PERL and python dependencies for JUMP have been installed,
-one is ready to perform the configuration and install of JUMP.
-
-### Configuring JUMP
-To complete installation of JUMP, one must execute `Makefile.PL`; that
-script is in the top-level of the JUMP distribution.  Therefore:
-
-1. Activate the conda environment with
-`conda activate <path to directory where you executed boostrap_conda.sh>/conda/jump`
-1. `cd <path to JUMP>/JUMPsuite`
-1. `perl Makefile.PL MAX_SEARCH_WORKER_PROCS=<num cores>`
-
-For the last step, set `<num cores>` to be the maximum number of cores you
-would like JUMP to use.  For most purposes, you can set `<num cores>`
-to be the total number of cores on your machine; if your workstation
-has 20 cores, then execute `perl Makefile.PL MAX_SEARCH_WORKER_PROCS=20`
-
-The JUMP suite will then be configured.  JUMP
+Once `bootstrap.sh` is finished, the JUMP suite will be configured.  JUMP
 components then are available via the executable script `<path to
 JUMP>/JUMP/bin/jump`.  For convenience, you may simply append `<path to
 JUMP>/JUMP/bin` to your `PATH` environment variable as `PATH=$PATH:<path to
