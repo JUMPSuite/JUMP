@@ -13,7 +13,7 @@ You can obtain the latest version of JUMP from git; simple clone the
 git repository:
 
 ```
-    git clone https://github.com/JUMPSuite/JUMP_v1.13.1.git JUMPsuite
+    git clone https://github.com/JUMPSuite/JUMP.git JUMP
 ```
 
 in the directory _where you would like JUMP to be installed_ (call this directory <path to JUMP>).  Note
