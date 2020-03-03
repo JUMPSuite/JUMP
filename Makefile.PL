@@ -1,4 +1,5 @@
 use File::Spec;
+use File::Basename;
 use lib File::Spec->join( 'common', 'lib' );
 use Cwd;
 use strict;
@@ -7,26 +8,16 @@ use Spiders::Config;
 use Storable;
 use File::Find;
 use Spiders::BatchSystem;
+use Spiders::Which;
 use Fcntl qw( :mode );
 
-my $envpath = ( -e '/bin/env' ? '/bin/env' : ( -e '/usr/bin/env' ? '/usr/bin/env' : die 'cannot find env command, is required for configuration' ) );
+
 sub set_exec_permissions {
     my $file = $_;
     our $envpath;
     if( $file =~ /.*\.(pl|sh)/ || $file eq "jump" ) {
 	my $perm = (stat $file)[2] & 07777;
 	chmod( 0700 | $perm, $file );
-    }
-    if( $file =~ /.*\.(pl)/ && $envpath ne '/bin/env' ) {
-	open( my $filehandle, "<$file" );
-	my $script = '';
-	while(<$filehandle>) {
-	    $script .= $_;
-	}
-	close( $filehandle );
-	$script =~ s/bin\/env/$envpath/;
-	open( $filehandle, "$>file" );
-	print $filehandle $script;
     }
 }
 
@@ -49,6 +40,7 @@ sub configure_jump_driver {
     unshift( @lines, 
 	     "export JUMP_READW_EXE=\"$options{'RAWFILE_CONVERTER'}\"\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
+	     "PATH=".$options{"PERL_BIN"}.":\$PATH\n",
 	     "PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPf/bin').":\$PATH\n", 
@@ -182,6 +174,17 @@ while( my ($k,$v) = each %defaultParams ) {
     }
 }
 
+# Find interpreters
+if( !defined($kwargs{'PERL_BIN'}) ) {
+    $options{'PERL_BIN'} = dirname(Spiders::Which::which("perl"));
+    print( "Warning: Using PERL interpreter found on your path: ".$options{"PERL_BIN"}."\n" );
+    print( "\tWe recommend using a conda environment\n" );
+}
+else {
+    $options{'PERL_BIN'} = $kwargs{'PERL_BIN'};
+    delete $kwargs{'PERL_BIN'};
+}
+
 my $rootdir = $ENV{"PWD"};
 $options{'PREFIX'} = $rootdir;
 
@@ -223,6 +226,7 @@ foreach my $k (keys %kwargs) {
 	delete $kwargs{$k};
     }
 } 
+
 $config->put('cluster',$options{'cluster'});
 $config->put('compute_on_login_node', $options{'compute_on_login_node'});
 $config->put('max_search_worker_procs',$options{'max_search_worker_procs'});
