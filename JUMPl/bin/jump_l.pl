@@ -41,8 +41,8 @@ my $jumpl = Spiders::Which::which("jump_l.pl");
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_LOCALIZATION);
-    $cmd="$batchCmd $jumpl" . " " . $ARGV[0];
+    $cmd="$batchCmd perl $jumpl" . " " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="$jumpl " . $ARGV[0];
+    $cmd="perl $jumpl " . $ARGV[0];
 }
 system($cmd);

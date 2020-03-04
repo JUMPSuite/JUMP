@@ -34,8 +34,8 @@ my $jumpf = Spiders::Which::which( "_jump_f.pl" );
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_FILTER);
-    $cmd="$batchCmd $jumpf " . $ARGV[0];
+    $cmd="$batchCmd perl $jumpf " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="$jumpf " . $ARGV[0];
+    $cmd="perl $jumpf " . $ARGV[0];
 }
 system($cmd);

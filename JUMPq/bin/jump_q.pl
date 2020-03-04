@@ -40,9 +40,9 @@ my $jumpq = Sipders::Which::which("_jump_q.pl");
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_QUANTIFICATION);
-    $cmd="$batchCmd $jumpq " . $ARGV[0];
+    $cmd="$batchCmd perl $jumpq " . $ARGV[0];
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="$jumpq " . $ARGV[0];
+    $cmd="perl $jumpq " . $ARGV[0];
 }
 system($cmd);
 
