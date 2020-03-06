@@ -18,8 +18,15 @@ show_success_message() {
 JUMP sucessfully bootstrapped.  
 
 For convenience, you may add JUMP to your path:
+add
 
-PATH=\$PATH:$PWD/JUMP/bin
+PATH=$PWD/JUMP/bin:\$PATH
+
+to your .bashrc file or
+
+setenv PATH $PWD/JUMP/bin:\$PATH
+
+to your .cshrc file
 EOF
 }
 
@@ -37,7 +44,7 @@ if [ ! -e $PWD/conda ] ; then
     mkdir $PWD/conda
 fi
 
-conda create -y -p $PWD/conda -c conda-forge -c bioconda -c r perl-mime-base64 perl-data-dumper perl-class-std perl-file-spec perl-pod-usage perl-class-std perl-file-spec perl-pod-usage perl-statistics-distributions perl-file-temp perl-excel-writer-xlsx perl-statistics-r perl-file-find perl-http-date perl-math-bigint perl-list-util perl-mime-base64 perl-getopt-long perl-data-dumper perl-parallel-forkmanager perl-clone perl-app-cpanminus bioconductor-limma r-fnn r-mass 
+conda create -y -p $PWD/conda -c conda-forge -c bioconda -c r perl-mime-base64 perl-data-dumper perl-class-std perl-file-spec perl-pod-usage perl-class-std perl-file-spec perl-pod-usage perl-statistics-distributions perl-file-temp perl-excel-writer-xlsx perl-statistics-r perl-file-find perl-http-date perl-math-bigint perl-list-util perl-mime-base64 perl-getopt-long perl-data-dumper perl-parallel-forkmanager perl-clone perl-app-cpanminus bioconductor-limma r-fnn r-mass perl-excel-writer-xlsx
 
 if [ $? -ne 0 ] ; then
     echo "Error in conda installation; aborting."
