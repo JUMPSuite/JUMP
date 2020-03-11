@@ -15,6 +15,7 @@ package Spiders::Config;
 
 use strict;
 use Storable;
+use File::Spec;
 
 sub new {
     my $class = shift;

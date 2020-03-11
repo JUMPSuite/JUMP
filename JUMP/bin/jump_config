@@ -7,30 +7,36 @@ my $config = new Spiders::Config();
 
 if(scalar(@ARGV) == 0) {
     foreach my $k ($config->keys()) {
-	print "$k = ".$config->get($k)."\n";
+	my $v = $config->get($k);	
+	if( defined($v) ) {
+	    print "$k = $v\n";
+	}
+	else {
+	    print "$k = *undef*\n";
+	}
     }
 }
 elsif(scalar(@ARGV) == 1 && $ARGV[0] eq '-h') {
     print $usage;
     exit 1;
 }
-elsif(scalar(@ARGV) == 1) {
-    if(defined($config->get($ARGV[0]))) {
-	print "$ARGV[0] = ".$config->get($ARGV[0])."\n";
-    }
-    else {
-	print "key \"$ARGV[0]\" not defined in local or site config\n";
-    exit 2;
-    }
-}
-elsif(scalar(@ARGV) == 2) {
-    print "setting $ARGV[0] = $ARGV[1]\n";
-    $config->put($ARGV[0],$ARGV[1]);
-}
 else {
-    print "error in arguments\n";
-    print $usage;
-    exit -1;
+    foreach my $kvpair (@ARGV) {
+	if( $kvpair =~ /.*=.*/ ) {
+	    (my $k,my $v) = split( /=/, $kvpair );
+	    print "setting $k := $v\n";
+	    $config->put($k,$v);
+	}
+	else {
+	    my $v = $config->get($kvpair);
+	    if( defined($v) ) {
+		print "$kvpair = $v\n";
+	    }
+	    else {
+		print "$kvpair = *undef*\n";
+	    }
+	}
+    }
 }
 
 exit 0;

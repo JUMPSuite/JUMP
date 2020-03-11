@@ -28,21 +28,23 @@ use Spiders::Config;
 use Spiders::ClusterConfig;
 use Spiders::BatchSystem;
 use Spiders::Which;
+my $config = new Spiders::Config();
 
 my ($help,$parameter,$raw_file);
 my $dispatch;
 GetOptions('-help|h'=>\$help,
+	   '-p'=>\$parameter,
 	   '--dispatch'=>\$dispatch );
 
 usage() if ($help || !defined($parameter));
 
 my $cmd;
-my $jumpl = Spiders::Which::which("jump_l.pl");
+my $jumpl = Spiders::Which::which("_jump_l.pl");
 if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_LOCALIZATION);
-    $cmd="$batchCmd perl $jumpl" . " " . $ARGV[0];
+    $cmd="$batchCmd perl $jumpl" . " -p $parameter"
 } elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="perl $jumpl " . $ARGV[0];
+    $cmd="perl $jumpl " . " -p $parameter"
 }
 system($cmd);
