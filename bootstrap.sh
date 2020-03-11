@@ -52,7 +52,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "installing cpan modules"
-$PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname
+$PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname Spreadsheet::XLSX
 
 if [ $? -ne 0 ] ; then
     echo "Error in CPAN module installation; aborting."
