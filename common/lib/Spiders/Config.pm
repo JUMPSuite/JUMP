@@ -17,6 +17,11 @@ use strict;
 use Storable;
 use File::Spec;
 
+use constant {
+    SITE_CFG => $ENV{'JUMP_CONFIG_PATH'},
+    USER_CFG => File::Spec->join($ENV{'HOME'},'.jump','config')
+};
+
 sub new {
     my $class = shift;
     my $self = {};
@@ -29,12 +34,12 @@ sub new {
 }
 
 sub getGlobalCfg {
-    return retrieve($ENV{'JUMP_CONFIG_PATH'});
+    return retrieve(SITE_CFG);
 }
 
 sub getUserCfg {
     my $cfg = {};
-    open(my $infile, "<".File::Spec->join($ENV{'HOME'},'.jump','config')) || return $cfg;
+    open(my $infile, "<".USER_CFG) || return $cfg;
     while(<$infile>) {
 	chomp($_);
 	if( length($_) > 0 ) {
@@ -55,6 +60,19 @@ sub keys {
 	$kh{$k} = 1;
     }
     return keys %kh;
+}
+
+sub provenance {
+    my ($self,$key) = @_;
+    if(defined($self->{'userConfig'}->{$key})) {
+	return USER_CFG;
+    }
+    elsif(defined($self->{'globalConfig'}->{$key})) {
+	return SITE_CFG;
+    }
+    else {
+	return undef;
+    }    
 }
 
 sub get {

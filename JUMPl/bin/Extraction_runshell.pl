@@ -1,5 +1,3 @@
-#!/bin/env perl
-
 use Getopt::Long;
 
 use lib $ENV{"JUMP_L_LIB"};

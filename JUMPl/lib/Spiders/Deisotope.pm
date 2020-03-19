@@ -310,7 +310,7 @@ sub calculate_signal_noise_ratio
 	my @signal_intensity_array=();
 	my @noise_intensity_array=();
 	my $i=0;
-	if(!(defined(%$mz_hash)))
+	if(!((%$mz_hash)))
 	{
 		return "N/A";
 	}

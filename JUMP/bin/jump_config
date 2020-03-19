@@ -9,7 +9,7 @@ if(scalar(@ARGV) == 0) {
     foreach my $k ($config->keys()) {
 	my $v = $config->get($k);	
 	if( defined($v) ) {
-	    print "$k = $v\n";
+	    print "$k = $v\n\t(" . $config->provenance($k) . ")\n";
 	}
 	else {
 	    print "$k = *undef*\n";
@@ -24,13 +24,13 @@ else {
     foreach my $kvpair (@ARGV) {
 	if( $kvpair =~ /.*=.*/ ) {
 	    (my $k,my $v) = split( /=/, $kvpair );
-	    print "setting $k := $v\n";
+	    print "setting \"$k\" := $v\n";
 	    $config->put($k,$v);
 	}
 	else {
 	    my $v = $config->get($kvpair);
 	    if( defined($v) ) {
-		print "$kvpair = $v\n";
+		print "$kvpair = $v\n\t(". $config->provenance($kvpair) . ")\n";
 	    }
 	    else {
 		print "$kvpair = *undef*\n";

@@ -14,6 +14,7 @@ use Spiders::Params;
 use List::Util qw(shuffle);
 use Spiders::JobManager;
 use Spiders::BatchSystem;
+use Spiders::Which;
 
 my ($help,$parameter,$raw_file);
 GetOptions('-help|h'=>\$help,
@@ -78,8 +79,9 @@ foreach my $fraction (keys %$frac_scan) {
     system(qq(mkdir $new_path >/dev/null 2>&1));
     system(qq(cp $parameter "$new_path/" >/dev/null 2>&1));	
     my $jobName = "Extraction_".$nTotalJobs;
+    my $searchShell = Spiders::Which::which("Extraction_runshell.pl");
     push( @jobs, {'cmd' => 
-		      "Extraction_runshell.pl -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter",
+		      "perl $searchShell -fraction $fraction -outdir $dir -IDmod $IDmod -parameter $parameter",
 		      'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
     
     $nTotalJobs++;
@@ -139,17 +141,18 @@ foreach my $frac (keys %$frac_scan) {
     }      
     for (my $i = 0; $i < $nJobs; $i++) {
 	my $jobName = "Job_PTM_".$nTotalJobs;
-	my $cmd = "";
+	my @cmds;
 	unless( $nEntries > 0 ) { warn "no outfiles found for $frac\n"; }
 	for (my $j = 0; $j < $nEntriesPerJob && $nEntries > 0 
 	     && $nEntriesPerJob * $i + $j < $nEntries; $j++) {
 	    my $k = $nEntriesPerJob * $i + $j;
 	    my $queryOutfile =  $outfiles[$k];
 	    my $queryPeptide = "\"" . $frac_scan->{$frac}->{$queryOutfile}->{'peptide'} . "\"";
-	    $cmd .= "JUMPl_runshell.pl -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter";
+	    my $searchShell = Spiders::Which::which("JUMPl_runshell.pl");
+	    push( @cmds, "perl $searchShell -fraction $frac -outdir $new_path -scan $queryOutfile -peptide $queryPeptide -parameter $parameter" );
 	}
 	if( $nEntries > 0 && $nEntriesPerJob * $i < $nEntries )  {
-	    push( @jobs, {'cmd' => $cmd,
+	    push( @jobs, {'cmd' => join( ' && ', @cmds ),
 			  'toolType' => Spiders::BatchSystem->RUNSEARCH_SHELL} );
 	    $nTotalJobs++;
 	    print "\r  $nTotalJobs jobs are submitted";
