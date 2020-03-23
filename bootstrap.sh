@@ -145,4 +145,8 @@ fi
 
 echo "configuring JUMP"
 JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL $@ "PERL_BIN=$PWD/conda/bin"
+if [ $? -ne 0 ] ; then
+    echo "Error in JUMP configuration; aborting."
+    exit 252
+fi
 show_success_message
