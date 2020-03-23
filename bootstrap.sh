@@ -144,5 +144,5 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "configuring JUMP"
-$PWD/conda/bin/perl Makefile.PL $@ "PERL_BIN=$PWD/conda/bin"
+JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL $@ "PERL_BIN=$PWD/conda/bin"
 show_success_message
