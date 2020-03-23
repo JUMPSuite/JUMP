@@ -126,6 +126,10 @@ conda create -p $PWD/conda -y \
   r-mass=7.3_51.5 \
   readline=8.0 
 
+if [[ "$@" =~ .*--debug.* ]] ; then
+    $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
+fi
+
 if [ $? -ne 0 ] ; then
     echo "Error in conda installation; aborting."
     exit 254
