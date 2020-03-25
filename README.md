@@ -27,7 +27,7 @@ provided a bootstrapping script `bootstrap.sh` that downloads all
 dependencies and installs them alongside JUMP.  Execute
 
 ```
-    bash bootstrap.sh
+    ./bootstrap.sh
 ```
 
 and it will create a new directory `conda` in the current working

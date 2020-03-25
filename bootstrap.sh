@@ -30,15 +30,24 @@ to your .cshrc file
 EOF
 }
 
-if [[ "$@" =~ .*--help.* ]] ; then
-    show_help
-    exit 1 
-fi
+while getopts 'dh' OPTION; do
+  case "$OPTION" in
+      h) show_help
+	  exit 1
+	  ;;
+      d) debug=1
+	  ;;
+      ?) show_help
+	  exit 1
+	  ;;
+  esac
+done
+shift "$(($OPTIND -1))"
 
 echo "creating conda environment $PWD/conda"
 if [ ! -e $(which conda) ] ; then
     echo "conda not found on $PATH ; please ensure conda (or miniconda) is installed and in your PATH variable"
-    exit 255;
+    exit 255
 fi
 if [ ! -e $PWD/conda ] ; then
     mkdir $PWD/conda
@@ -126,7 +135,7 @@ conda create -p $PWD/conda -y \
   r-mass=7.3_51.5 \
   readline=8.0 
 
-if [[ "$@" =~ .*--debug.* ]] ; then
+if [ -n "$debug" ] ; then 
     $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
 fi
 
@@ -144,7 +153,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "configuring JUMP"
-JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL $@ "PERL_BIN=$PWD/conda/bin"
+JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin"
 if [ $? -ne 0 ] ; then
     echo "Error in JUMP configuration; aborting."
     exit 252
