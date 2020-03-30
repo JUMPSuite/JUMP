@@ -33,8 +33,8 @@ my $config = new Spiders::Config();
 my ($help,$parameter,$raw_file);
 my $dispatch;
 GetOptions('-help|h'=>\$help,
-	   '-p'=>\$parameter,
-	   '--dispatch'=>\$dispatch );
+	   '-p=s'=>\$parameter,
+	   '--dispatch=s'=>\$dispatch );
 
 usage() if ($help || !defined($parameter));
 
