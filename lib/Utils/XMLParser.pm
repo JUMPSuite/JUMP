@@ -601,49 +601,31 @@ sub get_PeaksString{
 }
 
 sub get_Peaks{
-    my $self = shift @_;
-    (*XML, my $peak_array, my $scan_index) = @_;
-    my ($peaks, $peaks_line);
+	my $self = shift @_;
+	(*XML, my $peak_array, my $scan_index) = @_;
+	my ($peaks, $peaks_line);
 
-    my $tree = $self->parse_scan(\*XML,$scan_index);
-    (my $kvdata,my $textdata) = $self->get_node_data($tree);
-    (my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
-    $peaks_line = $$peak_textdata[0];
+	my $tree = $self->parse_scan(\*XML,$scan_index);
+	(my $kvdata,my $textdata) = $self->get_node_data($tree);
+	(my $peak_kvdata,my $peak_textdata) = $self->get_node_data($$kvdata{"peaks"});
+	$peaks_line = $$peak_textdata[0];
 
-    
-	
-	# seek (XML, $scan_index, 0);
-	# #print "$scan_index\n";
-	# while(<XML>){
-	#     #print "$_\n";
-	#     #if (/m\/z-int/){print "$_\n\n\n";	}
-	#     if (/<peaks\sprecision="32"/ || /pairOrder="m\/z-int"[\s]*>/){
-	# 	chomp;
-	# 	next if ($_ =~ /<peaks precision="32"\Z/);
-	# 	$peaks_line = $_;
-	#   	if (/<peaks precision="32">/){
-	# 	    $peaks_line =~ s/\s+<peaks precision="32"[\s\w\W\d\=\"]+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-	# 	} else {
-	# 	    $peaks_line =~ s/\s+pairOrder="m\/z-int"[\s]*>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-	# 	    #print "$peaks_line\n";exit;
-	# 	}
-	#   	last;
-	#     } elsif (/compressedLen/){
-	# 	chomp;
-	# 	$peaks_line = $_;
-	# 	$peaks_line =~ s/\s+compressedLen="[\d]"\s+>([A-Za-z0-9\/\+\=]+)<\/peaks>.*/$1/o;
-	# 	last;
-	#     } else {
-	# 	next;
-	#     }
-	# }
 	#Base64 Decode
-	#print "$peaks_line\n";exit;
 	$peaks = decode_base64($peaks_line);
-	my @hostOrder32 = unpack("N*", $peaks);
-	for (@hostOrder32){
-	    my $float = unpack("f", pack("I", $_));
-	    push (@$peak_array, $float);
+	if ($$kvdata{"peaks"}[0]{"precision"} == 64) {
+		# 64-bit precision
+		my @hostOrder = unpack("Q>*", $peaks);
+		for (@hostOrder){
+			my $float = unpack("d", pack("Q", $_));
+			push (@$peak_array, $float);
+		}
+	} elsif ($$kvdata{"peaks"}[0]{"precision"} == 32) { 
+		# 32-bit precision
+		my @hostOrder32 = unpack("N*", $peaks);
+		for (@hostOrder32){
+	    		my $float = unpack("f", pack("I", $_));
+			push (@$peak_array, $float);
+		}
 	}
 	#print Dumper($peak_array);exit;
 }
