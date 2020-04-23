@@ -9,9 +9,10 @@ if (!-e $currDir) {
 	system ("mkdir $currDir");
 }
 
-## Version information
+## Version information and so on
 my $version = "1.13.1";
-my $releaseDate = "11/01/2017";
+my $releaseDate = "05/01/2020";
+my $installDir = $ENV{'JUMP_ROOT'};
 
 ## Search engines/Conditions
 my @searchEngines = ("JUMP", "SEQUEST");
@@ -52,25 +53,25 @@ foreach my $searchEngine (@searchEngines) {
 		## Database name and pit file
 		if ($searchEngine eq "JUMP") {
 			if ($condition eq "HH" || $condition eq "HL") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0.fasta.mdx";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0.fasta.mdx";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0.pit";
 			} elsif ($condition eq "TMThh") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.fasta.mdx";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0_TMT_K229.fasta.mdx";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0_TMT_K229.pit";
 			} elsif ($condition eq "TMThhpho") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_pho_TMT_K229.fasta.mdx";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_pho_TMT_K229.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0_pho_TMT_K229.fasta.mdx";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0_pho_TMT_K229.pit";
 			}
 		} else {
 			if ($condition eq "HH" || $condition eq "HL") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0.fasta.hdr";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0.fasta.hdr";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0.pit";
 			} elsif ($condition eq "TMThh") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.fasta.hdr";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0_TMT_K229.fasta.hdr";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0_TMT_K229.pit";
 			} elsif ($condition eq "TMThhpho") {
-				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.fasta.hdr";
-				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0_TMT_K229.pit";
+				$databaseName = $installDir . "/database/human_ft_mc2_c0_TMT_K229.fasta.hdr";
+				$pitFile = $installDir . "/database/human_ft_mc2_c0_TMT_K229.pit";
 			}
 		}
 		## Isolation window
@@ -194,68 +195,68 @@ foreach my $searchEngine (@searchEngines) {
 		open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 		print PARAMS "# JUMP search parameter file (Version: $version, Date: $releaseDate)\n";
 		print PARAMS "\n";
-		print PARAMS "search_engine = $searchEngine										# use JUMP or SEQUEST for database search\n";
+		print PARAMS "search_engine = $searchEngine				# use JUMP or SEQUEST for database search\n";
 		print PARAMS "\n";
 		print PARAMS "# Database settings\n";
 		if ($condition eq "TMThh" or $condition eq "TMThhpho") {
-			print PARAMS "database_name = $databaseName			# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
-			print PARAMS "pit_file = $pitFile				# protein inference table (pit) for grouping proteins/genes\n";
+			print PARAMS "database_name = $databaseName	# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
+			print PARAMS "pit_file = $pitFile	# protein inference table (pit) for grouping proteins/genes\n";
 		} else {
-			print PARAMS "database_name = $databaseName				# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
-			print PARAMS "pit_file = $pitFile						# protein inference table (pit) for grouping proteins/genes\n";
+			print PARAMS "database_name = $databaseName	# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
+			print PARAMS "pit_file = $pitFile	# protein inference table (pit) for grouping proteins/genes\n";
 		}
-		print PARAMS "peptide_tolerance = 6										# precursor mass (MH+) tolerance, default = 6 ppm after mass correction\n";
-		print PARAMS "peptide_tolerance_units = 2									# 1 = Da; 2 = ppm\n";
+		print PARAMS "peptide_tolerance = 6				# precursor mass (MH+) tolerance, default = 6 ppm after mass correction\n";
+		print PARAMS "peptide_tolerance_units = 2			# 1 = Da; 2 = ppm\n";
 		print PARAMS "\n";
 		print PARAMS "# Preprocessing parameters\n";
-		print PARAMS "first_scan_extraction = 5000									# the first scan number for search\n";
-		print PARAMS "last_scan_extraction = 10000									# the last scan number for search, use a large number (e.g. 10E6) for full scans\n";
-		print PARAMS "isolation_window = $isolationWindow										# +/- (isolation_window)/2 based on MS2 isolation window (e.g. 1.6 m/z)\n";
-		print PARAMS "isolation_window_offset = $isolationOffset									# +/- isolation_window_offset based on MS2 isolation window offset (e.g. 0.25 m/z)\n";
-		print PARAMS "isolation_window_variation = $isolationVariation								# +/- isolation_window_variation based on MS2 isolation window offset (e.g. 0.25 m/z)\n";
+		print PARAMS "first_scan_extraction = 5000			# the first scan number for search\n";
+		print PARAMS "last_scan_extraction = 10000			# the last scan number for search, use a large number (e.g. 10E6) for full scans\n";
+		print PARAMS "isolation_window = $isolationWindow				# +/- (isolation_window)/2 based on MS2 isolation window (e.g. 1.6 m/z)\n";
+		print PARAMS "isolation_window_offset = $isolationOffset			# +/- isolation_window_offset based on MS2 isolation window offset (e.g. 0.25 m/z)\n";
+		print PARAMS "isolation_window_variation = $isolationVariation		# +/- isolation_window_variation based on MS2 isolation window offset (e.g. 0.25 m/z)\n";
 		print PARAMS "\n";
-		print PARAMS "interscanppm = 15										# mass tolerance for interscan precursor identification\n";
-		print PARAMS "intrascanppm = 10										# mass tolerance for intrascan isotopic decharging\n";
-		print PARAMS "max_num_ppi = 0											# 0 = disable; 1-0 = max precursor ions selected for mixed MS2 search\n";
-		print PARAMS "percentage_ppi = $percentagePPI										# minimal percentage of precursor peak intensity (ppi) when max_num_ppi = 0\n";
-		print PARAMS "ppi_charge_0 = 1										# 0 = discard uncharged MS1 (charge = 0); 1 = manual charge assignment (+2 and +3)\n";
-		print PARAMS "ppi_charge_1 = 1										# 0 = discard MS1 with charge +1; 1 = enable original charge +1\n";
-		print PARAMS "mass_correction = $massCorrection										# 0 = no correction, 1 = MS1-based, 2 = MS1/2-based, 3 = manual correction\n";
-		print PARAMS "prec_window = 3											# 0 = disable; 1-10 (Da) = mz windows for removing precursor ions\n";
-		print PARAMS "MS2_deisotope = $ms2Deisotope										# 0 = disable; 1 = enable\n";
-		print PARAMS "ppm = 10											# mass tolerance for MS2 decharging and deisotoping\n";
-		print PARAMS "charge12_ppm = 15										# mass tolerance for merging different charged ions with the same mass\n";
-		print PARAMS "ms2_consolidation = $ms2Consolidation										# maximal number of peaks retained within each 100-Da window\n";
-		print PARAMS "TMT_data = $TMTdata											# 0 = disable; 1 = enable\n";
+		print PARAMS "interscanppm = 15				# mass tolerance for interscan precursor identification\n";
+		print PARAMS "intrascanppm = 10				# mass tolerance for intrascan isotopic decharging\n";
+		print PARAMS "max_num_ppi = 0					# 0 = disable; 1-0 = max precursor ions selected for mixed MS2 search\n";
+		print PARAMS "percentage_ppi = $percentagePPI				# minimal percentage of precursor peak intensity (ppi) when max_num_ppi = 0\n";
+		print PARAMS "ppi_charge_0 = 1				# 0 = discard uncharged MS1 (charge = 0); 1 = manual charge assignment (+2 and +3)\n";
+		print PARAMS "ppi_charge_1 = 1				# 0 = discard MS1 with charge +1; 1 = enable original charge +1\n";
+		print PARAMS "mass_correction = $massCorrection				# 0 = no correction, 1 = MS1-based, 2 = MS1/2-based, 3 = manual correction\n";
+		print PARAMS "prec_window = 3					# 0 = disable; 1-10 (Da) = mz windows for removing precursor ions\n";
+		print PARAMS "MS2_deisotope = $ms2Deisotope				# 0 = disable; 1 = enable\n";
+		print PARAMS "ppm = 10					# mass tolerance for MS2 decharging and deisotoping\n";
+		print PARAMS "charge12_ppm = 15				# mass tolerance for merging different charged ions with the same mass\n";
+		print PARAMS "ms2_consolidation = $ms2Consolidation				# maximal number of peaks retained within each 100-Da window\n";
+		print PARAMS "TMT_data = $TMTdata					# 0 = disable; 1 = enable\n";
 		print PARAMS "\n";
 		print PARAMS "# Tagging\n";
-		print PARAMS "tag_generation = $tagGeneration										# 0 = disable; 1 = enable to generate tags\n";
-		print PARAMS "tag_tolerance = $tagTolerance										# mass tolerance for measuring peak distance for generating tags\n";
-		print PARAMS "tag_tolerance_unit = $tagToleranceUnit										# 1 = Da; 2 = ppm\n";
-		print PARAMS "tag_select_method = comb_p									# tag ranking: comb_p, hyper_p or rank_p\n";
+		print PARAMS "tag_generation = $tagGeneration				# 0 = disable; 1 = enable to generate tags\n";
+		print PARAMS "tag_tolerance = $tagTolerance				# mass tolerance for measuring peak distance for generating tags\n";
+		print PARAMS "tag_tolerance_unit = $tagToleranceUnit				# 1 = Da; 2 = ppm\n";
+		print PARAMS "tag_select_method = comb_p			# tag ranking: comb_p, hyper_p or rank_p\n";
 		print PARAMS "\n";
 		print PARAMS "# Database searching\n";
-		print PARAMS "ion_series = $ionSeries									# a, b, c, d, v, w, x, y and z ions, respectively\n";
-		print PARAMS "frag_mass_tolerance = $fragMassTolerance									# mass tolerance for MS2 ion matching\n";
-		print PARAMS "frag_mass_tolerance_unit = $fragMassToleranceUnit									# 1 = Da; 2 = ppm\n";
-		print PARAMS "ion_losses_MS2 = $ionLossesMS2									# 0 = disable; 1 = enable neutral loss of H2O, HPO3, H3PO4 and NH3, respectively\n";
-		print PARAMS "ion_losses_MS1 = $ionLossesMS1										# 0 = disable; 1 = use precursor ion phosphate neutral loss to estimate #S/T phosphorylation\n";
-		print PARAMS "ion_scoring = 1											# 1 = scoring product ions simultaneously; 2 = scoring ion series and charge states separately\n";
+		print PARAMS "ion_series = $ionSeries			# a, b, c, d, v, w, x, y and z ions, respectively\n";
+		print PARAMS "frag_mass_tolerance = $fragMassTolerance			# mass tolerance for MS2 ion matching\n";
+		print PARAMS "frag_mass_tolerance_unit = $fragMassToleranceUnit			# 1 = Da; 2 = ppm\n";
+		print PARAMS "ion_losses_MS2 = $ionLossesMS2			# 0 = disable; 1 = enable neutral loss of H2O, HPO3, H3PO4 and NH3, respectively\n";
+		print PARAMS "ion_losses_MS1 = $ionLossesMS1				# 0 = disable; 1 = use precursor ion phosphate neutral loss to estimate #S/T phosphorylation\n";
+		print PARAMS "ion_scoring = 1					# 1 = scoring product ions simultaneously; 2 = scoring ion series and charge states separately\n";
 		print PARAMS "\n";
-		print PARAMS "matching_method = hyper_p									# PSM scoring: comb_p, hyper_p, rank_p\n";
-		print PARAMS "tag_search_method = 2										# 1 = exit when found; 2 = exhaustive search using tags defined by max_number_tag_for_search\n";
-		print PARAMS "max_number_tags_for_search = 50									# max tags used for search unless the total number of tags is smaller than this defined value\n";
-		print PARAMS "number_of_selected_result = 5									# maximal tentative PSMs in .spout ranked by Jscore\n";
-		print PARAMS "number_of_detailed_result = 5									# maximal tentative PSMs in .spout ranked by pattern matching score\n";
-		print PARAMS "second_search = $secondSearch										# 0 = disable; 1 = enable; for PSMs with FDR>0, perform the another round of search\n";
-		print PARAMS "												# by relaxing monoisotopic mass by including M-2, M-1, M, M+1, M+2\n";
+		print PARAMS "matching_method = hyper_p			# PSM scoring: comb_p, hyper_p, rank_p\n";
+		print PARAMS "tag_search_method = 2				# 1 = exit when found; 2 = exhaustive search using tags defined by max_number_tag_for_search\n";
+		print PARAMS "max_number_tags_for_search = 50			# max tags used for search unless the total number of tags is smaller than this defined value\n";
+		print PARAMS "number_of_selected_result = 5			# maximal tentative PSMs in .spout ranked by Jscore\n";
+		print PARAMS "number_of_detailed_result = 5			# maximal tentative PSMs in .spout ranked by pattern matching score\n";
+		print PARAMS "second_search = $secondSearch				# 0 = disable; 1 = enable; for PSMs with FDR>0, perform the another round of search\n";
+		print PARAMS "						# by relaxing monoisotopic mass by including M-2, M-1, M, M+1, M+2\n";
 		print PARAMS "# Dynamic Modifications: SEQUEST requires no new database; but JUMP requires new database\n";
 		print PARAMS "# C:  57.02146 carbamidomethylation or 71.0371 acrylamide\n";
 		print PARAMS "# STY: 79.96633;  M: 15.99492; GG: 114.04293\n";
 		print PARAMS "# SILAC: K:4.02511, 6.02013, 8.01420; SILAC: R:6.02013, 10.00827\n";
 		print PARAMS "# TMT6-10: 229.1629321; TMT2: 225.1558327; TMT0: 224.1524779\n";
-		print PARAMS "dynamic_M = 15.99492										# add each dynamic modification by one line, starting with dynamic_aa\n";
-		print PARAMS "# dynamic_C = 57.02146										# add additional dynamic modification by line, starting with dynamic_aa\n";
+		print PARAMS "dynamic_M = 15.99492				# add each dynamic modification by one line, starting with dynamic_aa\n";
+		print PARAMS "# dynamic_C = 57.02146				# add additional dynamic modification by line, starting with dynamic_aa\n";
 		if (defined $dynamicS) {
 			print PARAMS "dynamic_S = $dynamicS\n";
 			print PARAMS "dynamic_T = $dynamicT\n";
@@ -263,19 +264,19 @@ foreach my $searchEngine (@searchEngines) {
 		}
 		print PARAMS "\n";
 		print PARAMS "# Parameters for creating database (should match with the selected database)\n";
-		print PARAMS "enzyme_info = Tryptic KR P									# LysC K ; ArgC R ; GluC DE ;\n";
-		print PARAMS "digestion = full										# full or partial\n";
-		print PARAMS "max_mis_cleavage = 2										# maximal miscleavage sites allowed for each peptide\n";
-		print PARAMS "min_peptide_mass = 400.0000									# minimal mass of peptide database\n";
-		print PARAMS "max_peptide_mass = 6000.0000									# maximal mass of peptide database\n";
-		print PARAMS "max_modif_num = 3										# maximal modifications allowed for each peptide\n";
+		print PARAMS "enzyme_info = Tryptic KR P			# LysC K ; ArgC R ; GluC DE ;\n";
+		print PARAMS "digestion = full				# full or partial\n";
+		print PARAMS "max_mis_cleavage = 2				# maximal miscleavage sites allowed for each peptide\n";
+		print PARAMS "min_peptide_mass = 400.0000			# minimal mass of peptide database\n";
+		print PARAMS "max_peptide_mass = 6000.0000			# maximal mass of peptide database\n";
+		print PARAMS "max_modif_num = 3				# maximal modifications allowed for each peptide\n";
 		print PARAMS "\n";
 		print PARAMS "# Static Modification\n";
-		print PARAMS "add_Nterm_peptide = $addNtermPeptide									# TMT modification or other amine labeling\n";
+		print PARAMS "add_Nterm_peptide = $addNtermPeptide			# TMT modification or other amine labeling\n";
 		print PARAMS "add_Cterm_peptide = 0.0000\n";
 		print PARAMS "add_A_Alanine = 0.0000\n";
 		print PARAMS "add_B_avg_NandD = 0.0000\n";
-		print PARAMS "add_C_Cysteine = 0.0000										# Cys alkylation\n";
+		print PARAMS "add_C_Cysteine = 0.0000				# Cys alkylation\n";
 		print PARAMS "add_D_Aspartic_Acid = 0.0000\n";
 		print PARAMS "add_E_Glutamic_Acid = 0.0000\n";
 		print PARAMS "add_F_Phenylalanine = 0.0000\n";
@@ -284,9 +285,9 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "add_I_Isoleucine = 0.0000\n";
 		print PARAMS "add_J_user_amino_acid = 0.0000\n";
 		if ($condition eq "TMThh" or $condition eq "TMThhpho") {
-			print PARAMS "add_K_Lysine = $addKLysine									# TMT modification or other amine labeling\n";
+			print PARAMS "add_K_Lysine = $addKLysine			# TMT modification or other amine labeling\n";
 		} else {
-			print PARAMS "add_K_Lysine = $addKLysine										# TMT modification or other amine labeling\n";
+			print PARAMS "add_K_Lysine = $addKLysine			# TMT modification or other amine labeling\n";
 		}
 		print PARAMS "add_L_Leucine = 0.0000\n";
 		print PARAMS "add_M_Methionine = 0.0000\n";
@@ -305,12 +306,10 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "add_Z_avg_QandE = 0.0000\n";
 		print PARAMS "\n";
 		print PARAMS "# Other parameters\n";
-		print PARAMS "simulation = 0											# 0 = disable; 1 = enable; this function used for testing the target-decoy strategy\n";
-		print PARAMS "sim_MS1 = 1000											# ppm addition for MS1 decoys\n";
-		print PARAMS "sim_MS2 = 5											# Da window for randomized MS2 peaks\n";
-		print PARAMS "cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster\n";
-		print PARAMS "Job_Management_System = LSF									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used\n";
-		print PARAMS "temp_file_removal = 1										# 0 = disable (keep temporary files); 1 = enable (remove temporary files)\n";
+		print PARAMS "simulation = 0					# 0 = disable; 1 = enable; this function used for testing the target-decoy strategy\n";
+		print PARAMS "sim_MS1 = 1000					# ppm addition for MS1 decoys\n";
+		print PARAMS "sim_MS2 = 5					# Da window for randomized MS2 peaks\n";
+		print PARAMS "temp_file_removal = 1				# 0 = disable (keep temporary files); 1 = enable (remove temporary files)\n";
 		close (PARAMS);
 	}
 }
@@ -337,13 +336,13 @@ foreach my $searchEngine (@searchEngines) {
 		my $paramsName;
 		## Input name
 		if ($condition eq "HH") {
-			$input = "HH_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/HH/HH_human_".lc($searchEngine)."/HH_human_".lc($searchEngine).".1";				
+			$input = "HH_human_".lc($searchEngine).":".$installDir."/SampleData/HH/HH_human_".lc($searchEngine)."/HH_human_".lc($searchEngine).".1";				
 		} elsif ($condition eq "HL") {
-			$input = "HL_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/HL/HL_human_".lc($searchEngine)."/HL_human_".lc($searchEngine).".1";
+			$input = "HL_human_".lc($searchEngine).":".$installDir."/SampleData/HL/HL_human_".lc($searchEngine)."/HL_human_".lc($searchEngine).".1";
 		} elsif ($condition eq "TMThh") {
-			$input = "HH_tmt10_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMThh/HH_tmt10_human_".lc($searchEngine)."/HH_tmt10_human_".lc($searchEngine).".1";
+			$input = "HH_tmt10_human_".lc($searchEngine).":".$installDir."/SampleData/TMThh/HH_tmt10_human_".lc($searchEngine)."/HH_tmt10_human_".lc($searchEngine).".1";
 		} else {
-			$input = "HH_pho_tmt10_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMThhpho/HH_pho_tmt10_human_".lc($searchEngine)."/HH_pho_tmt10_human_".lc($searchEngine).".1";
+			$input = "HH_pho_tmt10_human_".lc($searchEngine).":".$installDir."/SampleData/TMThhpho/HH_pho_tmt10_human_".lc($searchEngine)."/HH_pho_tmt10_human_".lc($searchEngine).".1";
 		}
 		## Protein or peptide
 		if ($condition eq "TMThhpho") {
@@ -502,7 +501,7 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "######################################################################################################################################################\n";
 		print PARAMS "\n";
 		print PARAMS "#################### To turn on pepXML generation ######################\n";
-		print PARAMS "output_pepXML = 1\n";
+		print PARAMS "output_pepXML = 0\n";
 		close (PARAMS);
 	}
 }
@@ -530,7 +529,7 @@ foreach my $searchEngine (@searchEngines) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qj_HH_tmt10_human.params";
-				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_jump/ID.txt";
+				$idTxt = $installDir . "/SampleData/TMThh/sum_HH_tmt10_human_jump/ID.txt";
 				$saveDir = "HH_tmt10_human_jump";
 			} elsif ($condition eq "TMThhpho") {
 				$paramsDir = $currDir."/TMThhpho";
@@ -538,7 +537,7 @@ foreach my $searchEngine (@searchEngines) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qj_HH_pho_tmt10_human.params";
-				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt";
+				$idTxt = $installDir . "/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt";
 				$saveDir = "HH_pho_tmt10_human_jump_mod";
 			}
 		} else {
@@ -548,7 +547,7 @@ foreach my $searchEngine (@searchEngines) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qs_HH_tmt10_human.params";
-				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_sequest/ID.txt";
+				$idTxt = $installDir . "/SampleData/TMThh/sum_HH_tmt10_human_sequest/ID.txt";
 				$saveDir = "HH_tmt10_human_sequest";
 			} elsif ($condition eq "TMThhpho") {
 				$paramsDir = $currDir."/TMThhpho";
@@ -556,7 +555,7 @@ foreach my $searchEngine (@searchEngines) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qs_HH_pho_tmt10_human.params";
-				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_sequest_mod/IDmod.txt";
+				$idTxt = $installDir . "/SampleData/TMThhpho/sum_HH_pho_tmt10_human_sequest_mod/IDmod.txt";
 				$saveDir = "HH_pho_tmt10_human_sequest_mod";
 			}
 		}
@@ -572,18 +571,18 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "# 0 = skip the generation of a pubilcation table combining whole proteome and phosphopeptides\n";
 		print PARAMS "# otherwise, put the full path of 'id_all_prot_quan.xlsx' file after whole proteome quantification analysis\n";
 		if ($condition eq "TMThh") {
-			print PARAMS "save_dir = $saveDir						# name of the directory for JUMPq results (prefix \"quan-\" will be added)\n";
+			print PARAMS "save_dir = $saveDir			# name of the directory for JUMPq results (prefix \"quan-\" will be added)\n";
 		} elsif ($condition eq "TMThhpho") {
-			print PARAMS "save_dir = $saveDir					# name of the directory for JUMPq results (prefix \"quan-\" will be added)\n";
+			print PARAMS "save_dir = $saveDir		# name of the directory for JUMPq results (prefix \"quan-\" will be added)\n";
 		}	
-		print PARAMS "ppi_filter = 50								# precursor peak intensity percentage threshold\n";
+		print PARAMS "ppi_filter = 50					# precursor peak intensity percentage threshold\n";
 		print PARAMS "\n";
 		print PARAMS "# Minimum intensity-based filtering of PSM(s)\n";
 		print PARAMS "# Multiple filters can be used\n";
 		print PARAMS "# e.g. min_intensity_method = 1, 4      -> minimum intensity and median intensity of PSM are evaluated\n";
 		print PARAMS "#      min_intensity_value = 1000, 5000 -> intensity threshold for each filtering method\n";
-		print PARAMS "min_intensity_method = 1, 4						# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median\n";
-		print PARAMS "min_intensity_value = 1000, 5000					# Minimum intensity threshold\n";
+		print PARAMS "min_intensity_method = 1, 4			# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median\n";
+		print PARAMS "min_intensity_value = 1000, 5000		# Minimum intensity threshold\n";
 		print PARAMS "# Minimum intensity-based filtering of PSM(s) used for summarizing a protein\n";
 		print PARAMS "# Multiple filters can be used as above\n";
 		if ($condition eq "TMThh") {
@@ -593,26 +592,26 @@ foreach my $searchEngine (@searchEngines) {
 			$min_intensity_method_1_2_psm = "0";
 			$min_intensity_value_1_2_psm = "0";			
 		}
-		print PARAMS "min_intensity_method_1_2_psm = $min_intensity_method_1_2_psm					# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median\n";
-		print PARAMS "min_intensity_value_1_2_psm = $min_intensity_value_1_2_psm				# Minimum intensity threshold\n";
+		print PARAMS "min_intensity_method_1_2_psm = $min_intensity_method_1_2_psm		# 0 = no use of the filter, 1 = minimum, 2 = maximum, 3 = mean, 4 = median\n";
+		print PARAMS "min_intensity_value_1_2_psm = $min_intensity_value_1_2_psm	# Minimum intensity threshold\n";
 		print PARAMS "\n";
 		print PARAMS "# Impurity correction parameters\n";
-		print PARAMS "impurity_correction = 1							# 1 = Yes; 0 = No; if only a part of reporters are used, it should be set to 0\n";
-		print PARAMS "impurity_matrix = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/JUMPq/TMT10.ini	# impurity table for correction\n";
+		print PARAMS "impurity_correction = 1				# 1 = Yes; 0 = No; if only a part of reporters are used, it should be set to 0\n";
+		print PARAMS "impurity_matrix = $installDir/JUMPq/TMT10.ini	# impurity table for correction\n";
 		print PARAMS "\n";
 		print PARAMS "# Loading-bias correction is generally required to remove systematic biases of mass spectrometry data\n";
-		print PARAMS "loading_bias_correction = 1						# 1 = Yes; 0 = No;\n";
-		print PARAMS "loading_bias_correction_method = 1					# 1 = mean; 2 = median;\n";
-		print PARAMS "SNratio_for_correction = 10						# define the minimal signal (SN ratio) for the correction\n";
+		print PARAMS "loading_bias_correction = 1			# 1 = Yes; 0 = No;\n";
+		print PARAMS "loading_bias_correction_method = 1		# 1 = mean; 2 = median;\n";
+		print PARAMS "SNratio_for_correction = 10			# define the minimal signal (SN ratio) for the correction\n";
 		if ($condition eq "TMThh") {
 			$percentage_trimmed = 25;
 		} elsif ($condition eq "TMThhpho") {
 			$percentage_trimmed = 50;
 		}
-		print PARAMS "percentage_trimmed = $percentage_trimmed							# percentage of most variable intensities to be trimmed for the correction\n";
+		print PARAMS "percentage_trimmed = $percentage_trimmed				# percentage of most variable intensities to be trimmed for the correction\n";
 		print PARAMS "\n";
 		print PARAMS "# Interference removal in TMT-quantification\n";
-		print PARAMS "interference_removal = 0						# 1 = Yes; 0 = No;\n";
+		print PARAMS "interference_removal = 0			# 1 = Yes; 0 = No;\n";
 		print PARAMS "\n";
 		print PARAMS "# Names of TMT reporters used\n";
 		print PARAMS "# TMT reporter ion masses are as follows\n";
@@ -621,8 +620,8 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "# TMT8 reporters (126.127726;127.124761;127.131081;128.134436;129.131471;129.137790;130.141145;131.138180)\n";
 		print PARAMS "# TMT6 reporters (126.127726;127.124761;128.134436;129.131471;130.141145;131.138180)\n";
 		print PARAMS "tmt_reporters_used = sig126; sig127N; sig127C; sig128N; sig128C; sig129N; sig129C; sig130N; sig130C; sig131\n";
-		print PARAMS "tmt_peak_extraction_second_sd = 8					# SD used for identification of reporter ions\n";
-		print PARAMS "tmt_peak_extraction_method = 1						# 1 = strongest intensity; 2 = closest to expected report ion mass; only if multiple peaks detected within mass tolerance\n";
+		print PARAMS "tmt_peak_extraction_second_sd = 8		# SD used for identification of reporter ions\n";
+		print PARAMS "tmt_peak_extraction_method = 1			# 1 = strongest intensity; 2 = closest to expected report ion mass\n";
 		print PARAMS "\n";
 		print PARAMS "# Sample labels corresponding the reporters used\n";
 		print PARAMS "# Do NOT use any special characters other than underscore, \"_\" \n";
@@ -661,29 +660,29 @@ print PARAMS "# JUMPd generates a search database and/or a protein inference tab
 print PARAMS "# The type of a database (for JUMP or SEQUEST) solely depends on the search_engine information in \"jump.params\" file below\n";
 print PARAMS "# All the modification information for the database also depends on the \"jump.params\" file\n";
 print PARAMS "\n";
-print PARAMS "# Parameters for generating a new database ######################################################################################################################################\n";
-print PARAMS "input_database1 = /hpcf/authorized_apps/proteomics_apps/database/20150201/HUMAN.fasta						# Absolute path of input_database1 (i.e. .fasta file)\n";
-print PARAMS "#input_database2 = /hpcf/authorized_apps/proteomics_apps/database/20150201/MOUSE.fasta						# Absolute path of input_database2\n";
-print PARAMS "												# More databases can be used (e.g. input_database3 = /hpcf/authorized_apps/proteomics_apps/database/20150201/ECOLI.fasta)\n";
-print PARAMS "output_prefix = mouse										# Prefix for a new database (and .pit) file\n";
-print PARAMS "include_contaminants = 1									# 0 = do not include contaminants; 1 = include contaminants\n";
-print PARAMS "input_contaminants = /hpcf/authorized_apps/proteomics_apps/database/contaminants.fasta						# Absolute path of a .fasta file containing contaminants\n";
-print PARAMS "decoy_generation = 1										# 0 = do not include decoys; 1 = include decoys\n";
-print PARAMS "decoy_generation_method = 1									# 1 = reverse; 2 = reverse and switch every K/R with its preceding AA\n";
-print PARAMS "jump.params = /usr/search/jump_search.params							# Only search engine and modification information will be obtained from the file\n";
-print PARAMS "												# \"database_name\" in a jump.params file will be ignored\n";
-print PARAMS "bypass_db_generation = 0									# 0 = generate database, 1 = bypass the generation of database (only pit will be generated)\n";
+print PARAMS "# Parameters for generating a new database\n";
+print PARAMS "input_database1 = $installDir/database/HUMAN.fasta		# Absolute path of input_database1 (i.e. .fasta file)\n";
+print PARAMS "#input_database2 = $installDir/database/MOUSE.fasta		# Absolute path of input_database2\n";
+print PARAMS "									# More databases can be used (e.g. input_database3 = $installDir/database/ECOLI.fasta)\n";
+print PARAMS "output_prefix = human							# Prefix for a new database (and .pit) file\n";
+print PARAMS "include_contaminants = 1						# 0 = do not include contaminants; 1 = include contaminants\n";
+print PARAMS "input_contaminants = $installDir/database/contaminants.fasta	# Absolute path of a .fasta file containing contaminants\n";
+print PARAMS "decoy_generation = 1							# 0 = do not include decoys; 1 = include decoys\n";
+print PARAMS "decoy_generation_method = 1						# 1 = reverse; 2 = reverse and switch every K/R with its preceding AA\n";
+print PARAMS "jump.params = /usr/search/jump_search.params				# Only search engine and modification information will be obtained from the file\n";
+print PARAMS "									# \"database_name\" in a jump.params file will be ignored\n";
+print PARAMS "bypass_db_generation = 0						# 0 = generate database, 1 = bypass the generation of database (only pit will be generated)\n";
 print PARAMS "\n";
-print PARAMS "# Parameters for generating a protein inference table (PIT) (keep the prefix \"list_\") ###########################################################################################\n";
-print PARAMS "list_protein_abundance1 = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/ProteinAbundance/Human_Abundance_emPAI.txt	# Absolute path of a file containing protein abundance information\n";
-print PARAMS "												# More abundance information can be used\n";
-print PARAMS "												# (e.g. list_protein_abundance2 = /hpcf/authorized_apps/proteomics_apps/database/Rat_Abundance.txt)\n";
-print PARAMS "list_TFs = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/TFs/tfs_from_TRANSFAC.txt				# Absolute path of a file containing protein annotation information, TFs (transcription factors)\n";
-print PARAMS "list_oncogenes = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/Oncogenes/oncogenes_from_literatures.txt	# Absolute path of a file containing protein annotation information, oncogenes\n";
-print PARAMS "list_kinases = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/Kinases/kinases_from_pkinfam.txt			# Absolute path of a file containing protein annotation information, kinases\n";
-print PARAMS "list_GPCRs = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/GPCRs/gpcrs.txt					# Absolute path of a file containing protein annotation information, GPCRs\n";
-print PARAMS "list_epigenetic_factors = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/EpigeneticRegulators/epigenetic_regulators.txt\n";
-print PARAMS "list_spliceosomal_proteins = /hpcf/authorized_apps/proteomics_apps/database/KnowledgeTables/SpliceosomalProteins/spliceosomal_proteins.txt\n";
+print PARAMS "# Parameters for generating a protein inference table (PIT) (keep the prefix \"list_\")\n";
+print PARAMS "list_protein_abundance1 = $installDir/database/Human_Abundance_emPAI.txt	# Absolute path of a file containing protein abundance information\n";
+print PARAMS "									# More abundance information can be used\n";
+print PARAMS "									# (e.g. list_protein_abundance2 = $installDir/database/Rat_Abundance.txt)\n";
+print PARAMS "list_TFs = $installDir/database/list_of_TFs.txt		# Absolute path of a file containing protein annotation information, TFs (transcription factors)\n";
+print PARAMS "list_oncogenes = $installDir/database/oncogenes_from_literatures.txt	# Absolute path of a file containing protein annotation information, oncogenes\n";
+print PARAMS "list_kinases = $installDir/database/kinases_from_pkinfam.txt	# Absolute path of a file containing protein annotation information, kinases\n";
+print PARAMS "list_GPCRs = $installDir/database/gpcrs.txt				# Absolute path of a file containing protein annotation information, GPCRs\n";
+print PARAMS "list_epigenetic_factors = $installDir/database/epigenetic_regulators.txt\n";
+print PARAMS "list_spliceosomal_proteins = $installDir/database/spliceosomal_proteins.txt\n";
 close (PARAMS);
 
 ##################################################################
@@ -695,10 +694,10 @@ print PARAMS "# JUMP absolute quantification parameter file (Version: $version, 
 print PARAMS "# JUMPaq generates a protein abundance table based on a search/filtering result\n";
 print PARAMS "\n";
 print PARAMS "# Database (i.e. a fasta file)\n";
-print PARAMS "database = /hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c0.fasta\n";
+print PARAMS "database = $installDir/database/human_ft_mc2_c0.fasta\n";
 print PARAMS "\n";
 print PARAMS "# The Report file generated by JUMPf\n";
-print PARAMS "report_file = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/HH/sum_HH_human_jump/publications/id_all_prot.txt\n";
+print PARAMS "report_file = $installDir/SampleData/HH/sum_HH_human_jump/publications/id_all_prot.txt\n";
 print PARAMS "\n";
 print PARAMS "# Output file name\n";
 print PARAMS "output = protein_absolute_abundance.txt\n";
@@ -731,9 +730,9 @@ print PARAMS "#\n";
 print PARAMS "#-----------------------------------------------------------------------------------------------------------------------------------\n";
 print PARAMS "\n";
 print PARAMS "# input file (either protein or peptide table from jump -q results in folder 'publications')\n";
-print PARAMS "input_table = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThh/quan_HH_tmt10_human_jump/publications/id_uni_prot_quan.txt		# absolute path needed;\n"; 
-print PARAMS "										# protein file: /home/user/project/quan_test1/publications/id_uni_prot_quan.txt\n";
-print PARAMS "										# peptide file: /home/user/project/quan_test1/publications/id_uni_pep_quan.txt\n";
+print PARAMS "input_table = $installDir/SampleData/TMThh/quan_HH_tmt10_human_jump/publications/id_uni_prot_quan.txt		# absolute path needed;\n"; 
+print PARAMS "# protein file: /home/user/project/quan_test/publications/id_uni_prot_quan.txt\n";
+print PARAMS "# peptide file: /home/user/project/quan_test/publications/id_uni_pep_quan.txt\n";
 print PARAMS "\n";
 print PARAMS "# sample labels\n";
 print PARAMS "sig126 = condition1a\n";
@@ -785,7 +784,7 @@ print PARAMS "# customID sig126 sig127N ... sig131\n";
 print PARAMS "# 2) Excel: save the file as 'Text (Tab delimited)'\n";
 print PARAMS "# 3) WinSCP: upload the saved file to cluster using WinSCP\n";
 print PARAMS "# 4) JUMPi: turn off all filtering in jump -i parameter file (default)\n";
-print PARAMS "input_table = /home/yli4/development/JUMPi/v11.3.042915/cus_prot1.txt				# absolute path of customized input file\n";
+print PARAMS "input_table = $installDir/custom/custom_prot_quan.txt	# absolute path of customized input file\n";
 print PARAMS "\n";
 print PARAMS "# sample labels\n";
 print PARAMS "sig126 = condition1a\n";
@@ -800,7 +799,7 @@ print PARAMS "sig130C = condition5a\n";
 print PARAMS "sig131 = condition5b\n";
 print PARAMS "\n";
 print PARAMS "# output folder\n";
-print PARAMS "output_folder = cu_test1				# output folder suffix name; prefix always 'inf_'\n";
+print PARAMS "output_folder = custom_test			# output folder suffix name; prefix always 'inf_'\n";
 print PARAMS "\n";
 print PARAMS "# contaminant removel option\n";
 print PARAMS "remove_contaminants = 0				# remove contaminants? 1 = yes; 0 = no\n";
@@ -832,7 +831,7 @@ print PARAMS "protein_1 = sp|Q9BRD0|BUD13_HUMAN\n";
 print PARAMS "#protein_2 = tr|B2KFM4|B2KFM4_MOUSE\n";
 print PARAMS "\n";
 print PARAMS "# The raw quantification file generated by JUMPq\n";
-print PARAMS "quan_file = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/quan_HH_pho_tmt10_human_jump_mod/raw_quan_HH_pho_tmt10_human_jump_mod_psm_nonzero.txt\n";
+print PARAMS "quan_file = $installDir/SampleData/TMThhpho/quan_HH_pho_tmt10_human_jump_mod/raw_quan_HH_pho_tmt10_human_jump_mod_psm_nonzero.txt\n";
 print PARAMS "\n";
 print PARAMS "# Output file name\n";
 print PARAMS "output = validation_quan_HH_pho_tmt10_human_jump_mod.txt\n";
@@ -848,38 +847,38 @@ print PARAMS "# JUMP localization parameter file (Version: $version, Date: $rele
 print PARAMS "# JUMPl identifies (localizes) the modification sites (e.g. phosphorylation)\n"; 
 print PARAMS "\n";
 print PARAMS "# Input and output settings\n";
-print PARAMS "IDmod = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt	# path for the input IDmod.txt file\n";
-print PARAMS "Output = ID.lscore								# output file name\n";
+print PARAMS "IDmod = $installDir/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt	# path for the input IDmod.txt file\n";
+print PARAMS "Output = ID.lscore				# output file name\n";
 print PARAMS "\n";
 print PARAMS "# Preprocessing parameters\n";
-print PARAMS "peptide_score_tolerance = 10							# tolerance for peptide localization score (percentage)\n";
-print PARAMS "mass_correction = 2								# 0 = no correction, 1 = MS1-based, 2 = MS2-based, 3 = manual correction\n";                                                                          
-print PARAMS "isolation_window = 1.2								# +/- (isolation_window)/2 based on MS2 isolation window (e.g. 1.2 m/z)\n";
-print PARAMS "first_scan_extraction = 0							# the first scan number for search\n";
-print PARAMS "last_scan_extraction = 1000000							# the last scan number for search, use a large number (e.g. 10E6) for full scans\n";
-print PARAMS "MS2_deisotope = 1								# 0 = disable; 1 = enable\n";
-print PARAMS "ppm = 10									# mass tolerance for MS2 decharging and deisotoping\n";
-print PARAMS "ms2_consolidation = 30								# maximal number of peaks retained within each 100-Da window\n";
+print PARAMS "peptide_score_tolerance = 10			# tolerance for peptide localization score (percentage)\n";
+print PARAMS "mass_correction = 2				# 0 = no correction, 1 = MS1-based, 2 = MS2-based, 3 = manual correction\n";                                                                          
+print PARAMS "isolation_window = 1.2				# +/- (isolation_window)/2 based on MS2 isolation window (e.g. 1.2 m/z)\n";
+print PARAMS "first_scan_extraction = 0			# the first scan number for search\n";
+print PARAMS "last_scan_extraction = 1000000			# the last scan number for search, use a large number (e.g. 10E6) for full scans\n";
+print PARAMS "MS2_deisotope = 1				# 0 = disable; 1 = enable\n";
+print PARAMS "ppm = 10					# mass tolerance for MS2 decharging and deisotoping\n";
+print PARAMS "ms2_consolidation = 30				# maximal number of peaks retained within each 100-Da window\n";
 print PARAMS "\n";
 print PARAMS "# Peptide selection and scoring options\n";
-print PARAMS "ion_series = 0 1 0 0 0 0 0 1 0							# a, b, c, d, v, w, x, y and z ions, respectively\n";
-print PARAMS "ion_losses_MS2 = 1 0 0 0							# 0 = disable; 1 = enable neutral loss of H2O, HPO3, H3PO4 and NH3, respectively\n"; 
-print PARAMS "frag_mass_tolerance = 10							# mass tolerance for MS2 ion matching\n";
-print PARAMS "frag_mass_tolerance_unit = 2							# 1 = Da; 2 = PPM;\n";
+print PARAMS "ion_series = 0 1 0 0 0 0 0 1 0			# a, b, c, d, v, w, x, y and z ions, respectively\n";
+print PARAMS "ion_losses_MS2 = 1 0 0 0			# 0 = disable; 1 = enable neutral loss of H2O, HPO3, H3PO4 and NH3, respectively\n"; 
+print PARAMS "frag_mass_tolerance = 10			# mass tolerance for MS2 ion matching\n";
+print PARAMS "frag_mass_tolerance_unit = 2			# 1 = Da; 2 = PPM;\n";
 print PARAMS "\n";
 print PARAMS "# Dynamic modifications\n";
-print PARAMS "dynamic_M = 15.99492								# add each dynamic modification by one line, starting with dynamic_AA\n"; 
+print PARAMS "dynamic_M = 15.99492				# add each dynamic modification by one line, starting with dynamic_AA\n"; 
 print PARAMS "dynamic_S = 79.96633\n";
 print PARAMS "dynamic_T = 79.96633\n";
 print PARAMS "dynamic_Y = 79.96633\n";
 print PARAMS "max_modif_num = 3\n";
 print PARAMS "\n";
 print PARAMS "# Static Modification\n";
-print PARAMS "add_Nterm_peptide = 229.1629321							# TMT modification or other amine labeling\n";
+print PARAMS "add_Nterm_peptide = 229.1629321			# TMT modification or other amine labeling\n";
 print PARAMS "add_Cterm_peptide = 0.0000\n";
 print PARAMS "add_A_Alanine = 0.0000\n";
 print PARAMS "add_B_avg_NandD = 0.0000\n";
-print PARAMS "add_C_Cysteine = 0.0000								# Cys alkylation\n";
+print PARAMS "add_C_Cysteine = 0.0000				# Cys alkylation\n";
 print PARAMS "add_D_Aspartic_Acid = 0.0000\n";
 print PARAMS "add_E_Glutamic_Acid = 0.0000\n";
 print PARAMS "add_F_Phenylalanine = 0.0000\n";
@@ -887,7 +886,7 @@ print PARAMS "add_G_Glycine = 0.0000\n";
 print PARAMS "add_H_Histidine = 0.0000\n";
 print PARAMS "add_I_Isoleucine = 0.0000\n";
 print PARAMS "add_J_user_amino_acid = 0.0000\n";
-print PARAMS "add_K_Lysine = 229.1629321							# TMT modification or other amine labeling\n";
+print PARAMS "add_K_Lysine = 229.1629321			# TMT modification or other amine labeling\n";
 print PARAMS "add_L_Leucine = 0.0000\n";
 print PARAMS "add_M_Methionine = 0.0000\n";
 print PARAMS "add_N_Asparagine = 0.0000\n";
@@ -905,6 +904,5 @@ print PARAMS "add_Y_Tyrosine = 0.0000\n";
 print PARAMS "add_Z_avg_QandE = 0.0000\n";
 print PARAMS "\n";
 print PARAMS "# Other parameters\n";
-print PARAMS "cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster\n";
 close (PARAMS);
 
