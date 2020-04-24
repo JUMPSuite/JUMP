@@ -39,6 +39,7 @@ sub configure_jump_driver {
     my $etcPath = get_etc_path(\%options);
     unshift( @lines, 
 	     "export JUMP_READW_EXE=\"$options{'RAWFILE_CONVERTER'}\"\n",
+	     "export JUMP_ROOT=".$options{'PREFIX'}."\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
 	     "PATH=".$options{"PERL_BIN"}.":\$PATH\n",
 	     "PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n", 

@@ -105,7 +105,7 @@ sub runJobs {
     my $code = 0;
     my $mfile;
     my $handle;
-    print "  Submitting " . scalar(@jobs) . " jobs for search\n";
+    print "  Submitting " . scalar(@jobs) . " jobs\n";
     if( $clusterConfig eq Spiders::ClusterConfig::SMP ) {
 	($mfile,my $rules) = $self->_generateSMPMakefile( @jobs );
 	open( $handle, "make -f " . $mfile->filename . ' -j ' . $self->{'config'}->get( 'max_search_worker_procs' ) . '|' );
