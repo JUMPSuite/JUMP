@@ -1,5 +1,30 @@
 import pickle, pickletools, re, struct, sys, numpy as np, numpy.random as nr, shelve, tempfile, os, os.path, shutil, glob, h5py, codecs, bisect
 
+class MzIntenData:
+    def __init__( self, mz, inten, idx ):
+        self.mzarr = mz
+        self.intenarr = inten
+        self.idxarr = idx
+
+    def mz( self, i=-1 ):
+        return self._access_array( self.mzarr, i )
+
+    def inten( self, i=-1 ):
+        return self._access_array( self.intenarr, i )
+
+    def _access_array( self, arr, i ):
+        if i < 0:
+            return arr
+        elif i >= self.idx[-1]:
+            lb = bisect.bisect_left( self.idx, i )
+            ub = bisect.bisect_right( self.idx, i )
+            return arr[lb:ub]
+        else:
+            raise IndexError()
+
+    def idx( self ):
+        return self.idxarr
+
 class SpectralData:
     """
     Abstract base class for objects that contain spectral data
@@ -10,7 +35,7 @@ class SpectralData:
     def read_attrs( self, i ):
         raise TypeError( 'method not implemented' )
 
-    def read_peptide( *args ):
+    def read_spectra( *args ):
         raise TypeError( 'method not implemented' )
 
     def window_by_precmass( self, minmass, maxmass, tol ):
@@ -19,37 +44,70 @@ class SpectralData:
     def spectra( self ):
         raise TypeError( 'method not implemented' )
 
+    def prec_mass( self, idx ):
+        raise TypeError( 'method not implemented' )
+
+    def idx2name( self, *args ):
+        raise TypeError( 'method not implemented' )
+
 class DTASReader(SpectralData):
     def __init__( self, dtas_file ):
         lines = open(dtas_file,'r').read().strip().split('\n')
         i = 0
+        self.mz = []
+        self.inten = []
         self.data = []
         while i < len(lines):
             name,prec_mass,charge = lines[i].strip().split()
             mz = np.array(lines[i+1].strip().split(),dtype=np.double)
             inten = np.array(lines[i+2].strip().split(),dtype=np.double)
+            self.mz.append( mz )
+            self.inten.append( inten )
             self.data.append( {'name':name,
                                'prec_mass':float(prec_mass),
                                'charge':int(charge),
                                'mz':mz,
                                'inten':inten} )
             i += 3
+        
+        self.offset = np.empty(len(self.mz),dtype=np.uint64)
+        accum = 0
+        for i in range(len(self.offset)):
+            self.offset[i] = accum
+            accum += self.mz[i].shape[0]
+        
+        self.mz = np.hstack(self.mz)
+        self.inten = np.hstack(self.inten)
 
     def read_attrs( self, idx ):
         return self.data[idx]
 
+    def prec_mass( self, idx ):
+        return self.data[idx]['prec_mass']
+
     def maxMZ( self ):
-        return max([d['mz'].max() for d in self.data])
+        return self.mz.max()
 
     def minMZ( self ):
-        return min([d['mz'].max() for d in self.data])
+        return self.mz.min()
+
+    def idx2name( self, idx ):
+        return self.data[idx]['name']
 
     def spectra( self ):
         return list(range(len(self.data)))
 
-    def read_peptide( self, idx ):
-        return np.hstack((self.data[idx]['mz'].reshape((-1,1)),
-                          self.data[idx]['inten'].reshape((-1,1))))
+    def read_spectra( self, start_idx, end_idx ):
+        start = self.offset[start_idx]
+        idxl = np.empty(self.mz.shape[0],dtype=np.uint64)
+
+        k = 0
+        for i,j in zip(self.offset[start_idx:end_idx],self.offset[start_idx+1:end_idx+1]):
+            idxl[i-start:j-start] = k
+            k += 1
+    
+        idxl[self.offset[end_idx]-start:] = k
+        return MzIntenData( self.mz, self.inten, idxl )
 
 def remap( s ):
     return s.replace('/','@')
@@ -82,35 +140,29 @@ class CSRSpectralDataReader(SpectralData):
     def read_attrs( self, i ):
         return dict(self.h5file[str(i)].attrs)
 
-    def block_read_peptides( self, start_idx, end_idx ):
+    def idx2name( self, idx ):
+        return self.names[idx]
+
+    def read_spectra( self, start_idx, end_idx ):
         start = self.offset[start_idx]
         if end_idx < len(self.offset) - 1:
             end = self.offset[end_idx+1]
         else:
             end = self.h5file['data/mz'].shape[0]
 
-        mz_inten = np.empty((int(end-start),2))
-        self.h5file['data/mz'].read_direct(mz_inten,np.s_[start:end],np.s_[:,0])
-        self.h5file['data/inten'].read_direct(mz_inten,np.s_[start:end],np.s_[:,1])
-        idxl = np.empty(mz_inten.shape[0],dtype=np.uint64)
+        mz = np.empty((int(end-start)))
+        inten = np.empty((int(end-start)))
+        self.h5file['data/mz'].read_direct(mz,np.s_[start:end])
+        self.h5file['data/inten'].read_direct(inten,np.s_[start:end])
+        idxl = np.empty(mz.shape[0],dtype=np.uint64)
 
         k = 0
-        for i,j in zip(self.offset[start_idx:end_idx-1],self.offset[start_idx+1:end_idx]):
+        for i,j in zip(self.offset[start_idx:end_idx],self.offset[start_idx+1:end_idx+1]):
             idxl[i-start:j-start] = k
             k += 1
     
         idxl[self.offset[end_idx]-start:] = k
-        return (mz_inten,idxl)
-
-    def read_peptide( self, i ):
-        start = self.offset[i]
-        if i < len(self.offset) - 1:
-            end = self.offset[i+1]
-        else:
-            end = self.h5file['data/mz'].shape[0]
-
-        return np.hstack((np.array(self.h5file['data/mz'][start:end]).reshape((-1,1)),
-                          np.array(self.h5file['data/inten'][start:end]).reshape((-1,1))))
+        return MzIntenData(mz,inten,idxl)
 
 class CSRSpectralDataWriter:
     def __init__( self, path ):
