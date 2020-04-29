@@ -120,8 +120,6 @@ class CSRSpectralDataReader(SpectralData):
         self.h5file = h5py.File( path, 'r' )
         self.pmass = np.array(self.h5file['data/pmass'])
         self.offset = np.array(self.h5file['data/offset'])
-        self.names = codecs.decode(np.array(self.h5file['data/names']).tostring(),
-                                   'ascii').split('\n')
         self.maxMZ_ = self.h5file['data'].attrs['maxMZ']
         self.minMZ_ = self.h5file['data'].attrs['minMZ']
 
@@ -141,7 +139,7 @@ class CSRSpectralDataReader(SpectralData):
         return dict(self.h5file[str(i)].attrs)
 
     def idx2name( self, idx ):
-        return self.names[idx]
+        return self.h5file['spectra/{}'.format(idx)].attrs['name']
 
     def read_spectra( self, start_idx, end_idx ):
         start = self.offset[start_idx]
@@ -164,33 +162,42 @@ class CSRSpectralDataReader(SpectralData):
         idxl[self.offset[end_idx]-start:] = k
         return MzIntenData(mz,inten,idxl)
 
-class CSRSpectralDataWriter:
+    def n_spectra( self, peptide ):
+        return len(self.h5file['peptides/{}'.format(name)])
+
+    def peptides( self ):
+        return list(self.h5file['peptides'])
+
+class CSRSpectralDataWriter(SpectralData):
     def __init__( self, path ):
         self.path = path
         self.h5file = h5py.File( self.path, 'w' )
+        self.h5file.create_group( 'peptides' )
 
         self.mz = tempfile.TemporaryFile()
         self.inten = tempfile.TemporaryFile()
         self.pmass = tempfile.TemporaryFile()
         self.offset = tempfile.TemporaryFile()
-        self.names = []
 
         self.i = 0
         self.end_ptr = 0
         
     def write_record( self, peaks, mdata ):
         assert peaks.shape[1] == 2
+        assert 'names' in mdata
+
         self.mz.write( struct.pack('d'*peaks.shape[0],*(peaks[:,0])) )
         self.inten.write( struct.pack('d'*peaks.shape[0],*(peaks[:,1])) )
         self.pmass.write( struct.pack('d',mdata['prec_mass']) )
         self.offset.write( struct.pack('L',self.end_ptr ) )
-        self.names.append( mdata['name'] )
         self.end_ptr += peaks.shape[0]
 
         h5data = self.h5file.create_group( 'spectra/{}'.format(self.i) )
+        if mdata['names'] not in self.h5file['peptides']:
+            self.h5file.create_dataset( 'peptides/{}'.format(self.i), data=h5data )
         self.i += 1
         for k,v in mdata.items():
-            h5data[k] = v
+            h5data.attrs[k] = v
 
     def __enter__( self ):
         return self
@@ -234,8 +241,6 @@ class CSRSpectralDataWriter:
             i += 1
             if len(pmass)/struct.calcsize('d') < blksz:
                 break
-
-        self.h5file['data'].create_dataset( 'names', data=np.string_(str.join('\n',self.names)) )
 
         self.h5file.flush()
         self.h5file.close()
