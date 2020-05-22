@@ -1,4 +1,4 @@
-import binning as bi, spectral_data as sd, scipy.sparse as ss, numpy as np, bisect
+import JUMPsl.binning as bi, JUMPsl.spectral_data as sd, scipy.sparse as ss, numpy as np, bisect
 
 def build_binned_mat( binner, collection, spectra, col_or_row='row' ):
     mzint = collection.read_spectra( min(spectra), max(spectra) )
