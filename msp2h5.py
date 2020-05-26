@@ -1,4 +1,4 @@
-import spectral_data as sd, heapq, numpy as np, h5py, tempfile, os.path
+import JUMPsl.spectral_data as sd, heapq, numpy as np, h5py, tempfile, os.path, re, bz2
 
 class OutOfCoreMerger:
     def __init__( self, bufsz=1048576 ):
@@ -72,22 +72,42 @@ class OutOfCoreMerger:
         arr_data,kvdata = self.read(t[1],j)
         return (t[0],arr_data,kvdata)
 
+def parse_comment( comment_line ):
+    return dict([(m.group(1).lower(),m.group(2)) for m in
+                 re.finditer( '(\\S+)=(\\S+)', comment_line )])
+
+def multiopen( fname ):
+    if '.bz2' == fname[-4:]:
+        return bz2.open(fname,'rt')
+    else:
+        return open(fname)
 
 if __name__ == '__main__':
-    import optparse
+    import optparse, sys
     p = optparse.OptionParser()
     p.add_option( '-v', '--verbose', dest='verbose', action='store_true' )
     p.add_option( '-n', '--num-spectra', dest='num_spectra', type='int', default=0 )
+    p.add_option( '-p', '--precursor-mass-key', dest='precursor_mass_key',
+                  default='precursormz' )
 
     opts,args = p.parse_args()
 
-    sorter = OutOfCoreMerger(8192)
+    def get_precursor_mass( mdata ):
+        if opts.precursor_mass_key.lower() in mdata:
+            return float(mdata[opts.precursor_mass_key.lower()])
+        else:
+            return float(mdata['parent'])
+
+    if os.path.exists(sys.argv[-1]):
+        raise Exception('will not overwrite file at ' + sys.argv[-1])
+
+    sorter = OutOfCoreMerger(1024)
     num_written = 0
-    for sptxtfile in args[:-1]:
+    for txtfile in args[:-1]:
         if opts.verbose:
             if num_written > 0: print('')
-            print( 'processing file {}...'.format(sptxtfile), end='', flush=True )
-        f = open(sptxtfile)
+            print( 'processing file {}...'.format(txtfile), end='', flush=True )
+        f = multiopen(txtfile)
         for l in f:
             if re.search( '^Name:', l ):
                 break
@@ -95,36 +115,42 @@ if __name__ == '__main__':
         t = l.split(':')
         mdata = dict([(t[0].strip().lower(),t[1].strip())])
         mdata['source'] = args[0]
-        mdata['prec_mass'] = mdata['precursormz']
 
-        peaks = []
+        mz = []
+        inten = []
         
         for l in f:
             if re.search( '^Name:', l ):
-                writer.write_record( np.array(peaks), mdata )
-
+                mdata['prec_mass'] = get_precursor_mass(mdata)
+                sorter.push_record( mdata['prec_mass'], {'mz':np.array(mz),
+                                                              'inten':np.array(inten)}, mdata )
+                num_written += 1
+                
                 if opts.num_spectra > 0 and num_written == opts.num_spectra:
                     break
 
                 t = l.split(':')
-                mdata = dict([(t[0].strip(),t[1].strip())])
-                mdata['Source'] = args[0]
+                mdata = dict([(t[0].strip().lower(),t[1].strip())])
+                mdata['source'] = args[0]
             
                 mz = []
                 inten = []
                 if num_written % 1000 == 0 and opts.verbose:
                     print( '{}...'.format(num_written), end='', flush=True )
                     
+            elif re.search('^Comment:',l):
+                mdata.update(parse_comment(l))
             elif re.search('^\\w+:',l):
                 t = l.split(':')
-                mdata[t[0].strip()] = t[1].strip()
+                mdata[t[0].strip().lower()] = t[1].strip()
             elif re.search('^\\d+',l):
-                t = l.split('\t')
+                t = re.split('\\s+',l)
                 mz.append( float(t[0]) )
                 inten.append( float(t[1]) )
             
         if not opts.num_spectra > 0 or not num_written == opts.num_spectra:
-            sorter.push_record( float(mdata['prec_mz']), {'mz':np.array(mz),
+            mdata['prec_mass'] = get_precursor_mass(mdata)
+            sorter.push_record( mdata['prec_mass'], {'mz':np.array(mz),
                                                           'inten':np.array(inten)}, mdata )
             num_written += 1
 
@@ -135,8 +161,10 @@ if opts.verbose:
 with sd.CSRSpectralDataWriter(sys.argv[-1]) as w:
     for i,(mass,arrd,metad) in enumerate(sorter):
         if i % 1000 == 0 and opts.verbose:
-            print( '{}...'.format(num_written), end='', flush=True )
+            print( '{}...'.format(i), end='', flush=True )
         w.write_record( np.hstack((arrd['mz'].reshape((-1,1)),arrd['inten'].reshape((-1,1)))), metad )
 
 if opts.verbose: 
     print( 'done.' )
+
+    
