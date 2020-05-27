@@ -1,4 +1,4 @@
-import pickle, pickletools, re, struct, sys, numpy as np, numpy.random as nr, shelve, tempfile, os, os.path, shutil, glob, h5py, codecs, bisect
+import pickle, pickletools, re, struct, sys, numpy as np, numpy.random as nr, shelve, tempfile, os, os.path, shutil, glob, h5py, codecs, bisect, JUMPutil.sorting as so
 
 class MzIntenData:
     def __init__( self, mz, inten, idx ):
@@ -192,7 +192,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
             return set(codecs.decode(np.array(self.h5file['data/names']).tostring,'ascii').split('\n'))
 
     def spectra_by_peptide( self, peptide ):
-        return np.array(list(self.h5file['peptides/{}'.format(remap(peptide))]),dtype=np.int)
+        return np.array(self.h5file['peptides/{}'.format(remap(peptide))])
 
 class CSRSpectralDataWriter(SpectralData):
     def __init__( self, path ):
@@ -207,8 +207,7 @@ class CSRSpectralDataWriter(SpectralData):
         self.offset = tempfile.TemporaryFile()
         handle,self.mdataFile = tempfile.mkstemp()
         os.close(handle)
-        self.mdata = shelve.Shelf(self.mdataFile)
-        self.peptides = set()
+        self.mdata = so.OutOfCoreMerger(1024)
         self.tnames = dict()
 
         self.mz_interval = [0,np.inf]
@@ -229,13 +228,9 @@ class CSRSpectralDataWriter(SpectralData):
         self.offset.write( struct.pack('L',self.end_ptr ) )
         self.end_ptr += peaks.shape[0]
 
-        if remap(mdata['name']) not in self.peptides:
-            self.peptides.add(remap(mdata['name']))
-            self.mdata[remap(mdata['name'])] = [(self.i,mdata)]
-        else:
-            self.mdata[remap(mdata['name'])].append( (self.i,mdata) )
+        self.mdata.push_record( np.string_(mdata['name']), dict(), {'lidx':self.i} )
 
-        self.tnames[str(i)] = mdata['name']
+        self.tnames[str(self.i)] = mdata['name']
         if len(self.tnames) > 131072:
             self.h5file['spectra'].attrs.update(self.tnames)
             self.tnames = dict()
@@ -259,11 +254,16 @@ class CSRSpectralDataWriter(SpectralData):
         names = [self.h5file['spectra'].attrs[str(i)] for i in range(self.i)]
         self.h5file.create_dataset( 'data/names', data=np.string_(codecs.encode(str.join('\n',names),'ascii')) )
 
-        for p in self.peptides:
-            mdata = self.mdata[p]
-            dset = self.h5file.create_dataset( 'peptides/{}'.format(p), data=[t[1] for t in mdata] )
-            dset.attrs.update( dict([(str(i),md) for i,md in mdata]) )
-
+        cur_pep = np.string_('')
+        spec_idxs = []
+        for name,empt1,md in self.mdata:
+            if name != cur_pep and len(spec_idxs) > 0:
+                dset = self.h5file.create_dataset( 'peptides/{}'.format(cur_pep), data=spec_idxs )
+                spec_idxs = [md['lidx']]
+                cur_pep = name
+            else:
+                spec_idxs.append( md['lidx'] )
+                
         self.mz.flush()
         self.inten.flush()
         self.mz.seek(0)
