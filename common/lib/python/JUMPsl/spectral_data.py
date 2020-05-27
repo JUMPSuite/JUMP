@@ -199,11 +199,18 @@ class CSRSpectralDataWriter(SpectralData):
         self.path = path
         self.h5file = h5py.File( self.path, 'w' )
         self.h5file.create_group( 'peptides' )
+        self.h5file.create_group( 'spectra' )
 
         self.mz = tempfile.TemporaryFile()
         self.inten = tempfile.TemporaryFile()
         self.pmass = tempfile.TemporaryFile()
         self.offset = tempfile.TemporaryFile()
+        handle,self.mdataFile = tempfile.mkstemp()
+        os.close(handle)
+        self.mdata = shelve.Shelf(self.mdataFile)
+        self.peptides = set()
+        self.tnames = dict()
+
         self.mz_interval = [0,np.inf]
 
         self.i = 0
@@ -222,14 +229,18 @@ class CSRSpectralDataWriter(SpectralData):
         self.offset.write( struct.pack('L',self.end_ptr ) )
         self.end_ptr += peaks.shape[0]
 
-        h5data = self.h5file.create_group( 'spectra/{}'.format(self.i) )
-        if remap(mdata['name']) not in self.h5file['peptides']:
-            self.h5file.create_group( 'peptides/{}'.format(remap(mdata['name'])) )
+        if remap(mdata['name']) not in self.peptides:
+            self.peptides.add(remap(mdata['name']))
+            self.mdata[remap(mdata['name'])] = [(self.i,mdata)]
+        else:
+            self.mdata[remap(mdata['name'])].append( (self.i,mdata) )
 
-        self.h5file.create_dataset( 'peptides/{}/{}'.format(remap(mdata['name']),self.i), data=h5data )
+        self.tnames[str(i)] = mdata['name']
+        if len(self.tnames) > 131072:
+            self.h5file['spectra'].attrs.update(self.tnames)
+            self.tnames = dict()
+
         self.i += 1
-        for k,v in mdata.items():
-            h5data.attrs[k] = v
 
     def __enter__( self ):
         return self
@@ -244,8 +255,14 @@ class CSRSpectralDataWriter(SpectralData):
         self.h5file['data'].attrs['minMZ'] = self.mz_interval[0]
         self.h5file['data'].attrs['maxMZ'] = self.mz_interval[1]
 
-        names = [self.h5file['spectra/{}'.format(i)].attrs['name'] for i in range(self.i)]
+        self.h5file['spectra'].attrs.update(self.tnames)
+        names = [self.h5file['spectra'].attrs[str(i)] for i in range(self.i)]
         self.h5file.create_dataset( 'data/names', data=np.string_(codecs.encode(str.join('\n',names),'ascii')) )
+
+        for p in self.peptides:
+            mdata = self.mdata[p]
+            dset = self.h5file.create_dataset( 'peptides/{}'.format(p), data=[t[1] for t in mdata] )
+            dset.attrs.update( dict([(str(i),md) for i,md in mdata]) )
 
         self.mz.flush()
         self.inten.flush()
