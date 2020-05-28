@@ -87,13 +87,13 @@ if opts.verbose:
     print( 'done.' )
     print( 'Sorting masses...', end='', flush=True )
 
-with sd.CSRSpectralDataWriter(sys.argv[-1]) as w:
+with sd.CSRSpectralDataWriter(sys.argv[-1],verbose=opts.verbose) as w:
     for i,(mass,arrd,metad) in enumerate(sorter):
         if i % 1000 == 0 and opts.verbose:
             print( '{}...'.format(i), end='', flush=True )
         w.write_record( np.hstack((arrd['mz'].reshape((-1,1)),arrd['inten'].reshape((-1,1)))), metad )
 
 if opts.verbose: 
-    print( 'done.' )
+    print( 'file {} completed.'.format(sys.argv[-1]) )
 
     
