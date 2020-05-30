@@ -120,10 +120,10 @@ class DTASReader(SpectralData):
         return MzIntenData( self.mz, self.inten, idxl )
 
 def dict2str( kvdata ):
-    return str.join('\n',['{}:{}'.format(k,v) for k,v in kvdata])
+    return str.join('\n',['{}\r{}'.format(k,v) for k,v in kvdata])
 
 def str2dict( s ):
-    return dict([l.split(':') for l in s.strip().split('\n')])
+    return dict([l.split('\r') for l in s.strip().split('\n')])
 
 def remap( s ):
     return s.replace('/','@')
@@ -139,10 +139,11 @@ class CSRSpectralDataReader(LabeledSpectralData):
         self.maxMZ_ = self.h5file['data'].attrs['maxMZ']
         self.minMZ_ = self.h5file['data'].attrs['minMZ']
         if cache_names:
-            self.peptide_names = sum([codecs.decode(np.array(self.h5file['spectra/{}'.format(i)]).tostring(),'ascii').split('\n') for i in range(len(self.h5file['spectra']))],[])
+            self.peptide_names = codecs.decode(struct.pack('>' + ('B'*self.h5file['meta/names/array'].shape[0]),
+                                                           *np.array(self.h5file['meta/names/array'])),
+                                               'ascii').split('\n')
         else:
             self.peptide_names = ''
-        self.spectra_block_sz = self.h5file['spectra'].attrs['block_sz']
             
     def prec_mass( self, idx ):
         return self.pmass[idx]
@@ -160,13 +161,23 @@ class CSRSpectralDataReader(LabeledSpectralData):
     def minMZ( self ): return self.minMZ_
 
     def read_attrs( self, idx ):
-        return str2dict(self.h5file['spectra/{}'.format(idx//self.spectra_block_sz)].attrs[idx])
+        return str2dict(self.read_meta_data( idx, 'kvdata', 0 ))
 
     def idx2name( self, idx ):
         if len(self.peptide_names) > 0:
             return self.peptide_names[idx]
         else:
-            return codecs.decode(np.array(self.h5file['spectra/{}'.format(idx//self.spectra_block_sz)]).tostring(),'ascii').split('\n')[idx % self.spectra_block_sz]
+            return self.read_meta_data( idx, 'name', 1 )
+
+    def read_meta_data( self, idx, key, backup ):
+        if idx == self.h5file['meta/{}/offset'.format(key)].shape[0] - 1:
+            idx = self.h5file['meta/{}/offset'.format(key)][idx]
+            idx_p1 = self.h5file['meta/{}/offset'.format(key)].shape[0]
+        else:
+            idx,idx_p1 = [int(i) for i in self.h5file['meta/{}/offset'.format(key)][idx:idx+2]]
+            
+        byts = np.array(self.h5file['meta/{}/array'.format(key)][idx:idx_p1-backup])
+        return codecs.decode(struct.pack('>' + ('B'*byts.shape[0]),*byts),'ascii')
 
     def read_spectra( self, start_idx, end_idx ):
         start = self.offset[start_idx]
@@ -196,7 +207,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
         if len(self.peptide_names) > 0:
             return set(self.peptide_names)
         else:
-            return set(codecs.decode(np.array(self.h5file['data/names']).tostring,'ascii').split('\n'))
+            return set(self.h5file['peptides'])
 
     def spectra_by_peptide( self, peptide ):
         return np.array(self.h5file['peptides/{}'.format(remap(peptide))])
@@ -212,16 +223,21 @@ class CSRSpectralDataWriter(SpectralData):
         self.inten = tempfile.TemporaryFile()
         self.pmass = tempfile.TemporaryFile()
         self.offset = tempfile.TemporaryFile()
+        self.tnames = tempfile.TemporaryFile()
+        self.tnames_offset = tempfile.TemporaryFile()
+        self.mdata = tempfile.TemporaryFile()
+        self.mdata_offset = tempfile.TemporaryFile()
         handle,self.mdataFile = tempfile.mkstemp()
         os.close(handle)
-        self.mdata = so.OutOfCoreMerger(1024)
-        self.tnames = []
+        self.sorter = so.OutOfCoreMerger(1024)
         self.spectra_block_sz = 1024
         
         self.mz_interval = [0,np.inf]
 
         self.i = 0
         self.end_ptr = 0
+        self.tnames_end = 0
+        self.mdata_end = 0
         self.verbose = verbose
         
     def write_record( self, peaks, mdata ):
@@ -238,17 +254,16 @@ class CSRSpectralDataWriter(SpectralData):
         self.end_ptr += peaks.shape[0]
 
         mdata['lidx'] = self.i
-        self.mdata.push_record( np.string_(mdata['name']), dict(), {'lidx':self.i} )
+        self.sorter.push_record( np.string_(codecs.encode(mdata['name'],'ascii')), dict(), {'lidx':self.i} )
 
-        self.tnames.append((str(self.i),mdata))
-        if len(self.tnames) == self.spectra_block_sz:
-            nstring = np.string_(codecs.encode(str.join('\n',[t[1]['name'] for t in self.tnames]),
-                                               'ascii'))
-            ds = self.h5file['spectra'].create_dataset( str(self.i//self.spectra_block_sz),
-                                                   data=nstring )
-            ds.attrs.update(dict([(k,dict2str(v.items()))
-                                  for k,v in self.tnames]))
-            self.tnames = []
+        self.tnames.write( np.string_(codecs.encode(mdata['name'].replace('\n','') + '\n','ascii')).tostring() )
+        self.tnames_offset.write( struct.pack( 'L', self.tnames_end ) )
+        self.tnames_end += len(mdata['name']) + 1
+
+        str_mdata = codecs.encode(dict2str(mdata.items()),'ascii')
+        self.mdata.write( np.string_(str_mdata).tostring() )
+        self.mdata_offset.write( struct.pack( 'L', self.mdata_end ) )
+        self.mdata_end += len(str_mdata)
 
         self.i += 1
 
@@ -264,6 +279,13 @@ class CSRSpectralDataWriter(SpectralData):
         self.h5file.create_dataset( 'data/inten', dtype=np.double, shape=(self.end_ptr,) )
         self.h5file.create_dataset( 'data/pmass', dtype=np.double, shape=(self.i,) )
         self.h5file.create_dataset( 'data/offset', dtype=np.uint64, shape=(self.i,) )
+        self.h5file.create_group( 'meta' )
+        self.h5file.create_group( 'meta/names' )
+        self.h5file.create_dataset( 'meta/names/array', dtype=np.uint8, shape=(self.tnames_end,) )
+        self.h5file.create_dataset( 'meta/names/offset', dtype=np.uint64, shape=(self.i,) )
+        self.h5file.create_group( 'meta/kvdata' )
+        self.h5file.create_dataset( 'meta/kvdata/array', dtype=np.uint8, shape=(self.mdata_end,) )
+        self.h5file.create_dataset( 'meta/kvdata/offset', dtype=np.uint64, shape=(self.i,) )
         
         self.h5file['data'].attrs['minMZ'] = self.mz_interval[0]
         self.h5file['data'].attrs['maxMZ'] = self.mz_interval[1]
@@ -271,17 +293,9 @@ class CSRSpectralDataWriter(SpectralData):
             print('done.')
             print('mapping spectra to peptide groups...', end='', flush=True )
         
-        nstring = np.string_(codecs.encode(str.join('\n',[t[1]['name'] for t in self.tnames]),
-                                               'ascii'))
-        ds = self.h5file['spectra'].create_dataset( str(self.i//self.spectra_block_sz),
-                                                   data=nstring )
-        ds.attrs.update(dict([(k,dict2str(v.items()))
-                              for k,v in self.tnames]))
-        self.h5file['spectra'].attrs['block_size'] = self.spectra_block_sz
-
         cur_pep = ''
         spec_idxs = []
-        for i,(name,empt1,md) in enumerate(self.mdata):
+        for i,(name,empt1,md) in enumerate(self.sorter):
             if self.verbose and i % 1000 == 0:
                 print( str(i) + '...', end='', flush=True )
             str_name = codecs.decode(name,'ascii')
@@ -315,19 +329,52 @@ class CSRSpectralDataWriter(SpectralData):
             i += 1
             if len(mz)/struct.calcsize('d') < blksz:
                 break
-            
+        #    
+        self.tnames.flush()
+        self.tnames.seek(0)
+        i = 0
+        while True:
+            tnames = self.tnames.read(blksz*struct.calcsize('B'))
+            self.h5file['meta/names/array'][i*blksz:(i+1)*blksz] = struct.unpack('>' + ('B'*(len(tnames)//struct.calcsize('B'))),
+                                                                                 tnames)
+            i += 1
+            if len(tnames)/struct.calcsize('B') < blksz:
+                break
+
+        self.mdata.flush()
+        self.mdata.seek(0)
+        i = 0
+        while True:
+            mdata = self.mdata.read(blksz*struct.calcsize('B'))
+            self.h5file['meta/kvdata/array'][i*blksz:(i+1)*blksz] = struct.unpack('>' + ('B'*(len(mdata)//struct.calcsize('B'))),
+                                                                                  mdata)
+            i += 1
+            if len(mdata)/struct.calcsize('B') < blksz:
+                break
+
         self.pmass.flush()
         self.offset.flush()
+        self.tnames_offset.flush()
+        self.mdata_offset.flush()
         self.pmass.seek(0)
         self.offset.seek(0)
+        self.tnames_offset.seek(0)
+        self.mdata_offset.seek(0)
         i = 0
         while True:
             pmass = self.pmass.read(blksz*struct.calcsize('d'))
             offset = self.offset.read(blksz*struct.calcsize('L'))
+            tnames_offset = self.tnames_offset.read(blksz*struct.calcsize('L'))
+            mdata_offset = self.mdata_offset.read(blksz*struct.calcsize('L'))
             self.h5file['data/pmass'][i*blksz:(i+1)*blksz] = struct.unpack('d'*(len(pmass)//struct.calcsize('d')),
                                                                            pmass)
             self.h5file['data/offset'][i*blksz:(i+1)*blksz] = struct.unpack('L'*(len(offset)//struct.calcsize('L')),
                                                                             offset)
+            self.h5file['meta/names/offset'][i*blksz:(i+1)*blksz] = struct.unpack('L'*(len(tnames_offset)//struct.calcsize('L')),
+                                                                                  tnames_offset)
+            self.h5file['meta/kvdata/offset'][i*blksz:(i+1)*blksz] = struct.unpack('L'*(len(mdata_offset)//struct.calcsize('L')),
+                                                                                   mdata_offset)
+
             i += 1
             if len(pmass)/struct.calcsize('d') < blksz:
                 break
