@@ -40,3 +40,6 @@ components then are available via the executable script `<path to
 JUMP>/JUMP/bin/jump`.  For convenience, you may simply append `<path to
 JUMP>/JUMP/bin` to your `PATH` environment variable as `PATH=$PATH:<path to
 JUMP>/JUMP/bin`.  You are now ready to run JUMP!
+
+### How to use JUMP
+Please see [the link](manual.md) for JUMP manual.
