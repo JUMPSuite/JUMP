@@ -35,8 +35,13 @@ directory.  The directory `conda` will contain the conda
 environment to be used by JUMP.  JUMP will be set up to use the PERL
 and python interpreters in that environment.
 
-Once `bootstrap.sh` is finished, the JUMP suite will be configured.  JUMP
-components then are available via the executable script `<path to
-JUMP>/JUMP/bin/jump`.  For convenience, you may simply append `<path to
-JUMP>/JUMP/bin` to your `PATH` environment variable as `PATH=$PATH:<path to
-JUMP>/JUMP/bin`.  You are now ready to run JUMP!
+Once `bootstrap.sh` is finished, the JUMP suite will be configured.
+JUMP components then are available via the executable script `<path to
+JUMP>/JUMP/bin/jump`.  For convenience, you may simply append `<path
+to JUMP>/JUMP/bin` to your `PATH` environment variable as
+`PATH=$PATH:<path to JUMP>/JUMP/bin`.  You will not need to activate
+the conda environment `bootstrap.sh` creates. You are now ready to run
+JUMP!
+
+### How to run JUMP
+Please see [the link](manual.md) for JUMP manual.
