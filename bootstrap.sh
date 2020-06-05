@@ -43,6 +43,7 @@ while getopts 'dh' OPTION; do
   esac
 done
 shift "$(($OPTIND -1))"
+if [ -n "$debug" ] ; then echo args: $@ ; fi
 
 echo "creating conda environment $PWD/conda"
 if [ ! -e $(which conda) ] ; then
@@ -153,7 +154,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "configuring JUMP"
-JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin"
+JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin" "$@"
 if [ $? -ne 0 ] ; then
     echo "Error in JUMP configuration; aborting."
     exit 252

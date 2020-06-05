@@ -37,11 +37,12 @@ Utils::Parse->new($ARGV[0],\%params);
 
 my $cmd;
 my $jumpq = Spiders::Which::which("_jump_q.pl");
-if((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
+if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_QUANTIFICATION);
     $cmd="$batchCmd perl $jumpq " . $ARGV[0];
-} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
+} elsif((defined($dispatch) && $dispatch eq "localhost") || 
+	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="perl $jumpq " . $ARGV[0];
 }
 system($cmd);
