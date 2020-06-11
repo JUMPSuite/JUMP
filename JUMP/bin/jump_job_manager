@@ -1,0 +1,21 @@
+use Spiders::ClusterConfig;
+use Spiders::Config;
+use Spiders::JobManager;
+use strict;
+
+my @jobs;
+
+while(<STDIN>) {
+    chomp;
+    if( length > 0 ) {
+	my @toks = split;
+	my $toolType = eval("Spiders::BatchSystem".$toks[0]);
+	shift @toks;
+	push( @jobs, {'cmd' => join( ' ', @toks ),
+		      'toolType' => $toolType} );
+    }
+}
+my $jobManager = Spiders::JobManager->newJobManager({});
+$jobManager->runJobs(@jobs);
+
+exit 0;

@@ -1,5 +1,6 @@
 import JUMPsl.library_resampling as lr, JUMPsl.spectral_data as sd, glob, os, os.path, numpy.random as nr, numpy as np, numpy.linalg as nl, sys, scipy.io as sio, os, torch as tc, scipy.optimize as so, JUMPsl.binning as bi, scipy.sparse as ss, sys, h5py, time
-from matplotlib.pyplot import *
+
+nsamples = 61
 
 def median_prec_mass( rdr, peptide ):
     return np.median([rdr.prec_mass(p) for p in rdr.spectra_by_peptide(peptide)])
@@ -123,18 +124,20 @@ def splitList( el, t=.5 ):
 
     return (trainEl,evalEl)
 
+def init_filter_h5( filePath, masses ):
+    filterFile = sd.CSRFilterDataWriter( filePath )
+    filterFile.initialize_masses( masses, nsamples )
+
 if __name__ == '__main__':
-    rcParams['interactive'] = sys.flags.interactive
-    nsamples = 61
     seed = 2
     nedges = 1
 
     nr.seed(seed)
     libCollection = sd.CSRSpectralDataReader( os.path.join(os.environ['BINROOT'],
-                                                           'best_replicate_csr.h5') )
+                                                           'best_replicate.h5') )
     trainCollection = sd.CSRSpectralDataReader( os.path.join(os.environ['BINROOT'],
                                                               
-                                                         'pooled_csr.h5') )
+                                                         'pooled.h5') )
 
     libPeptides = set(libCollection.peptides()).intersection(trainCollection.peptides())
     medMass = float(sys.argv[2])
@@ -144,7 +147,7 @@ if __name__ == '__main__':
     lpepNameSet = set([libCollection.idx2name(i) for i in lwindow_idx])
     pepNameSet = sorted(list(tpepNameSet.intersection(lpepNameSet)))
 
-    assert len(pepNameSet) > 128
+#    assert len(pepNameSet) > 128
 #    validationPeptides = set([p for p in pepNameSet if np.abs(median_prec_mass(trainCollection,p) - medMass) < .125])
     # pepSet = set()
     # for nom in pepNameSet:
@@ -209,12 +212,16 @@ if __name__ == '__main__':
     
     x,tau = optimizeTSVDLeastSqClassifier( Al, b, G, bn )
 
-    outf = h5py.File( sys.argv[1], 'w' )
-    outf.create_group(str(medMass)).create_group('fourier').create_dataset( 'x', data=np.array(x.cpu()) )
-    outf[str(medMass)]['fourier'].attrs['tau'] = tau
-    outf[str(medMass)].create_group('peptides')
+    resultsWritten = False
+    while not resultsWritten:
+        try: 
+            flib = sd.CSRFilterDataWriter( sys.argv[1] )
+            flib.write_filter( medMass, np.array(x.cpu()) )
+            resultsWritten = True
+        except Exception:
+            time.sleep(1.)
+    
 
-    binsz = 1.
 #     pepNameIndices = [libCollection.get_index(q,0) for q in pepNameSet]
 #     libBinner = bi.Binner( binsz, max(libCollection.maxMZ(),trainCollection.maxMZ()), libCollection )
 #     trainBinner = bi.Binner( binsz, max(libCollection.maxMZ(),trainCollection.maxMZ()), trainCollection )

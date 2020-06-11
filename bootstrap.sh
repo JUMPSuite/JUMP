@@ -53,10 +53,20 @@ if [ ! -e $PWD/conda ] ; then
     mkdir $PWD/conda
 fi
 
+case $(uname) in 
+    Darwin)
+	CUDA="" ;;
+    Linux)
+	CUDA=$(nvcc --version | grep -o 'release ...' | tr -d '[a-z ]') ;;
+    *)
+	echo "error: not a MacOS or Linux installation"
+esac
+
 conda create -p $PWD/conda -y \
   -c bioconda \
   -c conda-forge \
   -c defaults \
+  -c pytorch \
   bioconductor-limma=3.40.0 \
   perl=5.26.2 \
   perl-apache-test=1.40 \
@@ -130,6 +140,9 @@ conda create -p $PWD/conda -y \
   pixman=0.38.0 \
   python=3.8.2 \
   python_abi=3.8 \
+  scipy=1.4 \
+  h5py=2.10 \
+  pytorch torchvision $CUDA \
   r-base=3.5.1 \
   r-fnn=1.1.3 \
   r-mass=7.3_51.5 \

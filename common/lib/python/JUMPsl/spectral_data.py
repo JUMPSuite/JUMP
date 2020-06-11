@@ -197,7 +197,11 @@ class CSRSpectralDataReader(LabeledSpectralData):
             idxl[i-start:j-start] = k
             k += 1
     
-        idxl[self.offset[end_idx]-start:] = k
+        if end_idx < len(self.offset) - 1:
+            idxl[self.offset[end_idx]-start:] = k
+        else:
+            idxl[self.offset[end_idx-1]-start:] = k
+
         return MzIntenData(mz,inten,idxl)
 
     def n_spectra( self, peptide ):
@@ -232,7 +236,7 @@ class CSRSpectralDataWriter(SpectralData):
         self.sorter = so.OutOfCoreMerger(1024)
         self.spectra_block_sz = 1024
         
-        self.mz_interval = [0,np.inf]
+        self.mz_interval = [np.inf,0]
 
         self.i = 0
         self.end_ptr = 0
@@ -383,6 +387,36 @@ class CSRSpectralDataWriter(SpectralData):
             print( 'done.' )
         self.h5file.flush()
         self.h5file.close()
+
+class CSRFilterDataWriter:
+    def __init__( self, h5fileName ):
+        self.h5file = h5py.File( h5fileName, 'a' )
+        if 'data/filters/masses' in self.h5file:
+            self.mass_array = np.array(self.h5file['data/filters/masses'])
+
+    def initialize_masses( self, masses, ninterp_pts ):
+        if 'data' not in self.h5file: 
+            self.h5file.create_group( 'data' )
+
+        self.h5file.create_group( 'data/filters' )
+        self.h5file['data/filters'].create_dataset( 'masses', data=masses )
+        self.h5file['data/filters'].create_dataset( 'filters', dtype=np.double, shape=(len(masses),ninterp_pts) )
+
+    def write_filter( self, mass, filter ):
+        idx = bisect.bisect( self.mass_array, mass )
+        assert self.mass_array[idx-1] == mass
+        self.h5file['data/filters/filters'][idx-1,:] = filter.reshape((-1,))
+
+    def close( self ):
+        self.h5file.close()
+
+class CSRFilterDataReader:
+    def read_filter( self, mass, filter ):
+        idx = bisect.bisect( self.mass_array, mass )
+        if mass - self.mass_array[idx-1] < self.mass_array[idx] - mass:
+            return np.array(self.h5file['data/filters/filters'][idx-1,:])
+        else:
+            return np.array(self.h5file['data/filters/filters'][idx,:])
 
 class H5SpectralDataWriter:
     def __init__( self, path ):
