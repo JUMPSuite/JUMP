@@ -42,6 +42,8 @@ case $1 in
 	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";;
 -config)
 	perl $(which jump_config) "${@:2}" ;;
+-jobManager)
+	perl $(which jump_job_manager) "${@:2}" ;;
 *)
 	echo "usage jump <mode> <arguments>";
 	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";
