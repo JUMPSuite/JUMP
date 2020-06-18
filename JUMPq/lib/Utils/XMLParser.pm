@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 package Utils::XMLParser;
 use strict;
 use warnings;
