@@ -1,9 +1,3 @@
-#!/usr/bin/perl -wT
-
-## Release date: 11/01/2015
-## Release version: version 12.1.0
-## Module name: Spiders::XMLParser
-
 package Spiders::XMLParser;
 use strict;
 #use GD;
