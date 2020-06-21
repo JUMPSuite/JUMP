@@ -59,7 +59,7 @@ my $CONTAMINAT_PATTERN='co|CON_';	# for option 'prioritize_contaminants = 0'; ma
 
 my ($Hydrogen_mass)=(1.007825032);
 
-
+=head
 print <<EOF;
 
 ################################################################
@@ -68,13 +68,14 @@ print <<EOF;
 #       ****                                          ****     #
 #       ****  jump filter                             ****     #
 #       ****  Version 1.13.1                          ****     #
-#       ****  Copyright (C) 2012 - 2017               ****     #
+#       ****  Copyright (C) 2012 - 2020               ****     #
 #       ****  All rights reserved                     ****     #
 #       ****                                          ****     #
 #       **************************************************     #
 #                                                              #
 ################################################################
 EOF
+=cut
 
 # For debug
 #use idsum2_debug::IdsumUtils6_beta;
