@@ -126,6 +126,7 @@ conda create -p $PWD/conda -y \
   perl-text-wrap=2013.0523 \
   perl-time-local=1.28 \
   perl-try-tiny=0.30 \
+  perl-xml-parser=2.44 \
   perl-xsloader=0.24 \
   pip=20.0.2 \
   pixman=0.38.0 \
