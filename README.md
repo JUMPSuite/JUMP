@@ -68,7 +68,6 @@ The extra arguments to `bootstrap.sh` explained:
 | `COMPUTE_ON_LOGIN_NODE` | Set to 1 if your cluster has "service nodes" from which jobs are launched, 0 otherwise | 
 | `BATCH_DISPATCH_LAG` | Lag between batch job submissions to avoid overwhelming the job manager | 
 | `MAX_DISPATCH_WORKER_PROCS` | Throttling factor to prevent JUMP from spawning more than `MAX_DISPATCH_WORKER_PROCS` search jobs; useful for ensuring fairness in job priority or to prevent overuse of resources on service nodes |
-| :--- | :--- |
 
 #### Batch command configuration
 When `CLUSTER=1`, JUMP will use your job manager (e.g. Slurm, SGE,
@@ -89,7 +88,6 @@ on your job manager:
 | SGE | `-synch` | 
 | LSF | `-K` | 
 | Slurm | `-W` |
-| :--- | :--- |
 
 #### JUMP, batch commands, and "tool types" The various stages of
 JUMP's pipeline have differing compute requirements; some require more
@@ -107,4 +105,4 @@ the `DEFAULT_BATCH_CMD`.  The available "tool types" are:
 | `JUMP_FILTER_BATCH_CMD` | Components used for filter.  Very memory intensive. |
 | `JUMP_LOCALIZATION_BATCH_CMD` | Components used for site localization.  Very memory intensive. |
 | `RUNSEARCH_SHELL_BATCH_CMD` | Sub-components used for searching individual spectra.  Neither compute, memory or time intensive. | 
-| :--- | :--- |
+
