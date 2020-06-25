@@ -50,6 +50,8 @@ JUMP!
 
 ### How to run JUMP
 Please see [the link](manual.md) for JUMP manual.
+Sample datasets (mzXML files for TMT-11plex and 16plex), parameter files and 
+database files can be downloaded at https://www.stjuderesearch.org/site/lab/peng
 
 ### Installation on a HPC cluster
 JUMP can be configured to interact with an HPC job manager on a
