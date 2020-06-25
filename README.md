@@ -1,3 +1,8 @@
+## Introduction
+JUMP (JUmbo Mass spectrometry-based Proteomics tool) is a software suite for 
+processing mass spectrometry-based proteomics data including peptide/protein identification,
+filtering of identified peptide-spectrum matches (PSMs), quantification of peptides/proteins and so forth.
+
 ## Basic installation
 A basic install is sufficient for multicore laptops, desktops,
 workstations and servers.  For a basic install, use the `bootstrap.sh`
