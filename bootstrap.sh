@@ -135,7 +135,9 @@ conda create -p $PWD/conda -y \
   r-base=3.5.1 \
   r-fnn=1.1.3 \
   r-mass=7.3_51.5 \
-  readline=8.0 
+  readline=8.0 \
+  sphinx=3.1 \
+  recommonmark=0.6 
 
 if [ -n "$debug" ] ; then 
     $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
