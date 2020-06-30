@@ -166,12 +166,12 @@ EOF
 }
 
 while( my ($k,$v) = each %defaultParams ) {
-    unless(defined($kwargs{$k})) {
+    unless(defined($kwargs{uc($k)})) {
 	$options{$k} = $defaultParams{$k};
 	delete $kwargs{$k};
     }
     else {
-	$options{$k} = $kwargs{$k};
+	$options{$k} = $kwargs{uc($k)};
     }
 }
 

@@ -34,7 +34,6 @@ class SpectralData:
 
     def read_attrs( self, i ):
         raise TypeError( 'method not implemented' )
-
     def read_spectra( *args ):
         raise TypeError( 'method not implemented' )
 
@@ -108,16 +107,27 @@ class DTASReader(SpectralData):
         return list(range(len(self.data)))
 
     def read_spectra( self, start_idx, end_idx ):
+        if end_idx < len(self.offset) - 1:
+            end = self.offset[end_idx]
+        else:
+            end = self.mz.shape[0]
+
         start = self.offset[start_idx]
-        idxl = np.empty(self.mz.shape[0],dtype=np.uint64)
+        mz = self.mz[start:end]
+        inten = self.inten[start:end]
+        idxl = np.empty(mz.shape[0],dtype=np.uint64)
 
         k = 0
         for i,j in zip(self.offset[start_idx:end_idx],self.offset[start_idx+1:end_idx+1]):
             idxl[i-start:j-start] = k
             k += 1
     
-        idxl[self.offset[end_idx]-start:] = k
-        return MzIntenData( self.mz, self.inten, idxl )
+        if end_idx < len(self.offset) - 1:
+            idxl[self.offset[end_idx]-start:] = k
+        else:
+            idxl[self.offset[end_idx-1]-start:] = k
+
+        return MzIntenData( mz, inten, idxl )
 
 def dict2str( kvdata ):
     return str.join('\n',['{}\r{}'.format(k,v) for k,v in kvdata])
