@@ -777,7 +777,7 @@ sub getReporterMass {
 	my @reporterMasses;
 	for (my $i = 0; $i < $nReporters; $i++) {
 		if ($reporters[$i] eq "sig126") {
-			$reporterMasses[$i] = 126.127726;			
+			$reporterMasses[$i] = 126.127726;
 		} elsif ($reporters[$i] eq "sig127" || $reporters[$i] eq "sig127N") {
 			$reporterMasses[$i] = 127.124761;
 		} elsif ($reporters[$i] eq "sig127C") {
@@ -789,7 +789,7 @@ sub getReporterMass {
 		} elsif ($reporters[$i] eq "sig129" || $reporters[$i] eq "sig129N") {
 			$reporterMasses[$i] = 129.131471;
 		} elsif ($reporters[$i] eq "sig129C") {
-			$reporterMasses[$i] = 129.137790;			
+			$reporterMasses[$i] = 129.137790;
 		} elsif ($reporters[$i] eq "sig130N") {
 			$reporterMasses[$i] = 130.134825;
 		} elsif ($reporters[$i] eq "sig130" || $reporters[$i] eq "sig130C") {
@@ -798,9 +798,19 @@ sub getReporterMass {
 			$reporterMasses[$i] = 131.138180;
 		} elsif ($reporters[$i] eq "sig131C") {
 			$reporterMasses[$i] = 131.1445001;
+		} elsif ($reporters[$i] eq "sig132N") {
+			$reporterMasses[$i] = 132.141530;
+		} elsif ($reporters[$i] eq "sig132C") {
+			$reporterMasses[$i] = 132.1478550;
+		} elsif ($reporters[$i] eq "sig133N") {
+			$reporterMasses[$i] = 133.1448899;
+		} elsif ($reporters[$i] eq "sig133C") {
+			$reporterMasses[$i] = 133.1512098;
+		} elsif ($reporters[$i] eq "sig134N") {
+			$reporterMasses[$i] = 134.1482447;
 		} else {
 			die "  $reporters[$i] is an incorrect reporter name\n";
-		}	
+		}
 	}
 	return (@reporterMasses);
 }
