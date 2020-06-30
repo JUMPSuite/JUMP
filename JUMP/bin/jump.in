@@ -46,6 +46,8 @@ case $1 in
 	perl $(which jump_job_manager) "${@:2}" ;;
 -msp2h5)
 	python $(which msp2h5.py) "${@:2}" ;;
+-sl)
+	python $(which jump_sl.py) "${@:2}" ;;
 *)
 	echo "usage jump <mode> <arguments>";
 	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\" or \"-q\"";
