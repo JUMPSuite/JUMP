@@ -1,3 +1,8 @@
+## Introduction
+JUMP (JUmbo Mass spectrometry-based Proteomics tool) is a software suite for 
+processing mass spectrometry-based proteomics data including peptide/protein identification,
+filtering of identified peptide-spectrum matches (PSMs), quantification of peptides/proteins and so forth.
+
 ## Basic installation
 A basic install is sufficient for multicore laptops, desktops,
 workstations and servers.  For a basic install, use the `bootstrap.sh`
@@ -45,6 +50,8 @@ JUMP!
 
 ### How to run JUMP
 Please see [the link](manual.md) for JUMP manual.
+Sample datasets (mzXML files for TMT-11plex and 16plex), parameter files and 
+database files can be downloaded at https://www.stjuderesearch.org/site/lab/peng
 
 ### Installation on a HPC cluster
 JUMP can be configured to interact with an HPC job manager on a
