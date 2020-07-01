@@ -27,7 +27,7 @@ def runsearch_shell( args ):
 
     rdr = sd.CSRSpectralDataReader( params.spectral_library )
     if 'binned' == params.spectral_library_method:
-        s = bs.BinnedSearch( rdr, q.maxMZ(), params.bin_size, params.mass_window, params.n_hits, search_subset=args.idxs )
+        s = bs.BlockEagerBinnedSearch( rdr, q.maxMZ(), params.bin_size, params.mass_window, params.n_hits, search_subset=args.idxs )
     
     if 'pickle' == args.output_format:
         pickle.dump( list(s(q)), open(args.output,'wb') )
