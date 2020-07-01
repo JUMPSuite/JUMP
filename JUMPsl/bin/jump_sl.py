@@ -27,10 +27,10 @@ def runsearch_shell( args ):
 
     rdr = sd.CSRSpectralDataReader( params.spectral_library )
     if 'binned' == params.spectral_library_method:
-        s = bs.BinnedSearch( rdr, q, params.bin_size, params.mass_window, params.n_hits, search_subset=args.idxs )
+        s = bs.BinnedSearch( rdr, q.maxMZ(), params.bin_size, params.mass_window, params.n_hits, search_subset=args.idxs )
     
     if 'pickle' == args.output_format:
-        pickle.dump( list(s), open(args.output,'wb') )
+        pickle.dump( list(s(q)), open(args.output,'wb') )
     else:
         raise TypeError('do not know how to product output of type {}'.format(args.output))
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     parser.add_argument('--output-format',default='pickle')
     parser.add_argument('--output',default='')
     parser.add_argument('--idxs',default=None)
-    parser.add_argument('--runsearch-shell',default=False,type=bool)
+    parser.add_argument('--runsearch-shell',default=True,type=bool)
     parser.add_argument('params_file')
     parser.add_argument('input')
 
