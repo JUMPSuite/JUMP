@@ -43,8 +43,9 @@ sub getUserCfg {
     while(<$infile>) {
 	chomp($_);
 	if( length($_) > 0 ) {
-	    my ($k,$v) = split( /\s+/, $_ );
-	    $cfg->{$k} = $v;
+	    my @toks = split( /\s+/, $_ );
+	    my $k = shift(@toks);
+	    $cfg->{$k} = join( ' ', @toks );
 	}
     }
     return $cfg;
