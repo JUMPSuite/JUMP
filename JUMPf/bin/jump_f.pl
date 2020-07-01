@@ -1,5 +1,6 @@
 our $VERSION = 12.1.0;
 
+use Carp;
 use File::Basename;
 use Cwd 'abs_path';
 use File::Spec;
@@ -28,7 +29,7 @@ my $config = new Spiders::Config();
 GetOptions('--dispatch=s'=>\$dispatch);
 
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
-
+o
 my $cmd;
 my $jumpf = Spiders::Which::which( "_jump_f.pl" );
 if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
@@ -39,4 +40,4 @@ if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::Cluster
 	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="perl $jumpf " . $ARGV[0];
 }
-system($cmd);
+system($cmd) || croak("command \"$cmd\" failed to execute with code $?");

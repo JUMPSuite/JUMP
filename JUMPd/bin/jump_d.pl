@@ -1,5 +1,6 @@
 #!/bin/env perl
 
+use Carp;
 use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
@@ -25,4 +26,4 @@ if ((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::
 } elsif (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
     $cmd = "perl $jumpd " . $ARGV[0];
 }
-system($cmd); 
+system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
