@@ -29,7 +29,7 @@ my $config = new Spiders::Config();
 GetOptions('--dispatch=s'=>\$dispatch);
 
 unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
-o
+
 my $cmd;
 my $jumpf = Spiders::Which::which( "_jump_f.pl" );
 if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
