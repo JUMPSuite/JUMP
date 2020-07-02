@@ -40,4 +40,4 @@ if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::Cluster
 	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="perl $jumpg ";
 }
-system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
+0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");

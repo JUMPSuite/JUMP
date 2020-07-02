@@ -26,4 +26,4 @@ if (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::Clust
 } elsif ((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
     $cmd = "perl $jumpd " . $ARGV[0];
 }
-system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
+0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
