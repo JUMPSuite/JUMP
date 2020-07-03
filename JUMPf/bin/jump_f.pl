@@ -1,5 +1,6 @@
 our $VERSION = 12.1.0;
 
+use Carp;
 use File::Basename;
 use Cwd 'abs_path';
 use File::Spec;
@@ -39,4 +40,4 @@ if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::Cluster
 	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="perl $jumpf " . $ARGV[0];
 }
-system($cmd);
+0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");

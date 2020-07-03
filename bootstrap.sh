@@ -220,6 +220,7 @@ if [ $? -ne 0 ] ; then
     echo "Error in JUMP configuration; aborting."
     exit 251
 fi
+
 echo "building documentation"
 . $(conda env list | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
 conda activate $PWD/conda

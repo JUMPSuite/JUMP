@@ -1,6 +1,7 @@
 our $VERSION = 1.13.1;
 
 use lib $ENV{"JUMP_Q_LIB"};
+use Carp;
 use File::Basename;
 use Cwd 'abs_path';
 use File::Spec;
@@ -45,7 +46,7 @@ if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::Cluster
 	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
     $cmd="perl $jumpq " . $ARGV[0];
 }
-system($cmd);
+0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
 
 sub help {
 	my ($value) = @_;
