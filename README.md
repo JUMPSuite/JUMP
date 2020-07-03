@@ -21,7 +21,7 @@ git repository:
     git clone https://github.com/JUMPSuite/JUMP.git JUMP
 ```
 
-in the directory _where you would like JUMP to be installed_ (call this directory <path to JUMP>).  Note
+in the directory _where you would like JUMP to be installed_ (call this directory `<path to JUMP>`).  Note
 that JUMP does not support out-of-place installs; the JUMP git
 repository _is_ the entire installation.  History of JUMP releases is
 provided by git tags.
