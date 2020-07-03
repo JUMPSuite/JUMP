@@ -48,6 +48,9 @@ to JUMP>/JUMP/bin` to your `PATH` environment variable as
 the conda environment `bootstrap.sh` creates. You are now ready to run
 JUMP!
 
+*You may use existing installations of PERL, python and R for JUMP,
+ but this is not recommended.  PERL 6 is not supported*
+
 ### How to run JUMP
 Please see [the link](manual.md) for JUMP manual.
 Sample datasets (mzXML files for TMT-11plex and 16plex), parameter files and 
