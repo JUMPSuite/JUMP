@@ -49,7 +49,7 @@ sub _generateSMPMakefile {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
 	$cmd =~ s/\$/\$\$/g;
-	$rules{"$i-cmd-run"} = "( $cmd ) > /dev/null 2>&1  && echo finished job " . $i;
+	$rules{"$i-cmd-run"} = "( cmd_output=\$\$( ( $cmd ) 2>&1 ) || echo \$\$cmd_output >&2 ) && echo finished job " . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'SMPXXXXXX',
