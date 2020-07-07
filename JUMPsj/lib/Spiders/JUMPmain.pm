@@ -969,6 +969,7 @@ sub database_creation
 		    {
 			$k++;
 			print "\r  Generating $k temporary files";
+			close(FASTATEMP);
 			open(FASTATEMP,">$tmp_database_path/temp_${k}_${database_basename}");
 		    }
 		    print FASTATEMP "$_";
@@ -979,6 +980,7 @@ sub database_creation
 		    print FASTATEMP "$_";		
 		}
 	    }
+	    close(FASTATEMP);
 	    close(FASTA);
 	    print "\n";
 	    
