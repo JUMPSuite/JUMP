@@ -164,7 +164,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "building documentation"
-. $(conda env list | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
+. $(conda env list | tr -d '*' | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
 conda activate $PWD/conda
 for f in {build,static,tempates} ; do if [ ! -e docs/_${f} ] ; then mkdir docs/_${f} ; fi ; done
 if (cd docs && PATH=$PWD/conda/bin/python:$PATH make html) ; then if [ -e manual.html ] ; then rm manual.html ; fi ; ln -s docs/_build/html/index.html manual.html ; fi

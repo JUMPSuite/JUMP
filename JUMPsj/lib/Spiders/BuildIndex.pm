@@ -542,7 +542,7 @@ sub getProtein{
 	my ($self,$proteinId,$filename) = @_;
 	
 	#Here we do a direct access;
-	my $entrySize = self->entrySize("prdx");
+	my $entrySize = $self->entrySize("prdx");
 	my $fileSize = -s $filename;
 	
 	#Here we suppose that the Ids are ordered sequencly , there is no missing IDs in the middle
