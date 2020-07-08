@@ -3,14 +3,27 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to JUMP's documentation!
-================================
+User Manual
+===========
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents: 
+   :caption: User Manual
 
    manual.md
+
+Developer Manual
+================
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer Manual
+
+   developer.rst
+
+
+
+
 
 
 Indices and tables
