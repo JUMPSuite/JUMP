@@ -151,7 +151,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
         if cache_names:
             self.peptide_names = codecs.decode(struct.pack('>' + ('B'*self.h5file['meta/names/array'].shape[0]),
                                                            *np.array(self.h5file['meta/names/array'])),
-                                               'ascii').split('\n')
+                                               'ascii','replace').split('\n')
         else:
             self.peptide_names = ''
             
@@ -187,7 +187,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
             idx,idx_p1 = [int(i) for i in self.h5file['meta/{}/offset'.format(key)][idx:idx+2]]
             
         byts = np.array(self.h5file['meta/{}/array'.format(key)][idx:idx_p1-backup])
-        return codecs.decode(struct.pack('>' + ('B'*byts.shape[0]),*byts),'ascii')
+        return codecs.decode(struct.pack('>' + ('B'*byts.shape[0]),*byts),'ascii','replace')
 
     def read_spectra( self, start_idx, end_idx ):
         start = self.offset[start_idx]
@@ -259,7 +259,7 @@ class CSRSpectralDataWriter(SpectralData):
         assert 'name' in mdata
 
         self.mz_interval[0] = min(self.mz_interval[0],peaks[:,0].min())
-        self.mz_interval[1] = max(self.mz_interval[0],peaks[:,0].max())
+        self.mz_interval[1] = max(self.mz_interval[1],peaks[:,0].max())
 
         self.mz.write( struct.pack('d'*peaks.shape[0],*(peaks[:,0])) )
         self.inten.write( struct.pack('d'*peaks.shape[0],*(peaks[:,1])) )
@@ -268,13 +268,13 @@ class CSRSpectralDataWriter(SpectralData):
         self.end_ptr += peaks.shape[0]
 
         mdata['lidx'] = self.i
-        self.sorter.push_record( np.string_(codecs.encode(mdata['name'],'ascii')), dict(), {'lidx':self.i} )
+        self.sorter.push_record( np.string_(codecs.encode(mdata['name'],'ascii','replace')), dict(), {'lidx':self.i} )
 
-        self.tnames.write( np.string_(codecs.encode(mdata['name'].replace('\n','') + '\n','ascii')).tostring() )
+        self.tnames.write( np.string_(codecs.encode(mdata['name'].replace('\n','') + '\n','ascii','replace')).tostring() )
         self.tnames_offset.write( struct.pack( 'L', self.tnames_end ) )
         self.tnames_end += len(mdata['name']) + 1
 
-        str_mdata = codecs.encode(dict2str(mdata.items()),'ascii')
+        str_mdata = codecs.encode(dict2str(mdata.items()),'ascii','replace')
         self.mdata.write( np.string_(str_mdata).tostring() )
         self.mdata_offset.write( struct.pack( 'L', self.mdata_end ) )
         self.mdata_end += len(str_mdata)
@@ -312,7 +312,7 @@ class CSRSpectralDataWriter(SpectralData):
         for i,(name,empt1,md) in enumerate(self.sorter):
             if self.verbose and i % 1000 == 0:
                 print( str(i) + '...', end='', flush=True )
-            str_name = codecs.decode(name,'ascii')
+            str_name = codecs.decode(name,'ascii','replace')
             if str_name != cur_pep:
                 if len(cur_pep) > 0:
                     self.h5file.create_dataset( 'peptides/{}'.format(remap(cur_pep)), data=spec_idxs )
@@ -502,9 +502,9 @@ class H5SpectralDataReader:
     def __init__( self, filePath ):
         self.h5file = h5py.File( filePath, 'r' )
         self.filePath = filePath
-        self.psmMap = dict(zip([unremap(k.decode('ascii')) for k in np.array(self.h5file['lenMapKeys'])],
+        self.psmMap = dict(zip([unremap(k.decode('ascii','replace')) for k in np.array(self.h5file['lenMapKeys'])],
                                np.array(self.h5file['lenMapValues'])))
-        self.massMap = dict(zip([unremap(k.decode('ascii')) for k in np.array(self.h5file['lenMapKeys'])],
+        self.massMap = dict(zip([unremap(k.decode('ascii','replace')) for k in np.array(self.h5file['lenMapKeys'])],
                                np.array(self.h5file['MedPrecMassMap'])))
 
         self._len = len(self.h5file['index'])

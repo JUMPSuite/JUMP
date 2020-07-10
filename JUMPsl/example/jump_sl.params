@@ -1,0 +1,5 @@
+spectral_library = MoNA-export-ReSpect.h5
+spectral_library_method = binned
+bin_size = .75
+mass_window = 20.
+n_hits = 10

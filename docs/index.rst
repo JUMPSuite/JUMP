@@ -12,6 +12,9 @@ Welcome to JUMP's documentation!
 
    manual.md
 
+.. automodule:: JUMPsl.binned_search
+   :members:
+   :undoc-members:
 
 Indices and tables
 ==================

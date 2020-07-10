@@ -1,6 +1,12 @@
-import JUMPsl.binned_search as bs, JUMPsl.spectral_data as sd, JUMPutil.params as pa, JUMPutil.config as cf, JUMPutil.job_manager as jm, pickle
+import JUMPsl.binned_search as bs, JUMPsl.spectral_data as sd, JUMPutil.params as pa, JUMPutil.config as cf, JUMPutil.job_manager as jm, pickle, sys, csv
 
 blksz = 96
+
+def open_stream( args, mode ):
+    if '-' == args.output:
+        return sys.stdout
+    else:
+        return open(args.output,mode)
 
 def get_output_extension( output_format ):
     if 'pickle' == output_format:
@@ -30,12 +36,17 @@ def runsearch_shell( args ):
         s = bs.BlockEagerBinnedSearch( rdr, q.maxMZ(), params.bin_size, params.mass_window, params.n_hits, search_subset=args.idxs )
     
     if 'pickle' == args.output_format:
-        pickle.dump( list(s(q)), open(args.output,'wb') )
+        pickle.dump( list(s(q)), open_stream( args, 'wb' ) )
+    elif 'csv' == args.output_format:
+        writer = csv.writer(open_stream( args, 'w' ),dialect='unix')
+        writer.writerow(['scan ID','hit No.','cosine score','database index','peptide name'])
+        for result in s(q):
+            writer.writerows([(result[0],i,result[2][i,0],result[1][i],result[3][i]) for i in range(len(result[3]))])
     else:
         raise TypeError('do not know how to product output of type {}'.format(args.output))
 
 if __name__ == '__main__':
-    import sys, argparse
+    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--output-format',default='pickle')

@@ -36,6 +36,9 @@ def precmass_window( minmass, maxmass, tol, spectra_collection ):
     return ([t[0] for t in wanted_spectra],[t[1] for t in wanted_spectra])
 
 class BinnedSearch:
+    """
+    Basic binned search object
+    """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
                   blksz=2, search_subset=None, pmass_window=None ):
         self.binner = bi.Binner( binsz, max(library_collection.maxMZ(),
@@ -98,7 +101,7 @@ class BinnedSearch:
             self.idx += 1
             return (self.search_spectra.idx2name(self.search_subset[self.idx-1]),[],[],[])
         else:
-            ranking = np.array((self.Alib[lb:ub,:]*(self.Aq[self.idx,:].T.multiply(self.Dq[self.idx]))).multiply(self.Dlib[self.idx]).todense())
+            ranking = np.array((self.Alib[lb:ub,:]*(self.Aq[self.idx,:].T.multiply(self.Dq[self.idx]))).multiply(self.Dlib[lb:ub]).todense())
 
             # only the last n items
             perm = ranking.argsort(0)[-self.n:,0].reshape((-1,))
@@ -111,6 +114,9 @@ class BinnedSearch:
                     [self.row_map[i+lb] for i in perm[reverse].flat])
 
 class BlockEagerBinnedSearch:
+    """
+    Binned search that lazy-evaluates query spectra.
+    """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
                   blksz=128, search_subset=None, pmass_window=None ):
         self.search = BinnedSearch( library_collection, max_mz, binsz, tol, n, 
