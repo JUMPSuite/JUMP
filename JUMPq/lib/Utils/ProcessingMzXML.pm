@@ -81,7 +81,7 @@ sub getMS2 {
 		$xml -> get_Peaks(*XML, \@peaksArray, $index);		
 		my (@mzArray, @intArray);		
 		for (my $i = 0; $i < scalar(@peaksArray) / 2; $i += 2) {
-			last if ($peaksArray[$i] > 390);
+			last if ($peaksArray[$i] > 460);
 			push (@mzArray, $peaksArray[$i]);
 			push (@intArray, $peaksArray[$i + 1]);
 		}		

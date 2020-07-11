@@ -17,7 +17,12 @@ sub getReporterIntensity {
 	shift @_;
 	my ($outfileHash, $ms2Hash, $peptideHash, $params, $logFile, $reporterSummary) = @_;
 	my @reporters = split(/;/, $$params{'tmt_reporters_used'});
-	my @reporterMzs = getReporterMass(@reporters);	
+	my @reporterMzs = getReporterMass(@reporters);
+	
+	## Get TMT number (i.e. whether TMT10, 11 or 16)
+	my $tmtNo = basename($$params{'impurity_matrix'});
+	($tmtNo) = $tmtNo =~ /TMT(\d+)\.ini/;	
+		
 	foreach my $fraction (sort {$a cmp $b} keys %{$outfileHash}) {
 		my ($nOutfiles, $nTotalOutfiles) = (0, scalar(keys %{$$outfileHash{$fraction}}));
 		foreach my $outfile (keys %{$$outfileHash{$fraction}}) {
@@ -88,7 +93,10 @@ sub getReporterIntensity {
 			for (my $i = 0; $i < scalar(@{$$ms2Hash{$fraction}{$scanNumber}{'mz'}}); $i++) {
 				my $mz = $$ms2Hash{$fraction}{$scanNumber}{'mz'}[$i];
 				my $int = $$ms2Hash{$fraction}{$scanNumber}{'int'}[$i];
-				my $Kmz = 376.2757362992;	## m/z of K-TMT-y1 ion
+				my $Kmz = 376.2757362992;	## m/z of K-TMT-y1 ion for TMT10, 11 (= 147.1128... + 229.1629321 (TMT-balancer))
+				if ($tmtNo == 16) {
+					$Kmz = 451.3199494907;  ## 147.1128041645 + 304.2071453 (TMTpro-balancer)
+				}
 				my $Rmz = 175.1189521741;	## m/z of R-y1 ion
 				my $KuL = $Kmz + $tol / 1000000 * $Kmz;
 				my $KlL = $Kmz - $tol / 1000000 * $Kmz;
@@ -402,7 +410,7 @@ sub getReporterMass {
 	my @reporterMasses;
 	for (my $i = 0; $i < $nReporters; $i++) {
 		if ($reporters[$i] eq "sig126") {
-			$reporterMasses[$i] = 126.127726;			
+			$reporterMasses[$i] = 126.127726;
 		} elsif ($reporters[$i] eq "sig127" || $reporters[$i] eq "sig127N") {
 			$reporterMasses[$i] = 127.124761;
 		} elsif ($reporters[$i] eq "sig127C") {
@@ -414,7 +422,7 @@ sub getReporterMass {
 		} elsif ($reporters[$i] eq "sig129" || $reporters[$i] eq "sig129N") {
 			$reporterMasses[$i] = 129.131471;
 		} elsif ($reporters[$i] eq "sig129C") {
-			$reporterMasses[$i] = 129.137790;			
+			$reporterMasses[$i] = 129.137790;
 		} elsif ($reporters[$i] eq "sig130N") {
 			$reporterMasses[$i] = 130.134825;
 		} elsif ($reporters[$i] eq "sig130" || $reporters[$i] eq "sig130C") {
@@ -423,9 +431,19 @@ sub getReporterMass {
 			$reporterMasses[$i] = 131.138180;
 		} elsif ($reporters[$i] eq "sig131C") {
 			$reporterMasses[$i] = 131.1445001;
+		} elsif ($reporters[$i] eq "sig132N") {
+			$reporterMasses[$i] = 132.141530;
+		} elsif ($reporters[$i] eq "sig132C") {
+			$reporterMasses[$i] = 132.1478550;
+		} elsif ($reporters[$i] eq "sig133N") {
+			$reporterMasses[$i] = 133.1448899;
+		} elsif ($reporters[$i] eq "sig133C") {
+			$reporterMasses[$i] = 133.1512098;
+		} elsif ($reporters[$i] eq "sig134N") {
+			$reporterMasses[$i] = 134.1482447;
 		} else {
 			die "  $reporters[$i] is an incorrect reporter name\n";
-		}	
+		}
 	}
 	return (@reporterMasses);
 }

@@ -23,6 +23,7 @@ use constant {
     JUMP_FILTER => "jump_filter",
     JUMP_LOCALIZATION => "jump_localization",
     JUMP_SPECTRAL_DATABASE => "jump_spectral_database",
+    JUMP_G => "jump_g",
     RUNSEARCH_SHELL => "runsearch_shell"
 };
 

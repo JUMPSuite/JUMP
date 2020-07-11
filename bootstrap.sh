@@ -43,6 +43,7 @@ while getopts 'dh' OPTION; do
   esac
 done
 shift "$(($OPTIND -1))"
+if [ -n "$debug" ] ; then echo args: $@ ; fi
 
 echo "creating conda environment $PWD/conda"
 if [ ! -e $(which conda) ] ; then
@@ -68,6 +69,22 @@ conda create -p $PWD/conda -y \
   -c defaults \
   -c pytorch \
   bioconductor-limma=3.40.0 \
+  gsl=2.5 \
+  harfbuzz=2.4.0 \
+  icu=64.2 \
+  isl=0.19 \
+  jpeg=9c \
+  kiwisolver=1.0.1 \
+  matplotlib=3.1.3 \
+  matplotlib-base=3.1.3 \
+  mpc=1.1.0 \
+  mpfr=4.0.2 \
+  ncurses=6.1 \
+  numpy=1.18.1 \
+  openssl=1.1.1f \
+  pandas=1.0.3 \
+  pango=1.42.4 \
+  pcre=8.44 \
   perl=5.26.2 \
   perl-apache-test=1.40 \
   perl-app-cpanminus=1.7044 \
@@ -75,6 +92,9 @@ conda create -p $PWD/conda -y \
   perl-autoloader=5.74 \
   perl-base=2.23 \
   perl-carp=1.38 \
+  perl-class-load=0.25 \
+  perl-class-load-xs=0.10 \
+  perl-class-method-modifiers=2.12 \
   perl-class-std=0.013 \
   perl-clone=0.42 \
   perl-compress-raw-zlib=2.087 \
@@ -135,18 +155,35 @@ conda create -p $PWD/conda -y \
   perl-text-wrap=2013.0523 \
   perl-time-local=1.28 \
   perl-try-tiny=0.30 \
+  perl-xml-parser=2.44 \
   perl-xsloader=0.24 \
   pip=20.0.2 \
   pixman=0.38.0 \
+  pyparsing=2.4.6 \
   python=3.8.2 \
+  python-dateutil=2.8.1 \
   python_abi=3.8 \
   scipy=1.4 \
   h5py=2.10 \
   pytorch torchvision $CUDA \
+  pytz=2019.3 \
   r-base=3.5.1 \
   r-fnn=1.1.3 \
   r-mass=7.3_51.5 \
-  readline=8.0 
+  readline=8.0 \
+  sphinx=3.1 \
+  recommonmark=0.6 
+  setuptools=46.1.3 \
+  six=1.14.0 \
+  sqlite=3.30.1 \
+  tapi=1000.10.8 \
+  tk=8.6.10 \
+  tktable=2.10 \
+  tornado=6.0.4 \
+  wheel=0.34.2 \
+  xz=5.2.4 \
+  zlib=1.2.11 \
+  zstd=1.4.4
 
 if [ -n "$debug" ] ; then 
     $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
@@ -157,18 +194,36 @@ if [ $? -ne 0 ] ; then
     exit 254
 fi
 
+echo "installing pip modules"
+$PWD/conda/bin/pip install lxml sqlalchemy pynumpress pyteomics
+
+if [ $? -ne 0 ] ; then 
+    echo "Error in pip install; aborting."
+    exit 253
+fi
+
+if [ -n "$debug" ] ; then 
+    $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
+fi
+
 echo "installing cpan modules"
 $PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname Spreadsheet::XLSX
 
 if [ $? -ne 0 ] ; then
     echo "Error in CPAN module installation; aborting."
-    exit 253
+    exit 252
 fi
 
 echo "configuring JUMP"
-JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin"
+JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin" "$@"
 if [ $? -ne 0 ] ; then
     echo "Error in JUMP configuration; aborting."
-    exit 252
+    exit 251
 fi
+
+echo "building documentation"
+. $(conda env list | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
+conda activate $PWD/conda
+for f in {build,static,tempates} ; do if [ ! -e docs/_${f} ] ; then mkdir docs/_${f} ; fi ; done
+if (cd docs && PATH=$PWD/conda/bin/python:$PATH make html) ; then if [ -e manual.html ] ; then rm manual.html ; fi ; ln -s docs/_build/html/index.html manual.html ; fi
 show_success_message

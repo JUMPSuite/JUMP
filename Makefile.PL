@@ -52,6 +52,7 @@ sub configure_jump_driver {
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPi/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPv/bin').":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPg/programs').":\$PATH\n", 
+	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPsl/bin').":\$PATH\n", 
 	     "export JUMP_D_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPd',$libpath))."\n", 
 	     "export JUMP_F_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPf',$libpath))."\n", 
 	     "export JUMP_L_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPl',$libpath))."\n", 
@@ -60,7 +61,8 @@ sub configure_jump_driver {
 	     "export JUMP_I_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPi',$libpath))."\n",
 	     "export JUMP_V_LIB=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'JUMPv',$libpath))."\n",
 	     "export JUMP_G_ROOT=".$jump_g_root."\n",
-	     "export JUMP_CONFIG_PATH=".File::Spec->join($etcPath,'cfg.bin')."\n"
+	     "export JUMP_CONFIG_PATH=".File::Spec->join($etcPath,'cfg.bin')."\n",
+	     "export PYTHONPATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common','lib','python')).":\$PYTHONPATH\n"
 	);
 
     if(defined($options{'ENVIRONMENT'})) {

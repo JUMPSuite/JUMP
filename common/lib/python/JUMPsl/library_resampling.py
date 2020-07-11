@@ -55,11 +55,21 @@ def buildLibMatFromH5Reader( nsamples, h5reader, peptides, blocksize=10 ):
     #     A[i,:] = row
     #     dl.append( collection.readers[key].pep_map[idx]['Name'] )
     s = time.time()
-    offset = min(peptides)
-    mzint = h5reader.read_spectra(offset,max(peptides)+1)
-    sl = [np.hstack((mzint.mz(pidx-offset).reshape((-1,1)),
-                     mzint.inten(pidx-offset).reshape((-1,1)))) for pidx in peptides]
-    dl = [h5reader.idx2name(pidx) for pidx in peptides]
+    if read_contiguous:
+        offset = min(peptides)
+        mzint = h5reader.read_spectra(offset,max(peptides)+1)
+        sl = [np.hstack((mzint.mz(pidx-offset).reshape((-1,1)),
+                         mzint.inten(pidx-offset).reshape((-1,1)))) for pidx in peptides]
+        dl = [h5reader.idx2name(pidx) for pidx in peptides]
+    else:
+        sl = []
+        dl = []
+        for pidx in peptides:
+            mzint = h5reader.read_spectra(pidx,pidx+1)
+            sl.append( np.hstack(mzint.mz().reshape((-1,1)),
+                                 mzint.inten().reshape((-1,1))) )
+            dl.append( h5reader.idx2name( pidx ) )
+
     e = time.time()
     print( 'spectra read time: {}'.format(e - s) )
     s = time.time()

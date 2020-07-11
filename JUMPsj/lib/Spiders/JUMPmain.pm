@@ -310,14 +310,14 @@ sub main
 		{
 			print "  Please specify a right second_search parameter!!\n";
 		}
-		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'},${$options->{'--max-jobs'}});
+		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",${$options->{'--max-jobs'}});
 		my $rerunN=0;
 		my $orig_cluster=$params->{'cluster'};
 		while(scalar(@{$temp_file_array})>0 and $rerunN<3)
 		{
 			$rerunN++;
 			print "\n",scalar(@$temp_file_array)," .dta files not finished! Doing re-search (rerunN = $rerunN)\n";
-			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'},${$options->{'--max-jobs'}});
+			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",${$options->{'--max-jobs'}});
 
 			$temp_file_array=$remaining;
 		}
@@ -416,10 +416,9 @@ sub Create_Sort_BashFile
 
 sub runjobs
 {
-	my ($file_array,$dta_path,$job_name,$MAX_PROCESSES,$max_jobs) = @_;
+	my ($file_array,$dta_path,$job_name,$max_jobs) = @_;
 	my $curr_dir = getcwd;
 	#my $MAX_PROCESSES = 32;	
-	$MAX_PROCESSES = defined($MAX_PROCESSES)?$MAX_PROCESSES:scalar($#$file_array);
 
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
@@ -431,7 +430,7 @@ sub runjobs
 
 	if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 	{
-		$job_num = $MAX_PROCESSES;
+		$job_num = scalar($#$file_array);;
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
 	}
 	#my $dta_num_per_file = int($#$file_array / $job_num) + 1;
@@ -565,9 +564,9 @@ sub runjobs
 # 	}
 # 	elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 # 	{
-# 		print "  Only use single server to run jobs (MAX_PROCESSES = $MAX_PROCESSES). Please be patient!\n";
-#         my $pm = new Parallel::ForkManager($MAX_PROCESSES);
-#         for my $i ( 0 .. $MAX_PROCESSES )
+# 		print "  Only use single server to run jobs (MAX_PROCESSES = scalar($#$file_array);). Please be patient!\n";
+#         my $pm = new Parallel::ForkManager(scalar($#$file_array););
+#         for my $i ( 0 .. scalar($#$file_array); )
 #         {
 #             $pm->start and next;
 # 			my $job_name = "${job_name}_${i}.sh";			
@@ -1009,7 +1008,7 @@ sub database_creation
 	    }
 	    
 
-# my ($MAX_PROCESSES);
+# my (scalar($#$file_array););
 
 
 # 		# submit jobs
@@ -1046,8 +1045,8 @@ sub database_creation
 # 			    Check_Job_stat("job_db_",$job_num);
 # 			}
 # 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-# 			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
-# 			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
+# 			scalar($#$file_array);=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
+# 			my $pm = new Parallel::ForkManager(scalar($#$file_array););
 # 			for my $i ( 1 .. $job_num ) {
 # 				$pm->start and next;
 # 				system(qq(sh $tmp_database_path/job_db_$i.sh >/dev/null 2>&1));
@@ -1175,9 +1174,9 @@ sub database_creation
 # 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 # 			my $pm;
 # 			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-# 				my $k=int($MAX_PROCESSES/10)+1;
+# 				my $k=int(scalar($#$file_array);/10)+1;
 # 			} else {
-# 				my $k=int($MAX_PROCESSES/2)+1;
+# 				my $k=int(scalar($#$file_array);/2)+1;
 # 			}
 # 			$pm = new Parallel::ForkManager($k); # the sorting usually requires large memory
 # 			for($m=0;$m<$num_mass_region;$m++) {

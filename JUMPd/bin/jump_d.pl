@@ -1,5 +1,6 @@
 #!/bin/env perl
 
+use Carp;
 use Getopt::Long;
 use Spiders::Config;
 use Spiders::ClusterConfig;
@@ -18,11 +19,11 @@ if (scalar(@ARGV) != 1) {
 
 my $cmd;
 my $jumpd = Spiders::Which::which( "_jump_d.pl" );
-if ((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->CLUSTER) {
+if (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_DATABASE);    
     $cmd = "$batchCmd \"perl $jumpd" . " " . $ARGV[0] ."\"";
-} elsif (Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
+} elsif ((defined($dispatch) && $dispatch eq "localhost") || Spiders::ClusterConfig::getClusterConfig($config, $params) eq Spiders::ClusterConfig->SMP) {
     $cmd = "perl $jumpd " . $ARGV[0];
 }
-system($cmd); 
+0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");
