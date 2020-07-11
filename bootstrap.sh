@@ -172,7 +172,7 @@ conda create -p $PWD/conda -y \
   r-mass=7.3_51.5 \
   readline=8.0 \
   sphinx=3.1 \
-  recommonmark=0.6 
+  recommonmark=0.6 \
   setuptools=46.1.3 \
   six=1.14.0 \
   sqlite=3.30.1 \
