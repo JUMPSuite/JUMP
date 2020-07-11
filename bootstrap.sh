@@ -57,9 +57,9 @@ case $(uname) in
     Darwin)
 	CUDA="" ;;
     Linux)
-	CUDA=$(nvcc --version | grep -o 'release ...' | tr -d '[a-z ]') ;;
+	CUDA="cudatoolkit=9.2" ;;
     *)
-	echo "error: not a MacOS or Linux installation"
+	echo "error: not a MacOS or Linux installation" ;;
 esac
 
 conda create -p $PWD/conda -y \

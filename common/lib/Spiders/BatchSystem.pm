@@ -22,6 +22,7 @@ use constant {
     JUMP_QUANTIFICATION => "jump_quantification",
     JUMP_FILTER => "jump_filter",
     JUMP_LOCALIZATION => "jump_localization",
+    JUMP_SPECTRAL_DATABASE => "jump_spectral_database",
     RUNSEARCH_SHELL => "runsearch_shell"
 };
 

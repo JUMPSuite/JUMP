@@ -23,7 +23,7 @@ elsif(scalar(@ARGV) == 1 && $ARGV[0] eq '-h') {
 else {
     foreach my $kvpair (@ARGV) {
 	if( $kvpair =~ /.*=.*/ ) {
-	    (my $k,my $v) = split( /=/, $kvpair );
+	    (my $k,my $v) = split( /:=/, $kvpair );
 	    print "setting \"$k\" := $v\n";
 	    $config->put($k,$v);
 	}

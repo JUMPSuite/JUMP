@@ -1,6 +1,6 @@
 import JUMPsl.library_resampling as lr, JUMPsl.spectral_data as sd, glob, os, os.path, numpy.random as nr, numpy as np, numpy.linalg as nl, sys, scipy.io as sio, os, torch as tc, scipy.optimize as so, JUMPsl.binning as bi, scipy.sparse as ss, sys, h5py, time
 
-nsamples = 61
+nsamples = 6501
 
 def median_prec_mass( rdr, peptide ):
     return np.median([rdr.prec_mass(p) for p in rdr.spectra_by_peptide(peptide)])
@@ -98,9 +98,15 @@ def crossValidateMC( A, genX, b, tol=1e-3, maxiter=8 ):
         #             for i in range(blksz)]).reshape((1,-1))
         r = bnz[tc.randint(0,nnz,(1,blksz*(nnz//2)),dtype=tc.long,device=A.device)]
             
-        B = tc.sparse.DoubleTensor(tc.cat((r,c),0),
-                                   b[bnz[0],0]**2*tc.DoubleTensor().new_ones((nnz//2*blksz,),device=A.device),
-                                   (A.shape[0],blksz),device=A.device)
+        if A.device == tc.device('cpu'):
+            B = tc.sparse.DoubleTensor(tc.cat((r,c),0),
+                                       b[bnz[0],0]**2*tc.DoubleTensor().new_ones((nnz//2*blksz,),device=A.device),
+                                       (A.shape[0],blksz),device=A.device)
+        else:
+            B = tc.cuda.sparse.DoubleTensor(tc.cat((r,c),0),
+                                            b[bnz[0],0]**2*tc.DoubleTensor().new_ones((nnz//2*blksz,),device=A.device),
+                                            (A.shape[0],blksz),device=A.device)
+
         AX = tc.matmul(A,genX(B))
         R = tc.div(tc.nn.functional.hardtanh(AX,min_val=0,max_val=1)+1,2.) - (b/b.max())
         R[r,c] = 0
@@ -133,11 +139,8 @@ if __name__ == '__main__':
     nedges = 1
 
     nr.seed(seed)
-    libCollection = sd.CSRSpectralDataReader( os.path.join(os.environ['BINROOT'],
-                                                           'best_replicate.h5') )
-    trainCollection = sd.CSRSpectralDataReader( os.path.join(os.environ['BINROOT'],
-                                                              
-                                                         'pooled.h5') )
+    libCollection = sd.CSRSpectralDataReader( sys.argv[3] )
+    trainCollection = sd.CSRSpectralDataReader( sys.argv[4] )
 
     libPeptides = set(libCollection.peptides()).intersection(trainCollection.peptides())
     medMass = float(sys.argv[2])
@@ -218,7 +221,7 @@ if __name__ == '__main__':
             flib = sd.CSRFilterDataWriter( sys.argv[1] )
             flib.write_filter( medMass, np.array(x.cpu()) )
             resultsWritten = True
-        except Exception:
+        except OSError:
             time.sleep(1.)
     
 
