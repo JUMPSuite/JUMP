@@ -41,6 +41,7 @@ sub configure_jump_driver {
 	     "export JUMP_READW_EXE=\"$options{'RAWFILE_CONVERTER'}\"\n",
 	     "export JUMP_ROOT=".$options{'PREFIX'}."\n",
 	     "export PERL5LIB=\$PERL5LIB:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath))."\n",
+	     "export PYTHONPATH=\$PYTHONPATH:".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},'common',$libpath,'python'))."\n",
 	     "PATH=".$options{"PERL_BIN"}.":\$PATH\n",
 	     "PATH=".File::Spec->canonpath(File::Spec->join($options{'PREFIX'},$extra_jump_dir,'bin')).":\$PATH\n", 
 	     "PATH=".File::Spec->join($options{'PREFIX'},'JUMPd/bin').":\$PATH\n", 

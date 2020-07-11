@@ -207,7 +207,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
             idxl[i-start:j-start] = k
             k += 1
     
-        if end_idx < len(self.offset) - 1:
+        if end_idx < len(self.offset):
             idxl[self.offset[end_idx]-start:] = k
         else:
             idxl[self.offset[end_idx-1]-start:] = k
