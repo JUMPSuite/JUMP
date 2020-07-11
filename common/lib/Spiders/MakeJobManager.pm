@@ -49,7 +49,7 @@ sub _generateSMPMakefile {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
 	$cmd =~ s/\$/\$\$/g;
-	$rules{"$i-cmd-run"} = "( cmd_output=\$\$( ( $cmd ) 2>&1 ) || ( echo \$\$cmd_output >&2 ; exit -1 ) ) && echo finished job " . $i;
+	$rules{"$i-cmd-run"} = "( cmd_output=\$\$( ( $cmd ) 2>&1 ) || ( printf \"\\nJUMP subprocess produced error: \$\$cmd_output\\noffending command was: $cmd\\n\" >&2 ; exit -1 ) ) && printf finished job " . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'SMPXXXXXX',
@@ -80,7 +80,7 @@ sub _generateBatchMakefile {
 	$cmd =~ s/\$/\$\$/g;
 	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..min(scalar(@jobs)-1,
 									     ($i + $self->{'unroll'}))] );
-	$cmds{$i} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null  && echo finished job ' . $i . ')';
+	$cmds{$i} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null  && printf finished job ' . $i . ')';
     }
 
     my $config = new Spiders::Config();
