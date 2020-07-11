@@ -1,5 +1,16 @@
 import JUMPsl.binning as bi, JUMPsl.spectral_data as sd, scipy.sparse as ss, numpy as np, bisect
 def build_binned_mat( binner, collection, spectra, col_or_row='row' ):
+    """
+    Create a sparse matrix to compute binned cosines.  
+
+    binner: a binning object from :mod:`JUMPsl.binning`
+
+    collection: an object that implements the :class:`JUMPsl.spectral_data.SpectralData` interface
+
+    spectra: a list of indices to put in the matrix (not all spectra are used)
+
+    col_or_row: format to use for the return matrix: Library matrices shoule be row and search should be col
+    """
     if np.all(spectra == np.arange(min(spectra),max(spectra)+1)):
         mzint = collection.read_spectra( min(spectra), max(spectra)+1 )
         c,data = binner.bin( mzint.mz(), mzint.inten() )
@@ -23,10 +34,16 @@ def build_binned_mat( binner, collection, spectra, col_or_row='row' ):
     return (D,Al,[collection.idx2name(i) for i in spectra])
 
 def get_minmax_median_precmass( search_spectra ):
+    """
+    Get the min and max precursor masses for all spectra in the :class:`JUMPsl.spectral_data.SpectralData` object
+    """
     prec_masses = [search_spectra.prec_mass(p) for p in search_spectra.spectra()]
     return (min(prec_masses),max(prec_masses))
 
 def precmass_window( minmass, maxmass, tol, spectra_collection ):
+    """
+    return indices for spectral in the :class:`JUMPsl.spectral_data.SpectralData` object that are in the interval [minmass-tol,maxmass+tol]
+    """
     wanted_spectra = []
     for p in spectra_collection.spectra():
         med_mass = spectra_collection.prec_mass(p)
@@ -37,7 +54,13 @@ def precmass_window( minmass, maxmass, tol, spectra_collection ):
 
 class BinnedSearch:
     """
-    Basic binned search object
+    Basic binned search object.  Sets itself up to search library_collection (an instance of a :class:`JUMPsl.spectral_data.LabeledSpectralData`)
+
+    max_mz: the largest valid M/Z that this object can handle.
+
+    binsz: the width of the bin in Daltons
+
+    tol: the precursor mass tolerance for searching left and right in the library.  Spectra outside of prec mass+-tol will not be considered valid
     """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
                   blksz=2, search_subset=None, pmass_window=None ):
@@ -68,6 +91,11 @@ class BinnedSearch:
             self.blksz = blksz
 
     def __call__( self, search_spectra, search_subset=None ):
+        """
+        Set self up to search over the :class:`JUMPsl.spectral_data.SpectralData` instance search_spectra.
+
+        Returns self as an iterator that iterates over spectra in search_spectra
+        """
         self.search_spectra = search_spectra
         if None == search_subset:
             self.search_subset = search_spectra.spectra()
@@ -113,9 +141,9 @@ class BinnedSearch:
                     ranking[perm[reverse]],
                     [self.row_map[i+lb] for i in perm[reverse].flat])
 
-class BlockEagerBinnedSearch:
+class BlockLazyBinnedSearch:
     """
-    Binned search that lazy-evaluates query spectra.
+    Binned search that lazy-evaluates query spectra.  See :class:`BinnedSearch` for interface
     """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
                   blksz=128, search_subset=None, pmass_window=None ):
