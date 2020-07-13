@@ -49,7 +49,7 @@ sub _generateSMPMakefile {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
 	$cmd =~ s/\$/\$\$/g;
-	$rules{"$i-cmd-run"} = "( cmd_output=\$\$( ( $cmd ) 2>&1 ) || ( printf \"\\nJUMP subprocess produced error: \$\$cmd_output\\noffending command was: $cmd\\n\" >&2 ; exit -1 ) ) && printf finished job " . $i;
+	$rules{"$i-cmd-run"} = "( $cmd ) > /dev/null 2>&1  && echo finished job " . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'SMPXXXXXX',
@@ -74,13 +74,10 @@ sub _generateBatchMakefile {
     my $njobs = scalar(@jobs);
 
 
-    for( my $i = 0; $i < $njobs; $i += $self->{'unroll'} ) {
-	my $cmd = $jobs[$i]->{'cmd'};
-	chomp($cmd);
-	$cmd =~ s/\$/\$\$/g;
-	(my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs[$i..min(scalar(@jobs)-1,
-									     ($i + $self->{'unroll'}))] );
-	$cmds{$i} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile .'" &> /dev/null  && printf finished job ' . $i . ')';
+    (my $sfile, my $srules) = $self->_generateSMPMakefile( @jobs );
+    for( my $i = 0; $i < $njobs; $i += 1 ) {
+	my $k = "$i-cmd-run";
+	$cmds{$k} = '('.$batchSystem->getBatchCmd( $jobs[$i]->{'toolType'} ) . ' "make -j 1 -f ' . $sfile ." $k".'"  > /dev/null 2>&1  && echo finished job ' . $i . ')';
     }
 
     my $config = new Spiders::Config();
@@ -88,11 +85,10 @@ sub _generateBatchMakefile {
     my $tfile = File::Temp->new( TEMPLATE => 'XXXXXX',
 				 DIR => $self->{'myDir'} );
     open( my $outf, ">".$tfile->filename );
-    print $outf "all:\n";
+    print $outf "all:".join(' ',keys(%cmds))."\n";
     foreach my $k (keys(%cmds)) {
-	print $outf "\t\@sleep $lag ; $cmds{$k} &\n";
+	print $outf "$k:\n\t\@sleep $lag ; $cmds{$k}\n";
     }
-    print $outf "\t\@wait\n";
     close( $outf );
     return ($tfile,\%cmds);
 }

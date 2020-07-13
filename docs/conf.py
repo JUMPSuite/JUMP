@@ -18,8 +18,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'JUMP'
-copyright = '2020, Barry Zepplin'
-author = 'Barry Zepplin'
+copyright = '2020, Barry Zeppelin'
+author = 'Barry Zeppelin'
 
 # The full version, including alpha/beta/rc tags
 release = 'v1.13.1'
@@ -30,7 +30,7 @@ release = 'v1.13.1'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['recommonmark']
+extensions = ['recommonmark','sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
