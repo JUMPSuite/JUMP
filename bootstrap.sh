@@ -140,7 +140,6 @@ conda create -p $PWD/conda -y \
   perl-regexp-common=2017060201 \
   perl-role-tiny=2.000008 \
   perl-scalar-list-utils=1.52 \
-  perl-statistics-distributions=1.02 \
   perl-statistics-r=0.34 \
   perl-storable=3.15 \
   perl-sub-exporter=0.987 \
@@ -207,7 +206,7 @@ if [ -n "$debug" ] ; then
 fi
 
 echo "installing cpan modules"
-$PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname Spreadsheet::XLSX
+$PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname Spreadsheet::XLSX Statistics::Distributions
 
 if [ $? -ne 0 ] ; then
     echo "Error in CPAN module installation; aborting."
@@ -222,7 +221,7 @@ if [ $? -ne 0 ] ; then
 fi
 
 echo "building documentation"
-. $(conda env list | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
+. $(conda env list | tr -d '*' | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
 conda activate $PWD/conda
 for f in {build,static,tempates} ; do if [ ! -e docs/_${f} ] ; then mkdir docs/_${f} ; fi ; done
 if (cd docs && PATH=$PWD/conda/bin/python:$PATH make html) ; then if [ -e manual.html ] ; then rm manual.html ; fi ; ln -s docs/_build/html/index.html manual.html ; fi

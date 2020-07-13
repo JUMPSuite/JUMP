@@ -969,6 +969,7 @@ sub database_creation
 		    {
 			$k++;
 			print "\r  Generating $k temporary files";
+			close(FASTATEMP);
 			open(FASTATEMP,">$tmp_database_path/temp_${k}_${database_basename}");
 		    }
 		    print FASTATEMP "$_";
@@ -979,6 +980,7 @@ sub database_creation
 		    print FASTATEMP "$_";		
 		}
 	    }
+	    close(FASTATEMP);
 	    close(FASTA);
 	    print "\n";
 	    
@@ -1001,7 +1003,7 @@ sub database_creation
 #		open(JOB,">$tmp_database_path/job_db_$i.sh") || die "can not open the job db files\n";
 		#		print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e\n";
 		push( @cmdArr, {'cmd' => 
-				    "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e ; rm -rf $tmp_database_path/temp_${i}_${database_basename}",
+				    "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e && rm -rf $tmp_database_path/temp_${i}_${database_basename}",
 				    'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
 		 # print JOB "\n";
 		# close(JOB);
@@ -1066,7 +1068,7 @@ sub database_creation
 
 	    $job->make_partialidx_script($tmp_database_path);
 	    
-	    my $prot_job_num = int($num_mass_region/2);
+	    my $prot_job_num = 0;#int($num_mass_region/2);
 
 	    #		my $inclusion_decoy = $params->{'inclusion_decoy'};
 

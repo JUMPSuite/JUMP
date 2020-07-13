@@ -244,7 +244,7 @@ class CSRSpectralDataReader(LabeledSpectralData):
     def read_spectra( self, start_idx, end_idx ):
         start = self.offset[start_idx]
         if end_idx < len(self.offset) - 1:
-            end = self.offset[end_idx+1]
+            end = self.offset[end_idx]
         else:
             end = self.h5file['data/mz'].shape[0]
 

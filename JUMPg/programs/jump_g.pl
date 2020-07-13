@@ -35,9 +35,9 @@ my $jumpg = Spiders::Which::which( "JUMPg_v2.3.pl" );
 if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->CLUSTER) {
     my $batchSystem = new Spiders::BatchSystem();
     my $batchCmd = $batchSystem->getBatchCmd(Spiders::BatchSystem->JUMP_G);
-    $cmd="$batchCmd perl $jumpg ";
+    $cmd="$batchCmd perl $jumpg ".join( ' ', @ARGV );
 } elsif((defined($dispatch) && $dispatch eq "localhost") ||
 	Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig->SMP) {
-    $cmd="perl $jumpg ";
+    $cmd="perl $jumpg ".join( ' ', @ARGV );;
 }
 0 == system($cmd) || croak("command \"$cmd\" failed to execute with code $?");

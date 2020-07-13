@@ -63,10 +63,12 @@ class BinnedSearch:
     tol: the precursor mass tolerance for searching left and right in the library.  Spectra outside of prec mass+-tol will not be considered valid
     """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
-                  blksz=2, search_subset=None, pmass_window=None ):
+                  blksz=2, search_subset=None, pmass_window=None,
+                  verbose=False ):
         self.binner = bi.Binner( binsz, max(library_collection.maxMZ(),
                                             max_mz), library_collection )
 
+        self.verbose = verbose
         if None != pmass_window:
             self.minmass = pmass_window[0]
             self.maxmass = pmass_window[1]
@@ -114,12 +116,19 @@ class BinnedSearch:
         return self
 
     def __iter__( self ):
+        if self.verbose:
+            print( 'processing spectra 0...', end='', flush=True )
         self.idx = 0
         return self
 
     def __next__( self ):
         if self.idx >= len(self.search_subset):
+            if self.verbose: 
+                print( 'done.' )
             raise StopIteration
+
+        if self.verbose and self.idx % 1000 == 0: 
+            print( '{}...'.format(self.idx), end='', flush=True )
 
         # mask off spectra we were not supposed to be searching
         precmass = self.search_spectra.prec_mass(self.search_subset[self.idx])
@@ -146,15 +155,17 @@ class BlockLazyBinnedSearch:
     Binned search that lazy-evaluates query spectra.  See :class:`BinnedSearch` for interface
     """
     def __init__( self, library_collection, max_mz, binsz, tol, n,
-                  blksz=128, search_subset=None, pmass_window=None ):
+                  blksz=128, search_subset=None, pmass_window=None,
+                  verbose=False ):
         self.search = BinnedSearch( library_collection, max_mz, binsz, tol, n, 
-                                    search_subset, pmass_window )
+                                    search_subset, pmass_window, verbose=False )
+        self.verbose = verbose
         self.blksz = blksz
 
     def __call__( self, search_spectra, search_subset=None ):
         self.search_spectra = search_spectra
         if None == search_subset:
-            self.search_subset = search_spectra.spectra()
+            self.search_subset = list(search_spectra.spectra())
             self.minmass = search_spectra.minMZ()
             self.maxmass = search_spectra.maxMZ()
         else:
@@ -168,11 +179,18 @@ class BlockLazyBinnedSearch:
     def __iter__( self ):
         self.next = iter(self.search(self.search_spectra,self.search_subset[:self.blksz])) 
         self.idx = 0
+        if self.verbose:
+            print( 'processing spectra 0...', end='', flush=True )
         return self
 
     def __next__( self ):
         if self.idx >= len(self.search_subset):
+            if self.verbose:
+                print( 'done.' )
             raise StopIteration
+
+        if self.verbose and self.idx % 1000 == 0: 
+            print( '{}...'.format(self.idx), end='', flush=True )
 
         try:
             self.idx += 1

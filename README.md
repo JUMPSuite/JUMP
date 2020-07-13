@@ -21,7 +21,7 @@ git repository:
     git clone https://github.com/JUMPSuite/JUMP.git JUMP
 ```
 
-in the directory _where you would like JUMP to be installed_ (call this directory <path to JUMP>).  Note
+in the directory _where you would like JUMP to be installed_ (call this directory `<path to JUMP>`).  Note
 that JUMP does not support out-of-place installs; the JUMP git
 repository _is_ the entire installation.  History of JUMP releases is
 provided by git tags.
@@ -47,6 +47,9 @@ to JUMP>/JUMP/bin` to your `PATH` environment variable as
 `PATH=$PATH:<path to JUMP>/JUMP/bin`.  You will not need to activate
 the conda environment `bootstrap.sh` creates. You are now ready to run
 JUMP!
+
+*You may use existing installations of PERL, python and R for JUMP,
+ but this is not recommended.  PERL 6 is not supported.*
 
 ### How to run JUMP
 Please see [the link](manual.md) for JUMP manual.
@@ -96,7 +99,8 @@ on your job manager:
 | LSF | `-K` | 
 | Slurm | `-W` |
 
-#### JUMP, batch commands, and "tool types" The various stages of
+#### JUMP, batch commands, and "tool types" 
+The various stages of
 JUMP's pipeline have differing compute requirements; some require more
 memory, some may have longer wall clock times.  You can create
 customized job submission strings for each of these "tool types" to

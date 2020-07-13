@@ -49,7 +49,7 @@ sub _generateSMPMakefile {
 	my $cmd = $jobs[$i]->{'cmd'};
 	chomp($cmd);
 	$cmd =~ s/\$/\$\$/g;
-	$rules{"$i-cmd-run"} = "( $cmd ) > /dev/null 2>&1  && echo finished job " . $i;
+	$rules{"$i-cmd-run"} = "( cmd_output=\$\$( ( $cmd ) 2>&1 ) || ( printf \"\\nJUMP subprocess produced error: \$\$cmd_output\\noffending command was: $cmd\\n\" >&2 ; exit -1 ) ) && printf finished job " . $i;
     }
 
     my $tfile = File::Temp->new( TEMPLATE => 'SMPXXXXXX',
