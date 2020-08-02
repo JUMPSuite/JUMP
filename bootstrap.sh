@@ -43,11 +43,11 @@ while getopts 'dh' OPTION; do
   esac
 done
 shift "$(($OPTIND -1))"
-if [ -n "$debug" ] ; then echo args: $@ ; fi
+if [ -n "$debug" ] ; then printf args: $@ ; fi
 
-echo "creating conda environment $PWD/conda"
+printf "creating conda environment $PWD/conda\n"
 if [ ! -e $(which conda) ] ; then
-    echo "conda not found on $PATH ; please ensure conda (or miniconda) is installed and in your PATH variable"
+    printf "conda not found on $PATH ; please ensure conda (or miniconda) is installed and in your PATH variable"
     exit 255
 fi
 if [ ! -e $PWD/conda ] ; then
@@ -129,42 +129,44 @@ conda create -p $PWD/conda -y \
   perl-xsloader=0.24 \
   pip=20.0.2 \
   pixman=0.38.0 \
-  python=3.8.2 \
+  python=3.8 \
   python_abi=3.8 \
   r-base=3.5.1 \
   r-fnn=1.1.3 \
   r-mass=7.3_51.5 \
   readline=8.0 \
-  sphinx=3.1 \
-  recommonmark=0.6 
+
+
 
 if [ -n "$debug" ] ; then 
     $PWD/conda/bin/perl -e 'use Config; print "using CC=$Config{cc}\n"'
 fi
 
 if [ $? -ne 0 ] ; then
-    echo "Error in conda installation; aborting."
+    printf "Error in conda installation; aborting.\n"
     exit 254
 fi
 
-echo "installing cpan modules"
+printf "installing cpan modules\n"
 $PWD/conda/bin/cpanm HTTP::Message~"<= 6.20" File::Copy File::Basename Scalar::Util LWP::UserAgent Set::Partition Sys::Hostname Spreadsheet::XLSX Statistics::Distributions
 
 if [ $? -ne 0 ] ; then
-    echo "Error in CPAN module installation; aborting."
+    printf "Error in CPAN module installation; aborting.\n"
     exit 253
 fi
 
-echo "configuring JUMP"
+printf "configuring JUMP\n"
 JUMP_CONFIG_PATH=$PWD/etc/cfg.bin $PWD/conda/bin/perl Makefile.PL  "PERL_BIN=$PWD/conda/bin" "$@"
 if [ $? -ne 0 ] ; then
-    echo "Error in JUMP configuration; aborting."
+    printf "Error in JUMP configuration; aborting.\n"
     exit 252
 fi
 
-echo "building documentation"
 . $(conda env list | tr -d '*' | grep -E '^base' | awk '{print $2;}')/etc/profile.d/conda.sh
 conda activate $PWD/conda
+printf "installing sphinx\n"
+conda install -y -c anaconda sphinx=3.1  recommonmark=0.6 
+printf "building documentation\n"
 for f in {build,static,tempates} ; do if [ ! -e docs/_${f} ] ; then mkdir docs/_${f} ; fi ; done
 if (cd docs && PATH=$PWD/conda/bin/python:$PATH make html) ; then if [ -e manual.html ] ; then rm manual.html ; fi ; ln -s docs/_build/html/index.html manual.html ; fi
 show_success_message
