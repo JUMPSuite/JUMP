@@ -2,29 +2,13 @@ source config.sh
 
 case $1 in 
 -s)
-	arglist=''
-	for arg in "${@:2}" ; do 
-	    if [[ ( ! $arg =~ --.* ) && $(echo $arg | tr [:upper:] [:lower:]) =~ .*.mzxml || $(echo $arg | tr [:upper:] [:lower:]) =~ .*.raw ]] ; then
-		arglist="$arglist $arg";
-	    else
-		arglist="$arglist -p $arg"
-	    fi
-	done
-	perl $(which jump_sj.pl) $arglist ;; 
+	perl $(which jump_sj.pl) "${@:2}" ;;
 -f)
 	perl $(which jump_f.pl) "${@:2}" ;;
 -q)
 	perl $(which jump_q.pl) "${@:2}" ;;
 -l)
-	arglist=''
-	for arg in "${@:2}" ; do 
-	    if [[ ( ! $arg =~ --.* ) && $(file $arg) =~ .*ASCII.*text.* ]] ; then
-		arglist="$arglist -p $arg"
-	    else
-		arglist="$arglist $arg";
-	    fi
-	done
-	perl $(which jump_l.pl) $arglist ;;
+	perl $(which jump_l.pl) "${@:2}" ;;
 -d)
 	perl $(which jump_d.pl) "${@:2}" ;;
 -i)
