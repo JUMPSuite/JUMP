@@ -1,0 +1,81 @@
+#!/bin/bash
+#PATH=/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin:$PATH
+#currentPATH=/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin
+
+case $1 in 
+-s)
+	arglist=''
+	for arg in "${@:2}" ; do 
+	    if [[ ! $arg =~ -- ]] ; then 
+		if [[ ( $(file $arg) =~ .*ASCII.*text.* ) && ( ! $(file $arg) =~ .*XML.* ) ]] ; then
+		    arglist="$arglist -p $arg"
+		else
+		    arglist="$arglist $arg";
+		fi
+	    else
+		arglist="$arglist $arg";
+	    fi
+	done
+	jump_sj.pl $arglist ;; 
+-f)
+	jump_f.pl "${@:2}" ;;
+-q)
+	jump_q.pl "${@:2}" ;;
+-l)
+	arglist=''
+	for arg in "${@:2}" ; do 
+	    if [[ ! $arg =~ -- ]] ; then 
+		if [[ $(file $arg) =~ .*ASCII.*text.* ]] ; then
+		    arglist="$arglist -p $arg"
+		else
+		    arglist="$arglist $arg";
+		fi
+	    else
+		arglist="$arglist $arg";
+	    fi
+	done
+	jump_l.pl $arglist ;;
+-d)
+	jump_d.pl "${@:2}" ;;
+-i)
+	jump_i.pl "${@:2}" ;;
+-v)
+	jump_v.pl "${@:2}" ;;
+-aq)
+	jump_aq.pl -p "${@:2}" ;;
+-g)
+	jump_g.pl "${@:2}" ;;
+-params)
+	jump_params ;;
+-batch-params)
+	batch_params ;;
+-batch-id)
+	batch_id.pl "${@:2}" ;;
+-batch-q)
+	batch_q.pl "${@:2}" ;;
+-comet)
+	#python $currentPATH/cometsearch.py "${@:2}";;
+	cometsearch_v7.py "${@:2}";;
+-deisotope)
+	arglist=''
+	for arg in "${@:2}" ; do 
+	    if [[ ! $arg =~ -- ]] ; then 
+		if [[ ( $(file $arg) =~ .*ASCII.*text.* ) && ( ! $(file $arg) =~ .*XML.* ) ]] ; then
+		    arglist="$arglist -p $arg"
+		else
+		    arglist="$arglist $arg";
+		fi
+	    else
+		arglist="$arglist $arg";
+	    fi
+	done
+	jump_deisotope.pl $arglist ;; 
+-h)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\", \"-q\" or \"-comet\"";;
+*)
+	echo "usage jump <mode> <arguments>";
+	echo "     mode is one of \"-d\", \"-l\", \"-s\", \"-f\", \"-q\" or \"-comet\"";
+	exit 1;;
+esac
+

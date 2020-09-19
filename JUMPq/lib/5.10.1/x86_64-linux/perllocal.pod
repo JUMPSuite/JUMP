@@ -1,0 +1,220 @@
+=head2 Wed Apr 10 10:25:27 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0-beta/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: VERSION_MACRO = VERSION>
+
+=item *
+
+C<EXE_FILES: bin/jump_q.pl bin/_jump_q.pl>
+
+=back
+
+=head2 Fri Apr 19 14:30:54 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq//lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.002>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Wed May 22 13:59:41 2019: C<Module> L<Spreadsheet::XLSX|Spreadsheet::XLSX>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 0.13>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu May 23 01:17:17 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Fri May 24 13:21:47 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Mon Jun 10 20:16:12 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Mon Jun 10 20:16:50 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Tue Jun 11 09:41:38 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Tue Jun 11 17:39:45 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: v1.13.001>
+
+=item *
+
+C<EXE_FILES: bin/_jump_q.pl bin/jump_q.pl>
+
+=back
+
+=head2 Wed Oct  9 13:56:36 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: >
+
+=item *
+
+C<EXE_FILES: bin/jump_q.pl bin/_jump_q.pl>
+
+=back
+

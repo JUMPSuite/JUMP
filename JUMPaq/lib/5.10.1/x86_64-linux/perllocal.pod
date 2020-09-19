@@ -1,0 +1,44 @@
+=head2 Wed Apr 10 10:21:51 2019: C<Module> L<JUMPaq|JUMPaq>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0-beta/JUMPaq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.13.0>
+
+=item *
+
+C<EXE_FILES: bin/jump_aq.pl>
+
+=back
+
+=head2 Fri Apr 19 14:29:18 2019: C<Module> L<JUMPaq|JUMPaq>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPaq/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.13.002>
+
+=item *
+
+C<EXE_FILES: bin/jump_aq.pl>
+
+=back
+

@@ -1,0 +1,11 @@
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/bin/_jump_q.pl
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/bin/jump_q.pl
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/R/normalization.R
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/R/showLoadingBias.R
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/R/statTest.R
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/FileGeneration.pm
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/Parse.pm
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/ProcessingMzXML.pm
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/PublicationTable.pm
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/ReporterIonExtraction.pm
+/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPq/lib/site_perl/5.10.1/Utils/XMLParser.pm

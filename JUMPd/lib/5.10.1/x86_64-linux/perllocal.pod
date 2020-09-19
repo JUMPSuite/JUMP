@@ -1,0 +1,44 @@
+=head2 Wed Apr 10 10:22:16 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0-beta/JUMPd/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: undef>
+
+=item *
+
+C<EXE_FILES: bin/jump_d.pl bin/_jump_d.pl>
+
+=back
+
+=head2 Mon Aug 19 13:47:34 2019: C<Module> L<JUMP|JUMP>
+
+=over 4
+
+=item *
+
+C<installed into: /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.002/JUMPd/lib/site_perl/5.10.1>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: undef>
+
+=item *
+
+C<EXE_FILES: bin/jump_d.pl bin/_jump_d.pl>
+
+=back
+

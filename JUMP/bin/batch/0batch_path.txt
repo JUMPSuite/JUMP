@@ -1,0 +1,5 @@
+jump_i_path = /home/yli4/development/JUMPi/version1.13.1/jump_i.pl
+perl /home/yli4/development/git/Yuxin_jump_git/JUMPfbatch/jump_f_batch.pl jump_fbatch.params
+perl /home/yli4/development/git/Yuxin_jump_git/JUMPqbatch/jump_batch_v1.6.pl jump_qbatch.params
+
+/home/yli4/development/git/Yuxin_jump_git/JUMPqbatch/R
