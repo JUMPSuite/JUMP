@@ -131,7 +131,8 @@ sub gen_sumIDHtml {
 	#print HTML " </TR>\n";
 
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
         
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'protein_fpr'};
@@ -506,8 +507,9 @@ sub gen_IDHtml {
 	#print HTML "<TR>\n";
 	my ($overallrate, $rate1, $rate2, $rate3) = (0,0,0,0);
 	my $unique_fpr = 0;
-	$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
-	
+	#$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+	$unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
+
 	$uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'final_protein_fpr'};
     $pep_fdr = $$fprhash{'final_peptide_fpr'};
@@ -779,7 +781,8 @@ sub gen_IDHtml_old {
 	print HTML "<TR>\n";
 	my ($overallrate, $rate1, $rate2, $rate3) = (0,0,0,0);
 	my $unique_fpr = 0;
-	$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+	#$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+	$unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
     printf HTML "<TD Align=center><Font Size=2>Unique Protein FDR = %.2f%%,&nbsp Protein FDR = %.2f%%,&nbsp  Peptide FDR = %.2f%% ", $unique_fpr, $$fprhash{'final_protein_fpr'}, $$fprhash{'final_peptide_fpr'};
 
 	print HTML "</font></TD>\n"; #changed to total peptide DMD 5/19/05
@@ -1019,7 +1022,8 @@ sub gen_IDwGHtml{
 	my ($overallrate, $rate1, $rate2, $rate3) = (0,0,0,0);
 
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
      $uniqpro_fdr = $unique_fpr;
      $pro_fdr = $$fprhash{'final_protein_fpr'};
      $pep_fdr = $$fprhash{'final_peptide_fpr'};
@@ -1325,8 +1329,8 @@ sub gen_IDmodHtml{
 	#print HTML "<TR>\n";
 
     my $unique_fpr = 0;
-    $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
-        
+    #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+    $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;   
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'final_protein_fpr'};
     $pep_fdr = $$fprhash{'final_peptide_fpr'};
@@ -1627,7 +1631,8 @@ sub gen_IDwGmodHtml{
 
 	#print HTML "<TR>\n";
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'final_protein_fpr'};
     $pep_fdr = $$fprhash{'final_peptide_fpr'};
@@ -2060,7 +2065,8 @@ sub gen_sumIDHtml_old {
 	print HTML " </TR>\n";
 
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
     printf HTML "<TD Align=center><Font Size=2>Unique Protein FDR = %.2f%%,&nbsp Protein FDR = %.2f%%,&nbsp  Peptide FDR = %.2f%% ", $unique_fpr, $$fprhash{'protein_fpr'}, $$fprhash{'peptide_fpr'};
 
 #    printf HTML "<TD Align=center><Font Size=2>Protein FDR = %.2f%%,&nbsp  Peptide FDR = %.2f%% ", $$fprhash{'protein_fpr'}, $$fprhash{'peptide_fpr'};
@@ -2350,7 +2356,8 @@ sub gen_sumIDwGHtml{
 	#print HTML " </TR>\n";
 
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+        $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
         
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'protein_fpr'};
@@ -2715,8 +2722,9 @@ sub gen_sumIDmodHtml{
 	#print HTML " </TR>\n";
 
     my $unique_fpr = 0;
-    $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
-       
+    #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+    $unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
+
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'final_protein_fpr'};
     $pep_fdr = $$fprhash{'final_peptide_fpr'};
@@ -3054,8 +3062,8 @@ sub gen_sumIDwGmodHtml{
 	#print HTML " </TR>\n";
 
         my $unique_fpr = 0;
-        $unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
-    
+        #$unique_fpr = $$fprhash{'protein_bad'} / $subgroup_num * 100;
+    	$unique_fpr = $$fprhash{'protein_bad'} / ($subgroup_num+0.01) * 100;
     $uniqpro_fdr = $unique_fpr;
     $pro_fdr = $$fprhash{'final_protein_fpr'};
     $pep_fdr = $$fprhash{'final_peptide_fpr'};
