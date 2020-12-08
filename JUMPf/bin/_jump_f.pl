@@ -1212,7 +1212,8 @@ close (DTAFILES);
                }
 
     #protein and peptide fdr calculation (after removing one hit wonder)
-    my ($bad,$good)=(0,0);
+    #my ($bad,$good)=(0,0);
+    my ($bad,$good)=(0.01,0.01);
 
       my ($proteinfpr);
      ($proteinfpr,$good,$bad)=pro_fpr(\%proteinhash);
@@ -1232,7 +1233,8 @@ close (DTAFILES);
 =cut
 	$fprhash{'protein_bad'} = $bad;
 
-    ($bad,$good)=(0,0);
+	($bad,$good)=(0.01,0.01);
+    #($bad,$good)=(0,0);
   # if one-hit-wonder are removed, the final protein and peptide FDR FDRs will be re-calculated
   #if ( $paramhash{one_hit_wonders_removal} !=0 ){
   if ( $paramhash{one_hit_wonders_removal} !=0 or defined($paramhash{'min_protein_SC'}) and $paramhash{'min_protein_SC'}>1){
@@ -1957,7 +1959,8 @@ sub pep_fpr
 	my ($peptidehashref)=@_;
 	my %peptidehash = %$peptidehashref;
 	
-	my ($bad,$good)=(0,0);
+	my ($bad,$good)=(0.01,0.01);
+	#my ($bad,$good)=(0,0);
 	my %temp_peptidehash;
 	foreach my $peptide (keys %peptidehash)
     	{
@@ -2018,7 +2021,8 @@ sub pro_fpr
 	my ($proteinhashref)=@_;
 	my %proteinhash = %$proteinhashref;
 	
-	my ($bad,$good)=(0,0);
+	#my ($bad,$good)=(0,0);
+	my ($bad,$good)=(0.01,0.01);
     foreach my $protein (keys %proteinhash)
     {
 			if($protein =~ /Decoy/)
