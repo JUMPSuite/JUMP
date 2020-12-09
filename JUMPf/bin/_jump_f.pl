@@ -2064,7 +2064,7 @@ sub pep_pos{
 		$num++;
 		#print "\rWorking on $num of $total:  $pro                     ";
 		my $proseq = $$prohash{'sequence'};
-		if ($proseq eq '') {die "Zero length protein:$pro\n\n";}
+		if ($proseq eq '') {print LOGFILE "Zero length protein:$pro\n\n";}
 		#if ($proseq eq '') {delete $$hash{$pro}; next;} # deal with zombie protein term [could be dangerous]
 		while (my ($pepseq, $pephash) = each %{$$prohash{'peptides'}}){
 #			print $pepseq,"\t",$pephash,"\n";
@@ -2090,11 +2090,11 @@ sub coverage{
 			$seq =~ s/[\*\#\@\%\&\~\$\^]//g;
 			$Seq =~ s/($seq)/\L$1/ig;
 		}
-		##print "$protein\n$Seq\n";
+		#print "$pro";
 		my $num = $Seq =~ s/([a-z])/$1/g;
   	##printf "$num vs %d\n", length($Seq);exit;
-  	if ($Seq eq '') {die "Zero length protein:$pro\n$Seq\n";}
-  	$$prohash{'coverage'} = $num/length($Seq)*100;
+  	if ($Seq eq '') {print LOGFILE "Zero length protein:$pro\n$Seq\n";}
+  	$$prohash{'coverage'} = $num/length($Seq+0.01)*100;
 	}
 }
 
