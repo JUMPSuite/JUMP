@@ -226,6 +226,7 @@ sub create_dbHash{  #returns a hash that contains name, annotation, and sequence
 				$_=~s/\#\#//g;
 				$decoy=1;
 			}
+			$_ = check_ac_de($_);
 			$_ =~ s/^>([a-zA-Z0-9\.\_\-\|\:]+)[\s\,\;]*(.*)//;
 			if($decoy)
 			{
@@ -264,6 +265,39 @@ sub create_dbHash{  #returns a hash that contains name, annotation, and sequence
 		}
 	}
 	return (\%dbHash, $number);
+}
+
+sub check_ac_de{
+	#replace nonstandard by underscore in ac and de
+	#my $standard = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-|:.";
+	my ($cstr) = @_;
+	my ($ac0,$ac,$de0,$de,$st1,$tm1,$st2,$tm2);
+	$st1 = 1;
+	$tm2 = length($cstr)-1;
+	my $idx = index($cstr, " ");
+	if ($idx!=-1) {
+		$tm1 = $idx-1;
+		$st2 = $idx+1;
+	} else {
+		$tm1 = length($cstr)-1;
+		$st2 = -1;
+	}
+	$ac = substr($cstr, $st1, $tm1-$st1+1);
+	$ac0 = $ac;
+	$ac =~ s/[\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\\\;\"\'\<\>\,\?\/]/_/g;# 32 specials in total, excluding 5(_-|:.), 27 are left
+	substr($cstr, $st1, $tm1-$st1+1) = $ac;
+	if ($st2==-1 or $st2>$tm2) {
+		$de = "";
+	} else {
+		$de = substr($cstr, $st2, $tm2-$st2+1);
+	}
+	$de0 = $de;
+	$de =~ s/[\~\`\!\@\#\$\%\^\&\*\+\"\'\<\>\?]/_/g;# 32 specials in total, excluding 16(_-|:.()={}[]\;,/), 16 are left
+	if ($de ne "") {
+		substr($cstr, $st2, $tm2-$st2+1) = $de;
+	}
+	
+	return $cstr;
 }
 
 1;
