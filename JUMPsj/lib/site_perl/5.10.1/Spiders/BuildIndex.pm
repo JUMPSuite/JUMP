@@ -251,8 +251,17 @@ sub create_masspep_index_file
 		my @pepIds =sort {$peptidehash->{$a}->{'seq'} cmp $peptidehash->{$b}->{'seq'}} @{$masshash->{$masses[$mas]}};
 
 		foreach my $peptide (@pepIds){
+			#++++
+			my @Top_proIDs;# top20
+			for my $cno (0..$#{$peptidehash->{$peptide}->{'proteinID'}}){
+				if ($cno<20) {
+					$Top_proIDs[$cno] = $peptidehash->{$peptide}->{'proteinID'}[$cno];
+				}
+			}
+			#++++
 			print PEPOUTPUT pack("L",$peptide); #PeptideID
-			print PEPOUTPUT pack("A500", join("|", @{$peptidehash->{$peptide}->{'proteinID'}})); #ProteinID
+			print PEPOUTPUT pack("A500", join("|", @Top_proIDs)); #ProteinID
+			#print PEPOUTPUT pack("A500", join("|", @{$peptidehash->{$peptide}->{'proteinID'}})); #ProteinID
 			print PEPOUTPUT pack("L", $mas+$start);#MassID
 			print PEPOUTPUT pack("A50", $peptidehash->{$peptide}->{'seq'}); #Sequence			
 			my $peptideseq = $peptidehash->{$peptide}->{'seq'};
