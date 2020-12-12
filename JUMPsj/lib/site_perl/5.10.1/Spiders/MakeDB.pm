@@ -268,36 +268,38 @@ sub create_dbHash{  #returns a hash that contains name, annotation, and sequence
 }
 
 sub check_ac_de{
-	#replace nonstandard by underscore in ac and de
-	#my $standard = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-|:.";
-	my ($cstr) = @_;
-	my ($ac0,$ac,$de0,$de,$st1,$tm1,$st2,$tm2);
+	# function: replace nonstandard by underscore in ac and de
+	# input: the line of ac and de
+	# output: the line of ac and de with replacement of underscore if any nonstandard
+	my ($cstr) = @_;# the input
+	my ($ac0,$ac,$de0,$de,$st1,$tm1,$st2,$tm2);# $ac0 and $de0 are before replacement; $ac and $de are after replacement
+	# $st1 and $tm1 are the first and last position of ac; $st2 and $tm2 are the first and last position of de
 	$st1 = 1;
 	$tm2 = length($cstr)-1;
-	my $idx = index($cstr, " ");
-	if ($idx!=-1) {
+	my $idx = index($cstr, " ");# the first space ($idx) will separate ac and de
+	if ($idx!=-1) {# find the first space
 		$tm1 = $idx-1;
 		$st2 = $idx+1;
-	} else {
+	} else {# no space
 		$tm1 = length($cstr)-1;
 		$st2 = -1;
 	}
-	$ac = substr($cstr, $st1, $tm1-$st1+1);
+	$ac = substr($cstr, $st1, $tm1-$st1+1);# ac
 	$ac0 = $ac;
-	$ac =~ s/[\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\\\;\"\'\<\>\,\?\/]/_/g;# 32 specials in total, excluding 5(_-|:.), 27 are left
-	substr($cstr, $st1, $tm1-$st1+1) = $ac;
+	$ac =~ s/[\~\`\!\@\#\$\%\^\&\*\(\)\+\=\{\}\[\]\\\;\"\'\<\>\,\?\/]/_/g;# replace nonstandard in ac; 32 specials in total, excluding 5(_-|:.), 27 are left
+	substr($cstr, $st1, $tm1-$st1+1) = $ac;# write back to the line with replaced ac
 	if ($st2==-1 or $st2>$tm2) {
-		$de = "";
+		$de = ""; # de is empty
 	} else {
-		$de = substr($cstr, $st2, $tm2-$st2+1);
+		$de = substr($cstr, $st2, $tm2-$st2+1);# de
 	}
 	$de0 = $de;
-	$de =~ s/[\~\`\!\@\#\$\%\^\&\*\+\"\'\<\>\?]/_/g;# 32 specials in total, excluding 16(_-|:.()={}[]\;,/), 16 are left
+	$de =~ s/[\~\`\!\@\#\$\%\^\&\*\+\"\'\<\>\?]/_/g;# replace nonstandard in de; 32 specials in total, excluding 16(_-|:.()={}[]\;,/), 16 are left
 	if ($de ne "") {
-		substr($cstr, $st2, $tm2-$st2+1) = $de;
+		substr($cstr, $st2, $tm2-$st2+1) = $de;# write back to the line with replaced de
 	}
 	
-	return $cstr;
+	return $cstr;# the output
 }
 
 1;
