@@ -294,7 +294,7 @@ sub check_ac_de{
 		$de = substr($cstr, $st2, $tm2-$st2+1);# de
 	}
 	$de0 = $de;
-	$de =~ s/[\~\`\!\@\#\$\%\^\&\*\+\"\'\<\>\?]/_/g;# replace nonstandard in de; 32 specials in total, excluding 16(_-|:.()={}[]\;,/), 16 are left
+	$de =~ s/[\*\"]/_/g;# replace nonstandard (*") in de
 	if ($de ne "") {
 		substr($cstr, $st2, $tm2-$st2+1) = $de;# write back to the line with replaced de
 	}
