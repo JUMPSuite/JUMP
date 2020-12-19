@@ -1003,3 +1003,126 @@ my @cmd = ("python $Bin/comet_params_v3.py $mxmlPath");
 print "$mxmlPath";
 system(@cmd);
 
+
+
+#-------------------------------------------------
+# the above part is copied from jump_params
+#-------------------------------------------------
+
+# $Bin = '/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin'
+my $cwd_dir = getcwd();# datapath
+my $paramDir = $cwd_dir."/ParameterFiles";
+if (!-e $paramDir) {
+	system ("mkdir $paramDir");
+}
+my $batchDir = $paramDir."/Batch";
+if (!-e $batchDir) {
+	system ("mkdir $batchDir");
+}
+
+##################################################
+## batch ID (jump -batch-id)	##
+##################################################
+$paramsName = $batchDir."/jump_batchID.params";
+open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
+print PARAMS "# Inputs: absolute path of publication tables from JUMP -f results (IDwDecoy.txt)\n";
+print PARAMS "input_path_batch1 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/SampleData/batch_test/b1/sum_HH_tmt/IDwDecoy.txt\n";
+print PARAMS "input_path_batch2 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/SampleData/batch_test/b2/sum_HH_tmt/IDwDecoy.txt\n";
+print PARAMS "\n";
+print PARAMS "# thresholds:\n";
+print PARAMS "min_Jscore = 10			# minimum Jscore cutoff to be considered (10 for JUMP; 1 for Comet)\n";
+print PARAMS "multiHit_max_dJn = 0.1		# for considering non-top hits for a PSM: PSMs within such dJn range will be considered in a recursive way\n";
+print PARAMS "\n";
+print PARAMS "enable_group_specific_Jscore = 1	# enable group specific Jscore filtering. each group defined by charge states and peptide length\n";
+print PARAMS "score_cutoff_quantile = 0	# Jscore threshold for each group, defined as the lower quantile (default 5%) of Jscores in each group defined by charge states and peptide length\n";
+print PARAMS "\n";
+print PARAMS "# modifications\n";
+print PARAMS "mods = 0			# Display modified peptides and their unmodified (0:Off, K:Lys, STY: Phosphorylation, ...); same as -f\n";
+print PARAMS "#mods = STY			# Display modified peptides and their unmodified (0:Off, K:Lys, STY: Phosphorylation, ...); same as -f\n";
+print PARAMS "\n";
+print PARAMS "# Output:\n";
+print PARAMS "output_folder = batch_id		# output folder name\n";
+print PARAMS "\n";
+print PARAMS "# other parameters:\n";
+print PARAMS "jump_f_path = 0	# abosolte path of -f; if not specified or 0, the command of 'jump -f' will be used\n";
+print PARAMS "# (in JUMP, pit_file = 0; in Comet, set pit_file according to search)\n";
+print PARAMS "# pit_file = /hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.pit\n";
+print PARAMS "pit_file = 0\n";
+print PARAMS "database = 0\n";
+print PARAMS "\n";
+print PARAMS "# HPC parameters\n";
+print PARAMS "dispatch = localhost\n";
+close (PARAMS);
+
+##################################################
+## batch quan (jump -batch-q)	##
+##################################################
+$paramsName = $batchDir."/jump_batchQ.params";
+open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
+print PARAMS "# JUMP batch correction parameter file\n";
+print PARAMS "input_mode = 1					# 1: proteins (for whole proteome); 2: pho site; 3: peptides (from either phosphor- or whole proteome)\n";
+print PARAMS "\n";
+print PARAMS "# output path of -batch-id results\n";
+print PARAMS "path_batch_id = ".$cwd_dir."/batch_id\n";
+print PARAMS "\n";
+print PARAMS "# ATTENTION: jump -q will run automatically for all batches using DEFAULT parameters\n";
+print PARAMS "# Otherwise, User can edit filtering options within ParameterFiles/TMThh/jump_qj_HH_tmt10_human.params to customize jump -q runs\n";
+print PARAMS "\n";
+print PARAMS "# Specify TMT-plex for each batch (that match to jump -batch-id results)\n";
+print PARAMS "input_n_batch1 = 10\n";
+print PARAMS "input_n_batch2 = 10\n";
+print PARAMS "\n";
+print PARAMS "# Outputs:\n";
+print PARAMS "output_folder = quan		# output folder suffix name; prefix always 'batch'\n";
+print PARAMS "\n";
+print PARAMS "# Parameters:\n";
+print PARAMS "normalization_method = 1			# 0: None (i.e., just combine publication tables); 1: using internal standard; 2: using linear model fitting\n";
+print PARAMS "isoform_rescue = 1				# 0: turn off; 1: turn on function. Suppose for a gene, there are two isoforms (say a and b) that are both quantified in batch 1 as demostrated by two unique peptides; but only one peptide (i.e., isoform) is quantified in batch 2. This function will copy the exact quantification of isoform a to replace the N/A for isoform b for batch 2.\n";
+print PARAMS "\n";
+print PARAMS "# Internal standards for each batch. The most comprehensive batch should be put first\n";
+print PARAMS "internal_standard_batch1 = sig126			# internal standard for each batch\n";
+print PARAMS "internal_standard_batch2 = sig126			# internal standard for each batch\n";
+print PARAMS "\n";
+print PARAMS "# -i parameters\n";
+print PARAMS "jump_i_path = ".$Bin."/batch/jump_i.pl	# abosolte path of -i; if not specified or 0, the command of 'jump -i' will be used\n";
+print PARAMS "\n";
+print PARAMS "# jump -q parameters (the values here will overwrite the default values copied from the ParameterFiles/ folder above)\n";
+print PARAMS "ppi_filter = 50								# precursor peak intensity percentage threshold\n";
+print PARAMS "impurity_correction = 1							# 1 = Yes; 0 = No; if only a part of reporters are used, it should be set to 0\n";
+print PARAMS "loading_bias_correction = 1						# 1 = Yes; 0 = No;\n";
+print PARAMS "interference_removal = 0						# 1 = Yes; 0 = No;\n";
+close (PARAMS);
+
+##################################################
+## steps (jump -params, -batch-id, -batch-q)	##
+##################################################
+$paramsName = $batchDir."/steps_batch.sh";
+open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
+print PARAMS "#!/bin/bash\n";
+print PARAMS "\n";
+print PARAMS "# step1: jump -params\n";
+print PARAMS "module load jump/1.13.003\n";
+print PARAMS "#jump -params\n";
+print PARAMS "\n";
+print PARAMS "# step2: edit batch params in WinSCP\n";
+print PARAMS "# refer to: /ParameterFiles/Batch/1_User_manual_of_JUMPp_Batch\n";
+print PARAMS "#jump_batchID.params\n";
+print PARAMS "#jump_batchQ.params\n";
+print PARAMS "\n";
+print PARAMS "# step3: jump -batch-id\n";
+print PARAMS "jump -batch-id jump_batchID.params\n";
+print PARAMS "\n";
+print PARAMS "# step4: jump -batch-q\n";
+print PARAMS "jump -batch-q jump_batchQ.params\n";
+close (PARAMS);
+
+# copy 3 files in Batch path to the work path
+my $cmd = "cp ".$batchDir."/* ".$cwd_dir;
+system($cmd);
+
+# copy $Bin/batch/user_manual to Batch path
+$cmd = "cp ".$Bin."/batch/*User_manual* ".$batchDir;
+system($cmd);
+print "\n****************************************************************\n";
+print "Please find the user manual in the path: ./ParameterFiles/Batch\n";
+print "****************************************************************\n";
