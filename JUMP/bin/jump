@@ -47,8 +47,6 @@ case $1 in
 	jump_g.pl "${@:2}" ;;
 -params)
 	jump_params ;;
--batch-params)
-	batch_params ;;
 -batch-id)
 	batch_id.pl "${@:2}" ;;
 -batch-q)
