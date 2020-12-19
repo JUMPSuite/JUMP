@@ -175,9 +175,16 @@ sub write_param2_q {
 	my $st14 = locate_oneline("tmt_reporters_used",@mystrs1);
 	$mystrs1[$st14] = $tmt_reporters_used;
 	
+	# comparison_analysis
+	my $st015 = locate_oneline("comparison_analysis",@mystrs1);
+	my $value1 = get_value($mystrs1[$st015]);
+	my $comparison_analysis = int($value1);
+	
 	# locate and replace
 	my $st15 = locate_oneline("comparison_groups_twoGroups",@mystrs1);
-	$mystrs1[$st15] = $comparison_groups_twoGroups;
+	if ($comparison_analysis==0) {
+		$mystrs1[$st15] = $comparison_groups_twoGroups;
+	}
 	
 	# the values from qbatch will overwrite the default values
 	my $st16 = locate_oneline("ppi_filter",@mystrs1);
@@ -282,7 +289,7 @@ sub write_step2_l {
 	my ($in_sh_fullfile,$in_QuanDir,$nMEM1,@in_bs) = @_; # input params
 	my $default_queue = "standard";
 	if ($nMEM1>=200) {
-		$default_queue = "rhel7_large_mem";
+		$default_queue = "large_mem";
 	}
 	my $nMEM2 = $nMEM1*1000;
 	my @mystrs;
@@ -333,7 +340,7 @@ sub submit_jobs {
 	my ($nMEM1,$sh_fullfile) = @_; # 1st input param
 	my $default_queue = "standard";
 	if ($nMEM1>=200) {
-		$default_queue = "rhel7_large_mem";
+		$default_queue = "large_mem";
 	}
 	my $nMEM2 = $nMEM1*1000;
 	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$default_queue."> (please be patient)\n";
@@ -666,9 +673,7 @@ sub get_pepXMLsize_from_jump_fj {
 			
 			my @dirs = split('/',$ID_fullpath); # /NY198case_b01_f01/NY198case_b01_f01.1 (JUMP) or /NCI-11plex-1-F1-f10268/NCI-11plex-1-F1-f10268.1 (Comet)
 			# if /NY198case_b01_f01/NY198case_b01_f01.1/ (JUMP) or /NCI-11plex-1-F1-f10268/NCI-11plex-1-F1-f10268.1/ (Comet)
-			if (index($dirs[$#dirs-1], $dirs[$#dirs-2].".")==0) {
-				$ID_fullpath = join('/',@dirs[0..$#dirs-1]);
-			}
+			$ID_fullpath = join('/',@dirs[0..$#dirs]);# it will get rid of the last '/' if it is there
 			my $pepxml_fullfile = $ID_fullpath.$pepxml[$in_engine-1];
 			
 			if (-f $pepxml_fullfile) {
