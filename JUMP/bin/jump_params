@@ -1101,7 +1101,7 @@ open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 print PARAMS "#!/bin/bash\n";
 print PARAMS "\n";
 print PARAMS "# step1: jump -params\n";
-print PARAMS "module load jump/1.13.003\n";
+print PARAMS "module load jump/1.13.004\n";
 print PARAMS "#jump -params\n";
 print PARAMS "\n";
 print PARAMS "# step2: edit batch params in WinSCP\n";
