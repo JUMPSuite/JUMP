@@ -37,6 +37,19 @@ def modify_create_new_params(file1, file2, pat1, pat2):
     return file2
 
 #for TMThh 
+#copy jump-s parameter files as jump_sc_HH_tmt10_human.params
+dataTypes = ["TMTpro","TMTpro_pho", "HH", "HL", "TMThh","TMThhpho"]
+
+for data in dataTypes:
+    paramsFile = glob.glob("ParameterFiles/"+data+"/jump_sj_*_human.params")[0]
+    paramsSplit = paramsFile.split("_sj_")
+    jumpcometParams = paramsSplit[0]+"_sc_"+paramsSplit[1]
+    cmdcopy = "cp "+paramsFile+" "+jumpcometParams
+
+    os.system(cmdcopy) 
+
+
+
 
 pattern1TMThh = ["database_name = /some/path/db.fasta","num_threads = 0","output_suffix =","add_Nterm_peptide = 0.0","add_K_lysine = 0.0000"]
 pattern2TMThh = ["database_name = /hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c0_TMT_K229.fasta","num_threads = 4","output_suffix =","add_Nterm_peptide = 229.162931","add_K_lysine = 229.162932"]
