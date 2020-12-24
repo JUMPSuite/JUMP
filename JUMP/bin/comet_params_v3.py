@@ -47,11 +47,13 @@ for data in dataTypes:
     cmdcopy = "cp "+paramsFile+" "+jumpcometParams
 
     os.system(cmdcopy) 
-
+    #creates a new backup with .bak file extension and make the required changes
     with fileinput.FileInput(jumpcometParams, inplace=True, backup='.bak') as file:
         for line in file:
             print(line.replace("search_engine = JUMP", "search_engine = COMET"), end='')
-
+    #remove backup file
+    rmCmd = "rm "+jumpcometParams+".bak"
+    os.system(rmCmd)
 
 
 
