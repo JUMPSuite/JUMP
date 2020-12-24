@@ -48,6 +48,10 @@ for data in dataTypes:
 
     os.system(cmdcopy) 
 
+    with fileinput.FileInput(jumpcometParams, inplace=True, backup='.bak') as file:
+        for line in file:
+            print(line.replace("search_engine = JUMP", "search_engine = COMET"), end='')
+
 
 
 
