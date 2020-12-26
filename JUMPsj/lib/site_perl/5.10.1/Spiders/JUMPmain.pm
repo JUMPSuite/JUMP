@@ -39,6 +39,8 @@ use Spiders::SpoutParser;
 use Parallel::ForkManager;
 use Spiders::MassCorrection;
 use List::Util qw(max);
+use FindBin qw($Bin);
+use lib "$Bin";
 
 use vars qw($VERSION @ISA @EXPORT);
 
@@ -94,7 +96,20 @@ sub main
 	$params->{'pho_neutral_loss'} = 0;
 	#$params->{'cluster'} = 1;
 	#$params->{'Job_Management_System'} = SGE;
-		
+
+        if ($params->{search_engine} eq 'COMET') {
+               my %rawfile_hash;
+               print "  Using the following rawfiles:\n";
+               
+               my $all_mzfile;
+               my $blank = " ";
+               $all_mzfile = join(" ", @$rawfile_array);
+               print "$all_mzfile\n\n"; 
+               #print "$all_mzfile, $parameter,\n";
+               my @cmd = ("python $Bin/JUMP-comet_pipeline.py $parameter $blank  $all_mzfile");
+               system(@cmd);
+               exit;
+               }
 	database_creation($params);
 
 	## Create the path for multiple raw files
