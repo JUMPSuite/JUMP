@@ -290,22 +290,27 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
         neutral_mass = dta.split()[-2] #[M+H]+1
         check = dta_info[2]
         prec_mz = str(precMZCalc(neutral_mass, charge))
-        if dataType == "HL": #we were getting charge related error with HL data
+        #if dataType == "HL": #we were getting charge related error with HL data
 #Error: For  +2/+3 charge assignments of uncharged precursor ions (rm_multiple_charge_forursor), unexpected charge state was found: HL_human.09018.09018.4.out, charge == 4, so i just kept top ion
-            if check == "1":
-                count_outfile+=1
-                if int(scan) not in dtas_dict:       
-                    dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
-                else:
-                    dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
+         #   if check == "1":
+          #      count_outfile+=1
+           #     if int(scan) not in dtas_dict:       
+            #        dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
+             #   else:
+              #      dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
 
+#        else:
+ #           count_outfile+=1
+  #          if int(scan) not in dtas_dict:
+   #             dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
+    #        else:
+     #           dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
+
+        count_outfile+=1
+        if int(scan) not in dtas_dict:
+            dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
         else:
-            count_outfile+=1
-            if int(scan) not in dtas_dict:
-                dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
-            else:
-                dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
-
+            dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
     now = datetime.now()
     print("now =", now)
     # dd/mm/YY H:M:S
