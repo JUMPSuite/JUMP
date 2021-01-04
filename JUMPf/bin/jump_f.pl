@@ -56,7 +56,7 @@ if (defined($dispatch) && $dispatch eq 'automem') {
     my $nMEM1 = calculate_mem($pepXMLsize,1); # choice: 1,f
     $queue = "standard";
     if ($nMEM1>=200) {
-        $queue = "rhel7_large_mem";
+        $queue = "large_mem";
     }
     $mem = $nMEM1*1000;
     my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
