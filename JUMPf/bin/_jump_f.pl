@@ -3231,17 +3231,17 @@ sub rm_multiple_charge_for_single_precursor
                                 my $bestXCorr = 0;
                                 my $bestoutfile;
                                 for my $outfile (keys %$hash)
-                                {
-					unless ($$hash{$outfile}{'charge'} == 3 or $$hash{$outfile}{'charge'} == 2) {
-						die "Error: For  +2/+3 charge assignments of uncharged precursor ions (rm_multiple_charge_for_single_precursor), unexpected charge state was found: $outfile, charge == $$hash{$outfile}{'charge'}\n";
-					}
+                                {#++previously allow +2 and +3, now allow all charges++12/30/2020
+					# unless ($$hash{$outfile}{'charge'} == 3 or $$hash{$outfile}{'charge'} == 2) {
+						# die "Error: For  +2/+3 charge assignments of uncharged precursor ions (rm_multiple_charge_for_single_precursor), unexpected charge state was found: $outfile, charge == $$hash{$outfile}{'charge'}\n";
+					# }
 
                                         my $orig_XCorr = $$hash{$outfile}{'XCorr'};
-                                        if ($$hash{$outfile}{'charge'} == 3)
+                                        if ($$hash{$outfile}{'charge'} >= 3)#++penalize the bias for >=+3 and 'sequest'++12/30/2020
                                         {
                                                 if ($searchEngine eq 'sequest')
                                                 {
-                                                        $orig_XCorr = $orig_XCorr-1;
+                                                        $orig_XCorr = $orig_XCorr-($$hash{$outfile}{'charge'} - 2);
                                                 } elsif ($searchEngine eq 'jump') {
                                                         #$orig_XCorr = $orig_XCorr-10; # accurate threshold to be determined
 						} else {
