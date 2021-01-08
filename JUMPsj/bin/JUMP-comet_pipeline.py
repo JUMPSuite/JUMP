@@ -14,6 +14,7 @@ import os.path
 import time
 import math
 from os.path import dirname
+import fileinput
 #mzXML_path = sys.argv[1]  #give the fiel path here
 #comet_params = sys.argv[2]  #give the path for parameter file
 
@@ -234,6 +235,35 @@ def precMZCalc(MH, z): #MH = MH+ from dta file, z = charge and proton = H+
     precmz = (float(MH)+((int(z)-1)*proton))/int(z)
     return precmz
 
+def pepXMLOutFileConversion(pepxmlFile, basefile):
+    #suffix = pepxmlFile.split(".1.")[0]
+    suffix = basefile
+    update_variable_before = ''
+    update_variable_after = ''
+    x = ''
+    y = ''
+    
+    with fileinput.FileInput(pepxmlFile, inplace=True, backup='.cometOriginal') as f:
+        for line in f:
+            update_variable_before = x
+            update_variable_after = y
+
+            if "<spectrum_query spectrum=" in line:
+                pattern = '<spectrum_query spectrum="('+suffix+'\.\d+\.\d+\.\d+)"'
+                x=re.match(pattern, line.strip()).group(1)
+                outfileSplit = x.split(".")
+
+                if update_variable_before == x:
+                    add_value = str(int(update_variable_after.split(".")[2])+1)
+
+                    y = outfileSplit[0]+"."+outfileSplit[1]+"."+add_value+"."+outfileSplit[-1]
+                else:
+                    y = outfileSplit[0]+"."+outfileSplit[1]+".1."+outfileSplit[-1]
+
+                print (line.rstrip().replace(x,y))
+            else:
+                print (line.rstrip())
+
 def mvLogsParams(mzFol2, basefile):
     pepxml_new = glob.glob(mzFol2+"/"+basefile+".pep.xml")
     #print (mzFol2)
@@ -256,6 +286,19 @@ def mvLogsParams(mzFol2, basefile):
 
     cmd4 = "mv "+pepxml_new[0]+" "+pepxlm_moved
     os.system(cmd4)
+
+    #This part is added to change the nomenclature of the outfile so that we have all JUMP-f consider all precursor ions
+
+    pepXMLOutFileConversion(pepxlm_moved, basefile)
+   
+    cometOrigPep = glob.glob(mzFol2+"/*.cometOriginal")[0]
+    
+    #push the backup comet original pepxml file to log folder for backup
+    cmd5  = "mv "+cometOrigPep+" "+log_folder
+    os.system(cmd5)
+
+
+
 
 
 def fromListToFolder(filelist):
@@ -373,7 +416,7 @@ def submit_job(jobf,queue,mem):
 
 
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
-os.system(cmd)
+#os.system(cmd)
 #cometParams = "comet_HH_tmt10_mouse.params"
 if (mzXMLs == ["*.mzXML"]) or (glob.glob(mzXML_path+"/*.mzXML")==[]):
     mzXMLs = glob.glob(mzXML_path+"/*/*.mzXML")
