@@ -416,7 +416,7 @@ def submit_job(jobf,queue,mem):
 
 
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
-#os.system(cmd)
+os.system(cmd)
 #cometParams = "comet_HH_tmt10_mouse.params"
 if (mzXMLs == ["*.mzXML"]) or (glob.glob(mzXML_path+"/*.mzXML")==[]):
     mzXMLs = glob.glob(mzXML_path+"/*/*.mzXML")
