@@ -97,11 +97,11 @@ def storeCometParams(paramFile):
 
 cometParamLines, cometComments, cometParamsDict = storeCometParams(comet_params)
 
-if (jumpParamsDict['add_Nterm_peptide'] != '229.162932') and ("dynamic_S" in jumpParamsDict.keys()) and (jumpParamsDict["dynamic_S"] == "79.96633"):
+if (jumpParamsDict['add_Nterm_peptide'] == '229.162932') and ("dynamic_S" in jumpParamsDict.keys()) and (jumpParamsDict["dynamic_S"] == "79.96633"):
     data = "TMThhpho"
 elif (jumpParamsDict['add_Nterm_peptide'] == '229.162932'):
     data = "TMThh"
-elif (jumpParamsDict['add_Nterm_peptide'] != '304.2071453') and ("dynamic_S" in jumpParamsDict.keys()) and (jumpParamsDict["dynamic_S"] == "79.96633"):
+elif (jumpParamsDict['add_Nterm_peptide'] == '304.2071453') and ("dynamic_S" in jumpParamsDict.keys()) and (jumpParamsDict["dynamic_S"] == "79.96633"):
     data = "TMTpro_pho"
 elif (jumpParamsDict['add_Nterm_peptide'] == '304.2071453'):
     data = "TMTpro"
@@ -168,7 +168,7 @@ else:
 # In[234]:
 
 
-if (data == "TMThhpho") or (data == "TMTpro_pho") or (data == "HH") or (data=="TMThh"):
+if (data == "TMThhpho") or (data == "TMTpro_pho") or (data == "HH") or (data=="TMThh")  or (data == "TMTpro"):
     cometParamsDict["fragment_bin_tol"] = "0.02"              # binning to use on fragment ions
     cometParamsDict["fragment_bin_offset"] = "0.0"              # offset position to start the binning (0.0 to 1.0)
     cometParamsDict["theoretical_fragment_ions"] = "0"          # 0=use flanking peaks, 1=M peak only
