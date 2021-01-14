@@ -18,7 +18,7 @@ my $version = "1.13.0";
 my $releaseDate = "11/01/2017";
 
 ## Search engines/Conditions
-my @searchEngines = ("JUMP", "COMET", "SEQUEST");
+my @searchEngines = ("JUMP", "SEQUEST");
 my @conditions  = ("HH", "HL", "TMThh", "TMThhpho", "TMTpro", "TMTpro_pho");
 
 ##################################################
@@ -57,39 +57,33 @@ foreach my $searchEngine (@searchEngines) {
 		my $paramsDir;
 		my $paramsName;
 		## Database name and pit file
-		my $apps_path;
-		if ($searchEngine eq "JUMP"|| $searchEngine eq "COMET") {
-			$apps_path = "/hpcf/authorized_apps/proteomics_apps";
-		} else {
-			$apps_path = "/data1";
-		}
-		if ($searchEngine eq "JUMP" || $searchEngine eq "COMET") {
+		if ($searchEngine eq "JUMP") {
 			if ($condition eq "HH" || $condition eq "HL") {
-				$databaseName = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57.fasta.mdx";
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57.fasta.mdx";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57.pit";
 			} elsif ($condition eq "TMThh") {
-				$databaseName = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.fasta.mdx";
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.fasta.mdx";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.pit";
 			} elsif ($condition eq "TMThhpho") {
-				$databaseName = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMT_K229.fasta.mdx";
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMT_K229.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMT_K229.fasta.mdx";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMT_K229.pit";
 			} elsif ($condition eq "TMTpro") {
-				$databaseName = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMTpro.fasta.mdx";
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMTpro.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_TMTpro.fasta.mdx";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_TMTpro.pit";
 			} elsif ($condition eq "TMTpro_pho") {
-				$databaseName = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMTpro.fasta.mdx";
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMTpro.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMTpro.fasta.mdx";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMTpro.pit";
 			}
 		} else {
 			if ($condition eq "HH" || $condition eq "HL") {
-				$databaseName = $apps_path."/database/20150201/human_ft_mc2_c57.fasta.hdr";
-				$pitFile = $apps_path."/database/20150201/human_ft_mc2_c57.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57.fasta.hdr";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57.pit";
 			} elsif ($condition eq "TMThh") {
-				$databaseName = $apps_path."/database/20150201/human_ft_mc2_c57_TMT_K229.fasta.hdr";
-				$pitFile = $apps_path."/database/20150201/human_ft_mc2_c57_TMT_K229.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57_TMT_K229.fasta.hdr";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57_TMT_K229.pit";
 			} elsif ($condition eq "TMThhpho") {
-				$databaseName = $apps_path."/database/20150201/human_ft_mc2_c57_TMT_K229.fasta.hdr";
-				$pitFile = $apps_path."/database/20150201/human_ft_mc2_c57_TMT_K229.pit";
+				$databaseName = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57_TMT_K229.fasta.hdr";
+				$pitFile = "/hpcf/authorized_apps/proteomics_apps/database/20150201/human_ft_mc2_c57_TMT_K229.pit";
 			}
 		}
 		## Isolation window
@@ -142,10 +136,10 @@ foreach my $searchEngine (@searchEngines) {
 			$fragMassToleranceUnit = 1;
 		} else {
 			if ($searchEngine eq "JUMP") {
-				$fragMassTolerance = 20;
+				$fragMassTolerance = 15;
 				$fragMassToleranceUnit = 2;
 			} else {
-				$fragMassTolerance = 0.02;
+				$fragMassTolerance = 0.015;
 				$fragMassToleranceUnit = 1;
 			}
 		}	 
@@ -174,8 +168,6 @@ foreach my $searchEngine (@searchEngines) {
 		## Params file name
 		if ($searchEngine eq "JUMP") {
 			$paramsName = "jump_sj_";
-		} elsif ($searchEngine eq "COMET") {
-			$paramsName = "jump_sc_";
 		} else {
 			$paramsName = "jump_ss_";
 		}
@@ -236,17 +228,17 @@ foreach my $searchEngine (@searchEngines) {
 		open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 		print PARAMS "# JUMP search parameter file (Version: $version, Date: $releaseDate)\n";
 		print PARAMS "\n";
-		print PARAMS "search_engine = $searchEngine										# use JUMP, or COMET, or SEQUEST for database search\n";
+		print PARAMS "search_engine = $searchEngine										# use JUMP or SEQUEST for database search\n";
 		print PARAMS "\n";
 		print PARAMS "# Database settings\n";
-		# if ($condition eq "TMThh" || $condition eq "TMThhpho" || $condition eq "TMTpro" || $condition eq "TMTpro_pho") {
-			print PARAMS "database_name = $databaseName			# use .fasta.mdx for JUMP/COMET and .fasta.hdr for SEQUEST\n";
+		if ($condition eq "TMThh" || $condition eq "TMThhpho" || $condition eq "TMTpro" || $condition eq "TMTpro_pho") {
+			print PARAMS "database_name = $databaseName			# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
 			print PARAMS "pit_file = $pitFile				# protein inference table (pit) for grouping proteins/genes\n";
-		# } else {
-			# print PARAMS "database_name = $databaseName				# use .fasta.mdx for JUMP/COMET and .fasta.hdr for SEQUEST\n";
-			# print PARAMS "pit_file = $pitFile						# protein inference table (pit) for grouping proteins/genes\n";
-		# }
-		print PARAMS "peptide_tolerance = 15										# precursor mass (MH+) tolerance, default = 15 ppm after mass correction\n";
+		} else {
+			print PARAMS "database_name = $databaseName				# use .fasta.mdx for JUMP and .fasta.hdr for SEQUEST\n";
+			print PARAMS "pit_file = $pitFile						# protein inference table (pit) for grouping proteins/genes\n";
+		}
+		print PARAMS "peptide_tolerance = 10										# precursor mass (MH+) tolerance, default = 10 ppm after mass correction\n";
 		print PARAMS "peptide_tolerance_units = 2									# 1 = Da; 2 = ppm\n";
 		print PARAMS "\n";
 		print PARAMS "# Preprocessing parameters\n";
@@ -344,14 +336,10 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "\n";
 		print PARAMS "# Other parameters\n";
 		print PARAMS "simulation = 0											# 0 = disable; 1 = enable; this function used for testing the target-decoy strategy\n";
-		print PARAMS "sim_MS1 = 10											# Da addition for MS1 decoys\n";
+		print PARAMS "sim_MS1 = 1000											# ppm addition for MS1 decoys\n";
 		print PARAMS "sim_MS2 = 5											# Da window for randomized MS2 peaks\n";
 		print PARAMS "cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster\n";
-		if ($searchEngine eq "JUMP" || $searchEngine eq "COMET") {
-			print PARAMS "Job_Management_System = LSF									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used\n";
-		} else {
-			print PARAMS "Job_Management_System = SGE									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used\n";
-		}
+		print PARAMS "Job_Management_System = LSF									# SGE used by current cluster; other systems (e.g. LSF & PBS) may be used\n";
 		print PARAMS "temp_file_removal = 1										# 0 = disable (keep temporary files); 1 = enable (remove temporary files)\n";
 		close (PARAMS);
 	}
@@ -381,24 +369,18 @@ foreach my $searchEngine (@searchEngines) {
 		my $paramsDir;
 		my $paramsName;
 		## Input name
-		my $apps_path;
-		if ($searchEngine eq "JUMP"|| $searchEngine eq "COMET") {
-			$apps_path = "/hpcf/authorized_apps/proteomics_apps";
-		} else {
-			$apps_path = "/data1";
-		}
 		if ($condition eq "HH") {
-			$input = "HH_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/HH/HH_human_".lc($searchEngine)."/HH_human_".lc($searchEngine).".1";				
+			$input = "HH_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/HH/HH_human_".lc($searchEngine)."/HH_human_".lc($searchEngine).".1";				
 		} elsif ($condition eq "HL") {
-			$input = "HL_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/HL/HL_human_".lc($searchEngine)."/HL_human_".lc($searchEngine).".1";
+			$input = "HL_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/HL/HL_human_".lc($searchEngine)."/HL_human_".lc($searchEngine).".1";
 		} elsif ($condition eq "TMThh") {
-			$input = "HH_tmt10_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/TMThh/HH_tmt10_human_".lc($searchEngine)."/HH_tmt10_human_".lc($searchEngine).".1";
+			$input = "HH_tmt10_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMThh/HH_tmt10_human_".lc($searchEngine)."/HH_tmt10_human_".lc($searchEngine).".1";
 		} elsif ($condition eq "TMThhpho") {
-			$input = "HH_pho_tmt10_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/TMThhpho/HH_pho_tmt10_human_".lc($searchEngine)."/HH_pho_tmt10_human_".lc($searchEngine).".1";
+			$input = "HH_pho_tmt10_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMThhpho/HH_pho_tmt10_human_".lc($searchEngine)."/HH_pho_tmt10_human_".lc($searchEngine).".1";
 		} elsif ($condition eq "TMTpro") {
-			$input = "HH_tmt16_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/TMTpro/HH_tmt16_human_".lc($searchEngine)."/HH_tmt16_human_".lc($searchEngine).".1";
+			$input = "HH_tmt16_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMTpro/HH_tmt16_human_".lc($searchEngine)."/HH_tmt16_human_".lc($searchEngine).".1";
 		} elsif ($condition eq "TMTpro_pho") {
-			$input = "HH_pho_tmt16_human_".lc($searchEngine).":".$apps_path."/pipeline/release/version$version"."/SampleData/TMTpro_pho/HH_pho_tmt16_human_".lc($searchEngine)."/HH_pho_tmt16_human_".lc($searchEngine).".1";	
+			$input = "HH_pho_tmt16_human_".lc($searchEngine).":"."/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version"."/SampleData/TMTpro_pho/HH_pho_tmt16_human_".lc($searchEngine)."/HH_pho_tmt16_human_".lc($searchEngine).".1";	
 		}
 		## Protein or peptide
 		if ($condition eq "TMThhpho" || $condition eq "TMTpro_pho") {
@@ -426,21 +408,6 @@ foreach my $searchEngine (@searchEngines) {
 		if ($condition eq "TMThhpho" || $condition eq "TMTpro_pho") {
 			$mods = "STY";
 		}
-		## pit_file
-		my $pitFile = "0";
-		if ($searchEngine eq "COMET") {
-			if ($condition eq "HH" || $condition eq "HL") {
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57.pit";
-			} elsif ($condition eq "TMThh") {
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMT_K229.pit";
-			} elsif ($condition eq "TMThhpho") {
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMT_K229.pit";
-			} elsif ($condition eq "TMTpro") {
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_TMTpro.pit";
-			} elsif ($condition eq "TMTpro_pho") {
-				$pitFile = $apps_path."/database/20200422/HUMAN/human_ft_mc2_c57_pho_TMTpro.pit";
-			}
-		}
 		## Minimum outfile number for Xcorr filtering
 		if ($condition eq "TMThhpho" || $condition eq "TMTpro_pho") {
 			$minOutfileNumXcorrFilter = 200;
@@ -467,8 +434,6 @@ foreach my $searchEngine (@searchEngines) {
 		## Params file name
 		if ($searchEngine eq "JUMP") {
 			$paramsName = "jump_fj_";
-		} elsif ($searchEngine eq "COMET") {
-			$paramsName = "jump_fc_";
 		} else {
 			$paramsName = "jump_fs_";
 		}
@@ -535,11 +500,6 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "$input\n";
 		print PARAMS "\n";
 		print PARAMS "##### commonly adjusted parameters ############################################################################################################\n";
-		if ($searchEngine eq "COMET") {
-			print PARAMS "\n";
-			print PARAMS "search_engine = ".lc($searchEngine)."\n";
-			print PARAMS "\n";
-		}
 		print PARAMS "# PSMs filtered by (i) defined minimum filtering parameters, (ii) mass accuracy, and (iii) scoring\n";
 		print PARAMS "# For scoring filtering, PSMs filtered by (i) initial FDR, (ii) peptide or protein categorization and mupltistep FDR filtering, and (iii) manual one hit-wonder-removal\n";
 		print PARAMS "unique_protein_or_peptide = $uniqueProteinPeptide		# use protein or peptide FDR as cutoff\n";
@@ -550,7 +510,7 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "min_protein_SC = 1				# minimum spectral counts requirement for proteins\n";
 		print PARAMS "mods = $mods					# Display modified peptides and their unmodified (0:Off, K:Lys, STY: Phosphorylation, ...)\n";
 		print PARAMS "modpairs = 0					# Show modified peptides pairs or just modified peptides (0:only modified peptides, 1:modified pairs)\n";
-		print PARAMS "pit_file = $pitFile					# absolute path of pit file: use updated pit file; 0 = using pit file in jump.params in the search folder\n";
+		print PARAMS "pit_file = 0					# absolute path of pit file: use updated pit file; 0 = using pit file in jump.params in the search folder\n";
 		print PARAMS "DB_composite = 0				# 0 = turn off filtering; 1 = only includes core proteins (n = ~20k); 2 = the whole uniProt database (n = ~80k). This option is used only when a multi-tier database was used for database search\n";
 		print PARAMS "\n";
 		print PARAMS "# Minimum filtering parameters for removing low quality PSMs during reading process\n";
@@ -568,11 +528,7 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "\n";
 		print PARAMS "# Filtering PSMs by mass accuracy (no grouping, mass correction for each LC run) and matching scores (grouped)\n";
 		print PARAMS "bypass_filtering = 0				# 0: NO, 1: YES bypasses all mass accuracy and dCn/XCorr filtering\n";
-		if ($searchEngine eq "COMET") {
-			print PARAMS "mass_accuracy = 0				# Mass accuracy filtering # 1=yes, 0=no\n";
-		} else {
-			print PARAMS "mass_accuracy = 1				# Mass accuracy filtering # 1=yes, 0=no\n";
-		}
+		print PARAMS "mass_accuracy = 1				# Mass accuracy filtering # 1=yes, 0=no\n";
 		print PARAMS "mass_consideration = 1				# Mass consideration for accuracy filtering => 1:(MH), 2:(MH,MH+1), 3:(MH,MH+1,MH+2), 4:(MH,MH+1,MH+2,MH+3),\n";
 		print PARAMS "						# 5:(MH,MH+1,MH+2,MH+3,MH+4), 6:(MH-1,MH,MH+1,MH+2), 7:(MH-2,MH-1,MH,MH+1,MH+2)\n";
 		print PARAMS "sd_or_static = sd				# Mass accuracy cutoff based on experimental standard deviation (sd_or_static = sd)\n";
@@ -620,61 +576,39 @@ foreach my $searchEngine (@searchEngines) {
 		my $min_intensity_method_1_2_psm;
 		my $min_intensity_value_1_2_psm;
 		my $percentage_trimmed;
-		my $apps_path;
-		if ($searchEngine eq "JUMP"|| $searchEngine eq "COMET") {
-			$apps_path = "/hpcf/authorized_apps/proteomics_apps";
-		} else {
-			$apps_path = "/data1";
-		}
-		if ($searchEngine eq "JUMP"|| $searchEngine eq "COMET") {
+		if ($searchEngine eq "JUMP") {
 			if ($condition eq "TMThh") {
 				$paramsDir = $currDir."/TMThh";
 				if (!-e $paramsDir) {
 					system("mkdir $paramsDir");
 				}
-				if ($searchEngine eq "JUMP") {
-					$paramsName = $paramsDir."/jump_qj_HH_tmt10_human.params";
-				} else {
-					$paramsName = $paramsDir."/jump_qc_HH_tmt10_human.params";
-				}
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_".lc($searchEngine)."/ID.txt";
-				$saveDir = "HH_tmt10_human_".lc($searchEngine);
+				$paramsName = $paramsDir."/jump_qj_HH_tmt10_human.params";
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_jump/ID.txt";
+				$saveDir = "HH_tmt10_human_jump";
 			} elsif ($condition eq "TMThhpho") {
 				$paramsDir = $currDir."/TMThhpho";
 				if (!-e $paramsDir) {
 					system("mkdir $paramsDir");
 				}
-				if ($searchEngine eq "JUMP") {
-					$paramsName = $paramsDir."/jump_qj_HH_pho_tmt10_human.params";
-				} else {
-					$paramsName = $paramsDir."/jump_qc_HH_pho_tmt10_human.params";
-				}
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_".lc($searchEngine)."_mod/IDmod.txt";
-				$saveDir = "HH_pho_tmt10_human_".lc($searchEngine)."_mod";
+				$paramsName = $paramsDir."/jump_qj_HH_pho_tmt10_human.params";
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt";
+				$saveDir = "HH_pho_tmt10_human_jump_mod";
 			} elsif ($condition eq "TMTpro") {
 				$paramsDir = $currDir."/TMTpro";
 				if (!-e $paramsDir) {
 					system("mkdir $paramsDir");
 				}
-				if ($searchEngine eq "JUMP") {
-					$paramsName = $paramsDir."/jump_qj_HH_tmt16_human.params";
-				} else {
-					$paramsName = $paramsDir."/jump_qc_HH_tmt16_human.params";
-				}
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMTpro/sum_HH_tmt16_human_".lc($searchEngine)."/ID.txt";
-				$saveDir = "HH_tmt16_human_".lc($searchEngine);
+				$paramsName = $paramsDir."/jump_qj_HH_tmt16_human.params";
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMTpro/sum_HH_tmt16_human_jump/ID.txt";
+				$saveDir = "HH_tmt16_human_jump";
 			} elsif ($condition eq "TMTpro_pho") {
 				$paramsDir = $currDir."/TMTpro_pho";
 				if (!-e $paramsDir) {
 					system("mkdir $paramsDir");
 				}
-				if ($searchEngine eq "JUMP") {
-					$paramsName = $paramsDir."/jump_qj_HH_pho_tmt16_human.params";
-				} else {
-					$paramsName = $paramsDir."/jump_qc_HH_pho_tmt16_human.params";
-				}
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMTpro_pho/sum_HH_pho_tmt16_human_".lc($searchEngine)."_mod/IDmod.txt";
-				$saveDir = "HH_tmt16_human_".lc($searchEngine)."_mod";
+				$paramsName = $paramsDir."/jump_qj_HH_pho_tmt16_human.params";
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMTpro_pho/sum_HH_pho_tmt16_human_jump_mod/IDmod.txt";
+				$saveDir = "HH_tmt16_human_jump";
 			}
 		} else {
 			if ($condition eq "TMThh") {
@@ -683,23 +617,23 @@ foreach my $searchEngine (@searchEngines) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qs_HH_tmt10_human.params";
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_".lc($searchEngine)."/ID.txt";
-				$saveDir = "HH_tmt10_human_".lc($searchEngine);
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThh/sum_HH_tmt10_human_sequest/ID.txt";
+				$saveDir = "HH_tmt10_human_sequest";
 			} elsif ($condition eq "TMThhpho") {
 				$paramsDir = $currDir."/TMThhpho";
 				if (!-e $paramsDir) {
 					system("mkdir $paramsDir");
 				}
 				$paramsName = $paramsDir."/jump_qs_HH_pho_tmt10_human.params";
-				$idTxt = $apps_path."/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_".lc($searchEngine)."_mod/IDmod.txt";
-				$saveDir = "HH_pho_tmt10_human_".lc($searchEngine)."_mod";
+				$idTxt = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/SampleData/TMThhpho/sum_HH_pho_tmt10_human_sequest_mod/IDmod.txt";
+				$saveDir = "HH_pho_tmt10_human_sequest_mod";
 			} elsif ($condition eq "TMTpro" || $condition eq "TMTpro_pho") {
 				next;
 			}
 		}
-		my $impurityMatrix = $apps_path."/pipeline/release/version$version/JUMPq/TMT10.ini";
+		my $impurityMatrix = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/JUMPq/TMT10.ini";
 		if ($condition eq "TMTpro" || $condition eq "TMTpro_pho") {
-			$impurityMatrix = $apps_path."/pipeline/release/version$version/JUMPq/TMT16.ini";
+			$impurityMatrix = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version$version/JUMPq/TMT16.ini";
 		}
 		
 		##########################
@@ -1064,6 +998,11 @@ print PARAMS "# Other parameters\n";
 print PARAMS "cluster = 1											# 0 = disable; 1 = enable; using master node only or entire cluster\n";
 close (PARAMS);
 
+my $mxmlPath   = getcwd();
+my @cmd = ("python $Bin/comet_params_v3.py $mxmlPath");
+print "$mxmlPath";
+system(@cmd);
+
 
 
 #-------------------------------------------------
@@ -1184,8 +1123,6 @@ system($cmd);
 # copy $Bin/batch/user_manual to Batch path
 $cmd = "cp ".$Bin."/batch/*User_manual* ".$batchDir;
 system($cmd);
-print "********************************************************************\n";
-print "Folder: ./ParameterFiles\n";
-print "Files: ./jump_batchID.params, ./jump_batchQ.params, ./steps_batch.sh\n";
-print "User manual of batch analysis: ./ParameterFiles/Batch\n";
-print "********************************************************************\n";
+print "\n****************************************************************\n";
+print "Please find the user manual in the path: ./ParameterFiles/Batch\n";
+print "****************************************************************\n";
