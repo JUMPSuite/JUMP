@@ -40,6 +40,9 @@ jump_params = args.jump_parameterfile
 subprocess.call(["comet","-p"])
 
 comet_params = "comet.params.new"
+#required for ppi matching
+proton = 1.00727646677
+
 
 def storeJUMPParams(paramFile):
     dict1 = {}
@@ -235,14 +238,15 @@ def precMZCalc(MH, z): #MH = MH+ from dta file, z = charge and proton = H+
     precmz = (float(MH)+((int(z)-1)*proton))/int(z)
     return precmz
 
-def pepXMLOutFileConversion(pepxmlFile, basefile):
+def pepXMLOutFileConversionOld(pepxmlFile, basefile, outFileDict):
     #suffix = pepxmlFile.split(".1.")[0]
     suffix = basefile
     update_variable_before = ''
     update_variable_after = ''
     x = ''
     y = ''
-    
+    cnt = 0
+ 
     with fileinput.FileInput(pepxmlFile, inplace=True, backup='.cometOriginal') as f:
         for line in f:
             update_variable_before = x
@@ -254,17 +258,20 @@ def pepXMLOutFileConversion(pepxmlFile, basefile):
                 outfileSplit = x.split(".")
 
                 if update_variable_before == x:
-                    add_value = str(int(update_variable_after.split(".")[2])+1)
-
+                    cnt+=1
+                    #add_value = str(int(update_variable_after.split(".")[2])+1)
+                    add_value = outFileDict[x][cnt]
                     y = outfileSplit[0]+"."+outfileSplit[1]+"."+add_value+"."+outfileSplit[-1]
                 else:
-                    y = outfileSplit[0]+"."+outfileSplit[1]+".1."+outfileSplit[-1]
-
+                    cnt=0
+                    add_value = outFileDict[x][cnt]
+                    #y = outfileSplit[0]+"."+outfileSplit[1]+".1."+outfileSplit[-1]
+                    y = outfileSplit[0]+"."+outfileSplit[1]+"."+add_value+"."+outfileSplit[-1]
                 print (line.rstrip().replace(x,y))
             else:
                 print (line.rstrip())
 
-def mvLogsParams(mzFol2, basefile):
+def mvLogsParams(mzFol2, basefile, outFileDict, outFileDictPrec):
     pepxml_new = glob.glob(mzFol2+"/"+basefile+".pep.xml")
     #print (mzFol2)
     pepxml_all = glob.glob(mzFol2+"/*.dtas")
@@ -289,7 +296,7 @@ def mvLogsParams(mzFol2, basefile):
 
     #This part is added to change the nomenclature of the outfile so that we have all JUMP-f consider all precursor ions
 
-    pepXMLOutFileConversion(pepxlm_moved, basefile)
+    pepXMLOutFileConversion(pepxlm_moved, basefile, outFileDict, outFileDictPrec)
    
     cometOrigPep = glob.glob(mzFol2+"/*.cometOriginal")[0]
     
@@ -316,10 +323,15 @@ def fromListToFolder(filelist):
 #dtas = glob.glob(work_path+"/*/*.1.dtas")[0]
 #new_ms2 = dtas.split(".1.dtas")[0]+".ms2"
 
+def isclose(a, b, rel_tol=1e-05, abs_tol=0.0): #This is checking the closeness of the precurso ions m/z
+    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+
+
 def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
     f = open(dtas,"r")
     line=f.readlines()
-
+    outFileDict = {} #This is the outfile dictionary that have the ppi information 
+    outFileDictPrec = {} #This stores the precursor mass to get the accuate ppi information
     dtas_dict = {}
     count_outfile = 0
     for x in range(0, len(line),3):
@@ -329,8 +341,24 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
         dta_info = dta.split(".")
         file = dta_info[0]
         scan = dta_info[1]
+        ppi = dta_info[2]
         charge = dta_info[3]
+        scan5digit = str('%05d' % int(scan)) #convert to 5 digit for example 1000 scan will be 01000
+        scanKey = file+"."+scan5digit+"."+scan5digit+"."+charge #resembles the outfile format of comet pep.xml file 
+        
+        #if int(charge) != 1: #comet does not search +1 charge for .ms2 so excluding that
+        if scanKey not in outFileDict.keys(): #this collects ppi in same order as dtas so these can be used  
+            outFileDict[scanKey] = [ppi]
+        else:
+            outFileDict[scanKey].append(ppi)
+
         neutral_mass = dta.split()[-2] #[M+H]+1
+
+        if scanKey not in outFileDictPrec.keys(): #this collects ppi in same order as dtas so these can be used
+            outFileDictPrec[scanKey] = [neutral_mass]
+        else:
+            outFileDictPrec[scanKey].append(neutral_mass)
+
         check = dta_info[2]
         prec_mz = str(precMZCalc(neutral_mass, charge))
         #if dataType == "HL": #we were getting charge related error with HL data
@@ -351,9 +379,9 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
 
         count_outfile+=1
         if int(scan) not in dtas_dict:
-            dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
+            dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan, charge,neutral_mass, prec_mz]]
         else:
-            dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
+            dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan, charge,neutral_mass, prec_mz])
     now = datetime.now()
     print("now =", now)
     # dd/mm/YY H:M:S
@@ -381,6 +409,7 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
               
     print ("\nTotal dta keys = ",count_key)
 
+    return outFileDict, outFileDictPrec
 #jump -deisotope jump_ss_HH_tmt10_mouse.params mix_ratio.mzXML
 
 def create_job_file( reqd_dta,mzxml_file, sample, comet_params):
@@ -398,22 +427,47 @@ def create_job_file( reqd_dta,mzxml_file, sample, comet_params):
     #cnt_pepxml = len(glob.glob(mzXML_path+"/"+fileroot+"/"+fileroot+"*.pep.xml"))
     #-Ntest.3
     #suffix = "."+str(cnt_pepxml+1)
-    dta_to_ms2(reqd_dta, mzxml_file, data)
+    outFileDict, outFileDictPrec = dta_to_ms2(reqd_dta, mzxml_file, data)
     job_body1 = "comet -P"+comet_params+" "+mzxml_file
-
 
     #job_body1 = comet+" -P"+comet_params+" "+mzxml_file
 
     jobfile = sample+".sh"
     with open(jobfile,"w") as new_file:
         new_file.write(job_header+job_body1)
-    return jobfile
+    return jobfile, outFileDict, outFileDictPrec
 
 
 def submit_job(jobf,queue,mem):
   cmd = 'bsub -q '+queue+' -R "rusage[mem='+mem+']" < '+jobf
   os.system(cmd)
 
+def pepXMLOutFileConversion(pepxmlFile,basefile, outFileDict, outFileDictPrec):
+    suffix = basefile
+    with fileinput.FileInput(pepxmlFile, inplace=True, backup='.cometOriginal') as f:
+
+        for line in f:
+            if "<spectrum_query spectrum=" in line:
+                pattern = '<spectrum_query spectrum="('+suffix+'\.\d+\.\d+\.\d+)".+precursor_neutral_mass="(\d+\.\d+)"'
+
+                allPat=re.match(pattern, line.strip())
+                x = allPat.group(1)
+                neutralMass = allPat.group(2) 
+                MH_mass = float(neutralMass) + proton 
+                outfileSplit = x.split(".")
+
+                for val in range(0,len(outFileDictPrec[x])):
+                    if isclose(MH_mass, float(outFileDictPrec[x][val])):
+                        break
+    #             if x == "HL_human.07462.07462.3":
+    #                 print (val,"\t",outFileDict[x][val])
+    #                 print (len(outFileDictPrec[x]))
+    #                 print (outFileDictPrec[x])
+                add_value = outFileDict[x][val]
+                y = outfileSplit[0]+"."+outfileSplit[1]+"."+add_value+"."+outfileSplit[-1]
+                print (line.rstrip().replace(x,y))
+            else:
+                print (line.rstrip())
 
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
 os.system(cmd)
@@ -438,8 +492,9 @@ if len(mzXMLs) < 40:
 #        new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+"."+str(value)+".ms2"
         new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+".ms2"
         #dta_to_ms2(reqd_dta, new_ms2)
-
-        submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)    
+        
+        jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
+        submit_job(jobfile,queue,mem)    
 
     #job_body1 = "comet -P"+cometParams+" "+new_ms2
     #os.system(job_body1)
@@ -466,8 +521,9 @@ else:
                 new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+"."+str(value)+".ms2"
                 #dta_to_ms2(reqd_dta, new_ms2)
 
-                submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
-
+                #submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
+                jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
+                submit_job(jobfile,queue,mem)
 
                 print ("\n\nJob is submitted for COMET search on "+mzXML+"\n\nPLEASE WAIT PATIENTLY\n\n")
         #while total_work >= len(mzXMLs[1:]):
@@ -487,7 +543,9 @@ else:
                     hold = 1
         else:
             for mzXML in mzXMLs[a:len(mzXMLs)]:
-                submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
+                jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
+                submit_job(jobfile,queue,mem)
+                #submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
                 #print ("good")
 new_folders = fromListToFolder(mzXMLs)
 #print (new_folders)
@@ -503,7 +561,7 @@ while hold!=1:
           continue
       else:
           log.append(new_log)
-          mvLogsParams(mzFol2, filenameMS2)
+          mvLogsParams(mzFol2, filenameMS2, outFileDict, outFileDictPrec)
 
 
     finish_log = glob.glob(mzXML_path+"/*/log/log.out")
