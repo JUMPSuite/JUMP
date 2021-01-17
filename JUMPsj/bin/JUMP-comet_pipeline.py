@@ -323,7 +323,7 @@ def fromListToFolder(filelist):
 #dtas = glob.glob(work_path+"/*/*.1.dtas")[0]
 #new_ms2 = dtas.split(".1.dtas")[0]+".ms2"
 
-def isclose(a, b, rel_tol=1e-05, abs_tol=0.0): #This is checking the closeness of the precurso ions m/z
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0): #This is checking the closeness of the precurso ions m/z
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
