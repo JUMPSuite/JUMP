@@ -323,9 +323,18 @@ def fromListToFolder(filelist):
 #dtas = glob.glob(work_path+"/*/*.1.dtas")[0]
 #new_ms2 = dtas.split(".1.dtas")[0]+".ms2"
 
-def isclose(a, b, rel_tol=1e-09, abs_tol=0.0): #This is checking the closeness of the precurso ions m/z
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+#def isclose(a, b, rel_tol=1e-09, abs_tol=0.0): #This is checking the closeness of the precurso ions m/z
+ #   return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
+def isclose(a, b, tol=1):
+    a = float(a)
+    b = float(b)
+  #   massError = abs(a-b)*1e6/a
+    massError = (b-a)*1e6/a  #calculates ppm error of the a(theoretical) from b(observed)
+    if abs(massError) < tol:
+        return True
+    else:
+        return False
 
 def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
     f = open(dtas,"r")
