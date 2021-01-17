@@ -518,7 +518,7 @@ else:
 
                 reqd_dta = mzXML_path+"/"+sample+"/"+sample+"."+str(value)+".dtas"
 
-                new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+"."+str(value)+".ms2"
+                new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+".ms2"
                 #dta_to_ms2(reqd_dta, new_ms2)
 
                 #submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
