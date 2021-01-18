@@ -271,14 +271,25 @@ def pepXMLOutFileConversionOld(pepxmlFile, basefile, outFileDict):
             else:
                 print (line.rstrip())
 
-def mvLogsParams(mzFol2, basefile, outFileDict, outFileDictPrec):
+def mvLogsParams(mzFol2, basefile):
     pepxml_new = glob.glob(mzFol2+"/"+basefile+".pep.xml")
-    #print (mzFol2)
-    pepxml_all = glob.glob(mzFol2+"/*.dtas")
-    foldersuffix = len(pepxml_all)
+    # print (pepxml_new)
+    # dtas = glob.glob(mzFol2+"/*.dtas")
+    # sample = mzXML.split("/")[-1].split(".mzXML")[0]
 
+    dtas = glob.glob(mzFol2+"/"+basefile+".*dtas")
+    pattern =  mzFol2+"/"+basefile
+    suffixes = []
+    for dta in dtas:
+        suffix =  re.search(pattern+".(\d+).dtas",dta).group(1)
+        suffixes.append(int(suffix))
+    foldersuffix = max(suffixes)
+
+    # foldersuffix =  re.search(pattern+".(\d+).dtas",dtas).group(1)
+    # foldersuffix = len(pepxml_all)
+    # print (foldersuffix)
     pepxlm_moved = pepxml_new[0].split(".pep.xml")[0]+"."+str(foldersuffix)+".pep.xml"
-
+    # print (pepxlm_moved)
     newfolder = mzFol2.split("/")[-1]
     createFolder = mzFol2+"/"+newfolder+"."+str(foldersuffix)
     #cmd = "mkdir "+createFolder
@@ -289,13 +300,15 @@ def mvLogsParams(mzFol2, basefile, outFileDict, outFileDictPrec):
 
     #os.system(cmd2)
     cmd3 = "cp "+paramsFile+" "+createFolder
-    os.system(cmd3)
+    # os.system(cmd3)
 
     cmd4 = "mv "+pepxml_new[0]+" "+pepxlm_moved
     os.system(cmd4)
 
     #This part is added to change the nomenclature of the outfile so that we have all JUMP-f consider all precursor ions
-
+    reqd_dta = glob.glob(mzFol2+"/"+basefile+"."+str(foldersuffix)+".dtas")[0]
+    
+    outFileDict, outFileDictPrec = dtaIonDictMap(reqd_dta)
     pepXMLOutFileConversion(pepxlm_moved, basefile, outFileDict, outFileDictPrec)
    
     cometOrigPep = glob.glob(mzFol2+"/*.cometOriginal")[0]
@@ -336,11 +349,9 @@ def isclose(a, b, tol=1):
     else:
         return False
 
-def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
+def dta_to_ms2(dtas, new_ms2):
     f = open(dtas,"r")
     line=f.readlines()
-    outFileDict = {} #This is the outfile dictionary that have the ppi information 
-    outFileDictPrec = {} #This stores the precursor mass to get the accuate ppi information
     dtas_dict = {}
     count_outfile = 0
     for x in range(0, len(line),3):
@@ -352,40 +363,14 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
         scan = dta_info[1]
         ppi = dta_info[2]
         charge = dta_info[3]
-        scan5digit = str('%05d' % int(scan)) #convert to 5 digit for example 1000 scan will be 01000
-        scanKey = file+"."+scan5digit+"."+scan5digit+"."+charge #resembles the outfile format of comet pep.xml file 
-        
-        #if int(charge) != 1: #comet does not search +1 charge for .ms2 so excluding that
-        if scanKey not in outFileDict.keys(): #this collects ppi in same order as dtas so these can be used  
-            outFileDict[scanKey] = [ppi]
-        else:
-            outFileDict[scanKey].append(ppi)
+       
 
         neutral_mass = dta.split()[-2] #[M+H]+1
 
-        if scanKey not in outFileDictPrec.keys(): #this collects ppi in same order as dtas so these can be used
-            outFileDictPrec[scanKey] = [neutral_mass]
-        else:
-            outFileDictPrec[scanKey].append(neutral_mass)
-
+       
         check = dta_info[2]
         prec_mz = str(precMZCalc(neutral_mass, charge))
-        #if dataType == "HL": #we were getting charge related error with HL data
-#Error: For  +2/+3 charge assignments of uncharged precursor ions (rm_multiple_charge_forursor), unexpected charge state was found: HL_human.09018.09018.4.out, charge == 4, so i just kept top ion
-         #   if check == "1":
-          #      count_outfile+=1
-           #     if int(scan) not in dtas_dict:       
-            #        dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
-             #   else:
-              #      dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
-
-#        else:
- #           count_outfile+=1
-  #          if int(scan) not in dtas_dict:
-   #             dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz]]
-    #        else:
-     #           dtas_dict[int(scan)].append([dta,mass_ms2,ms2_int,dta_info,file,scan,charge,neutral_mass, prec_mz])
-
+        
         count_outfile+=1
         if int(scan) not in dtas_dict:
             dtas_dict[int(scan)] = [[dta,mass_ms2,ms2_int,dta_info,file,scan, charge,neutral_mass, prec_mz]]
@@ -417,9 +402,42 @@ def dta_to_ms2(dtas, new_ms2, dataType = "HL"):
                     new_ms2.write(val+"\t"+all_int_list[index]+"\n")
               
     print ("\nTotal dta keys = ",count_key)
-
-    return outFileDict, outFileDictPrec
 #jump -deisotope jump_ss_HH_tmt10_mouse.params mix_ratio.mzXML
+
+def dtaIonDictMap(dtas):
+    f = open(dtas,"r")
+    line=f.readlines()
+    outFileDict = {} #This is the outfile dictionary that have the ppi information 
+    outFileDictPrec = {} #This stores the precursor mass to get the accuate ppi information
+    dtas_dict = {}
+    count_outfile = 0
+    for x in range(0, len(line),3):
+        dta = line[x]
+        mass_ms2 = line[x+1]
+        ms2_int = line[x+2]
+        dta_info = dta.split(".")
+        file = dta_info[0]
+        scan = dta_info[1]
+        ppi = dta_info[2]
+        charge = dta_info[3]
+        scan5digit = str('%05d' % int(scan)) #convert to 5 digit for example 1000 scan will be 01000
+        scanKey = file+"."+scan5digit+"."+scan5digit+"."+charge #resembles the outfile format of comet pep.xml file 
+        
+        #if int(charge) != 1: #comet does not search +1 charge for .ms2 so excluding that
+        if scanKey not in outFileDict.keys(): #this collects ppi in same order as dtas so these can be used  
+            outFileDict[scanKey] = [ppi]
+        else:
+            outFileDict[scanKey].append(ppi)
+
+        neutral_mass = dta.split()[-2] #[M+H]+1
+
+        if scanKey not in outFileDictPrec.keys(): #this collects ppi in same order as dtas so these can be used
+            outFileDictPrec[scanKey] = [neutral_mass]
+        else:
+            outFileDictPrec[scanKey].append(neutral_mass)
+
+     
+    return outFileDict, outFileDictPrec
 
 def create_job_file( reqd_dta,mzxml_file, sample, comet_params):
     #fileroot = mzxml_file.split("/")[-1].split(".ms2")[0]
@@ -436,7 +454,7 @@ def create_job_file( reqd_dta,mzxml_file, sample, comet_params):
     #cnt_pepxml = len(glob.glob(mzXML_path+"/"+fileroot+"/"+fileroot+"*.pep.xml"))
     #-Ntest.3
     #suffix = "."+str(cnt_pepxml+1)
-    outFileDict, outFileDictPrec = dta_to_ms2(reqd_dta, mzxml_file, data)
+    dta_to_ms2(reqd_dta, mzxml_file)
     job_body1 = "comet -P"+comet_params+" "+mzxml_file
 
     #job_body1 = comet+" -P"+comet_params+" "+mzxml_file
@@ -444,8 +462,7 @@ def create_job_file( reqd_dta,mzxml_file, sample, comet_params):
     jobfile = sample+".sh"
     with open(jobfile,"w") as new_file:
         new_file.write(job_header+job_body1)
-    return jobfile, outFileDict, outFileDictPrec
-
+    return jobfile
 
 def submit_job(jobf,queue,mem):
   cmd = 'bsub -q '+queue+' -R "rusage[mem='+mem+']" < '+jobf
@@ -478,35 +495,34 @@ def pepXMLOutFileConversion(pepxmlFile,basefile, outFileDict, outFileDictPrec):
             else:
                 print (line.rstrip())
 
+def mzXMLtoMS2(mzXML):
+    sample = mzXML.split("/")[-1].split(".mzXML")[0]
+    dtas = glob.glob(mzXML_path+"/"+sample+"/"+sample+".*dtas")
+    pattern =  mzXML_path+"/"+sample+"/"+sample
+    suffixes = []
+    for dta in dtas:
+        suffix =  re.search(pattern+".(\d+).dtas",dta).group(1)
+        suffixes.append(int(suffix))
+    value = max(suffixes)
+
+    reqd_dta = mzXML_path+"/"+sample+"/"+sample+"."+str(value)+".dtas"
+
+    new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+".ms2"
+    jobfile = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
+    submit_job(jobfile,queue,mem)
+    
+
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
-os.system(cmd)
+#os.system(cmd)
 #cometParams = "comet_HH_tmt10_mouse.params"
 if (mzXMLs == ["*.mzXML"]) or (glob.glob(mzXML_path+"/*.mzXML")==[]):
     mzXMLs = glob.glob(mzXML_path+"/*/*.mzXML")
 
 if len(mzXMLs) < 40:
     for mzXML in mzXMLs:
-    
-        sample = mzXML.split("/")[-1].split(".mzXML")[0]
-        dtas = glob.glob(mzXML_path+"/"+sample+"/"+sample+".*dtas")
-        pattern =  mzXML_path+"/"+sample+"/"+sample
-        suffixes = []
-        for dta in dtas:
-            suffix =  re.search(pattern+".(\d+).dtas",dta).group(1)
-            suffixes.append(int(suffix))
-        value = max(suffixes)
-
-        reqd_dta = mzXML_path+"/"+sample+"/"+sample+"."+str(value)+".dtas"
-   
-#        new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+"."+str(value)+".ms2"
-        new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+".ms2"
-        #dta_to_ms2(reqd_dta, new_ms2)
         
-        jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
-        submit_job(jobfile,queue,mem)    
+        mzXMLtoMS2(mzXML)
 
-    #job_body1 = "comet -P"+cometParams+" "+new_ms2
-    #os.system(job_body1)
 
         print ("\n\nJob is submitted for COMET search on "+mzXML+"\n\nPLEASE WAIT PATIENTLY\n\n")
 else:
@@ -516,23 +532,8 @@ else:
         total_work = total_jobs*40
         if total_work < len(mzXMLs):
             for mzXML in mzXMLs[a:total_work]:
-                sample = mzXML.split("/")[-1].split(".mzXML")[0]
-                dtas = glob.glob(mzXML_path+"/"+sample+"/"+sample+".*dtas")
-                pattern =  mzXML_path+"/"+sample+"/"+sample
-                suffixes = []
-                for dta in dtas:
-                    suffix =  re.search(pattern+".(\d+).dtas",dta).group(1)
-                    suffixes.append(int(suffix))
-                value = max(suffixes)
-
-                reqd_dta = mzXML_path+"/"+sample+"/"+sample+"."+str(value)+".dtas"
-
-                new_ms2 = reqd_dta.split("."+str(value)+".dtas")[0]+".ms2"
-                #dta_to_ms2(reqd_dta, new_ms2)
-
-                #submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
-                jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
-                submit_job(jobfile,queue,mem)
+                mzXMLtoMS2(mzXML)
+ 
 
                 print ("\n\nJob is submitted for COMET search on "+mzXML+"\n\nPLEASE WAIT PATIENTLY\n\n")
         #while total_work >= len(mzXMLs[1:]):
@@ -552,39 +553,25 @@ else:
                     hold = 1
         else:
             for mzXML in mzXMLs[a:len(mzXMLs)]:
-                jobfile, outFileDict, outFileDictPrec = create_job_file(reqd_dta, new_ms2,sample, cometFlyParams)
-                submit_job(jobfile,queue,mem)
-                #submit_job(create_job_file(reqd_dta, new_ms2,sample, cometFlyParams),queue,mem)
-                #print ("good")
+                mzXMLtoMS2(mzXML)
+ 
 new_folders = fromListToFolder(mzXMLs)
-#print (new_folders)
+# print (new_folders)
 #print ("Total log files = ",new_log)
-hold=0
-while hold!=1:
-    cnt = 0
-    log = []
-    for mzFol2 in new_folders:
-      filenameMS2 = mzFol2.split("/")[-1]
-      new_log = glob.glob(mzFol2+"/log/log.out")
-      if len(new_log) == 0:
-          continue
-      else:
-          log.append(new_log)
-          mvLogsParams(mzFol2, filenameMS2, outFileDict, outFileDictPrec)
 
-
+finish_log = glob.glob(mzXML_path+"/*/log/log.out")
+while len(finish_log) != len(mzXMLs):
     finish_log = glob.glob(mzXML_path+"/*/log/log.out")
-    if len(finish_log) < len(mzXMLs):
-        time.sleep(60)
-        finish_log = glob.glob(mzXML_path+"/*/log/log.out")
-        #print ("A total of ",str(len(finish_log))," mzXML search is complete\n")
-                    #print ("Total log files = ",len(new_log))
-    else:
-        hold = 1
+    time.sleep(30)
+
+
+for mzFol2 in new_folders:
+  filenameMS2 = mzFol2.split("/")[-1]
+  mvLogsParams(mzFol2, filenameMS2)
+
 
 
 print ("CONGRATULATIONS !!! All searches have been completed.\n\n")
-
 #cmdCp = "cp "+comet_params+" "+mzXML_path+"/comet.params"
 #os.system(cmdCp)
 
