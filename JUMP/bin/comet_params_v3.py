@@ -37,25 +37,6 @@ def modify_create_new_params(file1, file2, pat1, pat2):
     return file2
 
 #for TMThh 
-#copy jump-s parameter files as jump_sc_HH_tmt10_human.params
-dataTypes = ["TMTpro","TMTpro_pho", "HH", "HL", "TMThh","TMThhpho"]
-
-for data in dataTypes:
-    paramsFile = glob.glob("ParameterFiles/"+data+"/jump_sj_*_human.params")[0]
-    paramsSplit = paramsFile.split("_sj_")
-    jumpcometParams = paramsSplit[0]+"_sc_"+paramsSplit[1]
-    cmdcopy = "cp "+paramsFile+" "+jumpcometParams
-
-    os.system(cmdcopy) 
-    #creates a new backup with .bak file extension and make the required changes
-    with fileinput.FileInput(jumpcometParams, inplace=True, backup='.bak') as file:
-        for line in file:
-            print(line.replace("search_engine = JUMP", "search_engine = COMET"), end='')
-    #remove backup file
-    rmCmd = "rm "+jumpcometParams+".bak"
-    os.system(rmCmd)
-
-
 
 pattern1TMThh = ["database_name = /some/path/db.fasta","num_threads = 0","output_suffix =","add_Nterm_peptide = 0.0","add_K_lysine = 0.0000"]
 pattern2TMThh = ["database_name = /hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c0_TMT_K229.fasta","num_threads = 4","output_suffix =","add_Nterm_peptide = 229.162931","add_K_lysine = 229.162932"]
@@ -124,12 +105,17 @@ else:
   input_mzXMLs_line = "test1_Comet:/home/spoudel1/PengProteomics/TestComet/FTLD_f42.1"
 
 print (input_mzXMLs_line)
-pattern1_jumpf = ["HH_tmt10_human_jump:/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/SampleData/TMThh/HH_tmt10_human_jump/HH_tmt10_human_jump.1","pit_file = 0","min_XCorr = 10","mass_accuracy = 1","output_pepXML = 1"]  #currently present in jump_fj_params
-pattern2_jumpfTMThhComet = [input_mzXMLs_line,"pit_file = /hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c0_TMT_K229.pit","min_XCorr = 1","mass_accuracy = 0","output_pepXML = 0"]  #values to be modified
+fj_z1 = "one_hit_wonders_min_XCorr_z1 = 100"# one_hit_wonders for jump
+fj_z2 = "one_hit_wonders_min_XCorr_z2 = 40"
+fj_z3 = "one_hit_wonders_min_XCorr_z3 = 40"
+fc_z1 = "one_hit_wonders_min_XCorr_z1 = 10"# one_hit_wonders for comet
+fc_z2 = "one_hit_wonders_min_XCorr_z2 = 2.5"
+fc_z3 = "one_hit_wonders_min_XCorr_z3 = 3.5"
+pattern1_jumpf = ["HH_tmt10_human_jump:/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/SampleData/TMThh/HH_tmt10_human_jump/HH_tmt10_human_jump.1","pit_file = 0","min_XCorr = 10","mass_accuracy = 1",fj_z1,fj_z2,fj_z3,"output_pepXML = 1"]  #currently present in jump_fj_params
+pattern2_jumpfTMThhComet = [input_mzXMLs_line,"pit_file = /hpcf/authorized_apps/proteomics_apps/database/20200422/HUMAN/human_ft_mc2_c0_TMT_K229.pit","min_XCorr = 1","mass_accuracy = 0",fc_z1,fc_z2,fc_z3,"output_pepXML = 0"]  #values to be modified
 
-
-modify_create_new_params(jumpf_params_source,jumpf_paramsTMThhComet,pattern1_jumpf,pattern2_jumpfTMThhComet)
-
+if os.path.isfile(jumpf_paramsTMThhComet)==False:
+  modify_create_new_params(jumpf_params_source,jumpf_paramsTMThhComet,pattern1_jumpf,pattern2_jumpfTMThhComet)
 
 
 jumpf_paramsTMThhphoComet = "ParameterFiles/TMThhpho/jump_fc_HH_pho_tmt10_human.params"
@@ -140,8 +126,8 @@ pattern1_TMThhComet_source = ["unique_protein_or_peptide = protein","initial_out
 pattern1_TMThhphoComet_new = ["unique_protein_or_peptide = peptide","initial_outfile_fdr = 10","one_hit_wonders_removal = 0","mods = STY",
             "min_outfile_num_for_XCorr_filter = 200","one_hit_wonders_min_dCn = 0.1"]
 
-modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramsTMThhphoComet,pattern1_TMThhComet_source,pattern1_TMThhphoComet_new)
-
+if os.path.isfile(jumpf_paramsTMThhphoComet)==False:
+  modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramsTMThhphoComet,pattern1_TMThhComet_source,pattern1_TMThhphoComet_new)
 
 
 jumpf_paramshhComet = "ParameterFiles/HH/jump_fc_HH_human.params"
@@ -150,9 +136,13 @@ jumpf_paramshlComet = "ParameterFiles/HL/jump_fc_HL_human.params"
 pattern1_TMThhComet_source2 = ["one_hit_wonders_removal = 2","one_hit_wonders_min_dCn = 0"]
 pattern1_HHComet_new = ["one_hit_wonders_removal = 0","one_hit_wonders_min_dCn = 0.1"]
 
-modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramshhComet,pattern1_TMThhComet_source2,pattern1_HHComet_new)
+if os.path.isfile(jumpf_paramshhComet)==False:
+  modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramshhComet,pattern1_TMThhComet_source2,pattern1_HHComet_new)
 
-modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramshlComet,pattern1_TMThhComet_source2,pattern1_HHComet_new)
+
+if os.path.isfile(jumpf_paramshlComet)==False:
+  modify_create_new_params(jumpf_paramsTMThhComet,jumpf_paramshlComet,pattern1_TMThhComet_source2,pattern1_HHComet_new)
+
 
 idtxt_path = mzxml_path+"/sum_test1_Comet"
 idtxt = idtxt_path+"/ID.txt"
@@ -167,26 +157,28 @@ pattern2_jumpq = ["idtxt = "+idtxt,"save_dir = test1_Comet","impurity_matrix = /
 
 
 # In[35]:
-jumpq_params_source = "ParameterFiles/TMThh/jump_qs_HH_tmt10_human.params"
+jumpq_params_source = "ParameterFiles/TMThh/jump_qj_HH_tmt10_human.params"
 
 
 #This creates a new parameter file for jump quantification with required modifications
 
 jumpq_params_tmthh = "ParameterFiles/TMThh/jump_qc_HH_tmt10_human.params"
 
-modify_create_new_params(jumpq_params_source,jumpq_params_tmthh,pattern1_jumpq,pattern2_jumpq)
+if os.path.isfile(jumpq_params_tmthh)==False:
+  modify_create_new_params(jumpq_params_source,jumpq_params_tmthh,pattern1_jumpq,pattern2_jumpq)
+
 
 jumpq_params_tmthhpho = "ParameterFiles/TMThhpho/jump_qc_HH_pho_tmt10_human.params"
 
 IDmod = idtxt_path+"/IDmod.txt"
 
 
-pattern1_jumpqTMT = ["idtxt = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/SampleData/TMThhpho/sum_HH_pho_tmt10_human_jump_mod/IDmod.txt","save_dir = HH_tmt10_human_sequest","impurity_matrix = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/JUMPq/TMT10.ini",
+pattern1_jumpqTMT = ["idtxt = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/SampleData/TMThh/sum_HH_tmt10_human_jump/ID.txt","save_dir = HH_tmt10_human_sequest","impurity_matrix = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/JUMPq/TMT10.ini",
                   "min_intensity_method_1_2_psm = 1, 4","min_intensity_value_1_2_psm = 2000, 10000","percentage_trimmed = 25"]
 pattern2_jumpqTMTpho = ["idtxt = "+IDmod,"save_dir = test1_Comet_mod","impurity_matrix = /hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.0/JUMPq/TMT11.ini","min_intensity_method_1_2_psm = 0","min_intensity_value_1_2_psm = 0","percentage_trimmed = 50"]
 
-
-modify_create_new_params(jumpq_params_source,jumpq_params_tmthhpho,pattern1_jumpqTMT,pattern2_jumpqTMTpho)
+if os.path.isfile(jumpq_params_tmthhpho)==False:
+  modify_create_new_params(jumpq_params_source,jumpq_params_tmthhpho,pattern1_jumpqTMT,pattern2_jumpqTMTpho)
 
 
 
