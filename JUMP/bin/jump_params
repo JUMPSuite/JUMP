@@ -599,7 +599,7 @@ foreach my $searchEngine (@searchEngines) {
 		print PARAMS "######################################################################################################################################################\n";
 		print PARAMS "\n";
 		print PARAMS "#################### To turn on pepXML generation ######################\n";
-		print PARAMS "output_pepXML = 1\n";
+		print PARAMS "output_pepXML = 0\n";
 		close (PARAMS);
 	}
 }
