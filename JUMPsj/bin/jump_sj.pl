@@ -4,6 +4,8 @@ my $Bin=$ENV{"JUMP_SJ_LIB"};
 use lib $ENV{"JUMP_SJ_LIB"};
 use Getopt::Long;
 use Spiders::JUMPmain;
+use File::Spec;# added on 20210127 to get $params->{search_engine}
+use Spiders::Params;# added on 20210127 to get $params->{search_engine}
 use File::Temp;
 use Cwd;
 use Cwd 'abs_path';
@@ -48,24 +50,20 @@ if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absol
 usage() if ($help || !defined($parameter));
 #check_input($raw_file,\$parameter);
 
-print <<EOF;
-
-################################################################
-#                                                              #
-#       **************************************************     #
-#       ****                                          ****     #
-#       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.0                          ****     #
-#       ****  Xusheng Wang / Junmin Peng              ****     #
-#       ****  Copyright (C) 2012 - 2017               ****     #
-#       ****  All rights reserved                     ****     #
-#       ****                                          ****     #
-#       **************************************************     #
-#                                                              #
-################################################################
-
-
-EOF
+# print the user interface (UI) when $dispatch="localhost"
+if( $dispatch eq "localhost" ) {
+	# added on 20210127 to get $params->{search_engine}
+	unless( File::Spec->file_name_is_absolute($parameter) ) {
+	    $parameter = File::Spec->rel2abs($parameter);
+	}
+	my $p = Spiders::Params->new('-path'=>$parameter);
+	my $params=$p->parse_param();
+	if ($params->{search_engine} eq 'COMET') {
+		print_COMET_UI();
+	} else {
+		print_JUMP_UI();
+	}
+}
 
 for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
@@ -92,10 +90,38 @@ else {
     print "argument to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
     exit -1;
 }
+
 sub usage {
 
 print <<"EOF";
-	
+
+################################################################
+#                                                              #
+#       **************************************************     #
+#       ****                                          ****     #
+#       ****  jump search using JUMP                  ****     #
+#       ****  Version 1.13.0                          ****     #
+#       ****  Xusheng Wang / Junmin Peng              ****     #
+#       ****  Copyright (C) 2012 - 2017               ****     #
+#       ****  All rights reserved                     ****     #
+#       ****                                          ****     #
+#       **************************************************     #
+#                                                              #
+################################################################
+
+Usage: $progname -p parameterfile rawfile.raw 
+	or
+       $progname -p parameterfile rawfile.mzXML
+
+
+EOF
+exit 1;
+}
+
+sub print_JUMP_UI {
+
+print <<EOF;
+
 ################################################################
 #                                                              #
 #       **************************************************     #
@@ -111,11 +137,25 @@ print <<"EOF";
 ################################################################
 
 
-Usage: $progname -p parameterfile rawfile.raw 
-	or
-       $progname -p parameterfile rawfile.mzXML
-	
+EOF
+}
+
+sub print_COMET_UI {
+
+print <<EOF;
+
+################################################################
+#                                                              #
+#       **************************************************     #
+#       ****                                          ****     #
+#       ****  COMET pipeline being initiated          ****     #
+#       ****  1. pre-processing  via JUMP             ****     #
+#       ****  2. database search via COMET            ****     #
+#       ****                                          ****     #
+#       **************************************************     #
+#                                                              #
+################################################################
+
 
 EOF
-exit 1;
 }
