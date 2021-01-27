@@ -52,17 +52,7 @@ usage() if ($help || !defined($parameter));
 print <<EOF;
 
 ################################################################
-#                                                              #
-#       **************************************************     #
-#       ****                                          ****     #
-#       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.0                          ****     #
-#       ****  Xusheng Wang / Junmin Peng              ****     #
-#       ****  Copyright (C) 2012 - 2017               ****     #
-#       ****  All rights reserved                     ****     #
-#       ****                                          ****     #
-#       **************************************************     #
-#                                                              #
+#       ****  Using JUMP pre-processing             ****       #
 ################################################################
 
 
@@ -93,29 +83,19 @@ else {
     print "argument to --dispatch must be one of \"batch-interactive\", or \"localhost\"\n";
     exit -1;
 }
+
 sub usage {
 
 print <<"EOF";
 	
 ################################################################
-#                                                              #
-#       **************************************************     #
-#       ****                                          ****     #
-#       ****  jump search using JUMP                  ****     #
-#       ****  Version 1.13.0                          ****     #
-#       ****  Xusheng Wang / Junmin Peng              ****     #
-#       ****  Copyright (C) 2012 - 2017               ****     #
-#       ****  All rights reserved                     ****     #
-#       ****                                          ****     #
-#       **************************************************     #
-#                                                              #
+#       ****  Using JUMP pre-processing             ****       #
 ################################################################
-
 
 Usage: $progname -p parameterfile rawfile.raw 
 	or
        $progname -p parameterfile rawfile.mzXML
-	
+
 
 EOF
 exit 1;
