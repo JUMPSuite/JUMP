@@ -260,7 +260,7 @@ def merge_df(df1,df2):
 # In[74]:
 
 
-print ("\n\nThis program will map one gene with one protein.It takes some time to print for very large files. Please be patient\n")
+print ("\n\nNow, the results from JUMP-q will be used to generate a matrix that maps one gene with one protein.It may take some time to work for very large files. Please be patient\n")
 
 df_quant = pd.read_csv(in1_clean, delimiter = "\t", low_memory=False)
 df_quant_clean=df_quant.dropna(subset=["GN"])
@@ -313,4 +313,6 @@ final_result=merge_gene_map[extract_col]
 
 
 final_result.to_csv(ou1,sep="\t",index=None,header=headers)
+
+print ("\nAll mapping of gene to protein is completed and saved as a file in the publication folder. Congratulations!!\n")
 
