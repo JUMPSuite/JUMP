@@ -1066,7 +1066,7 @@ close (PARAMS);
 
 my $mxmlPath   = getcwd();
 my @cmd = ("python $Bin/comet_params_v3.py $mxmlPath");
-print "$mxmlPath";
+#print "$mxmlPath";
 system(@cmd);
 
 
@@ -1182,13 +1182,6 @@ print PARAMS "# step4: jump -batch-q\n";
 print PARAMS "jump -batch-q jump_batchQ.params\n";
 close (PARAMS);
 
-# copy 3 files in Batch path to the work path
-my $cmd = "cp ".$batchDir."/* ".$cwd_dir;
-system($cmd);
-
 # copy $Bin/batch/user_manual to Batch path
-$cmd = "cp ".$Bin."/batch/*User_manual* ".$batchDir;
+my $cmd = "cp ".$Bin."/batch/*User_manual* ".$batchDir;
 system($cmd);
-print "\n****************************************************************\n";
-print "Please find the user manual in the path: ./ParameterFiles/Batch\n";
-print "****************************************************************\n";
