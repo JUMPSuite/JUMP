@@ -520,7 +520,7 @@ sub runjobs
 				print "\r  $count jobs were submitted";				
 			}	
 		}
-		print "\n  You submitted $job_num jobs for database search\n";
+		print "\n  You submitted $job_num jobs for generating dtas file\n";
 		Check_Job_stat("${job_name}_",$job_num,$dta_path,$job_list);		
 	}
 	elsif($params->{'cluster'} eq '0')
