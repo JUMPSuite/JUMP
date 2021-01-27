@@ -244,7 +244,7 @@ def select_final_valtest(row):
         
         else:
             final_value_main = sp_only(val_cu, psm_list_avg, intensity_list_avg, val_cu_index)
-    print (row["GN"], "\t------\t", final_value_main)
+    #print (row["GN"], "\t------\t", final_value_main)
     
     return final_value_main
 
@@ -258,7 +258,9 @@ def merge_df(df1,df2):
 
 
 # In[74]:
-print ("\n\nThis program will map one gene with one protein.The best matches are printed in the screen\n\n\nGene Name\t------\tSelected Protein Accession ------------- (It takes some time to print for very large files)")
+
+
+print ("\n\nThis program will map one gene with one protein.It takes some time to print for very large files. Please be patient\n")
 
 df_quant = pd.read_csv(in1_clean, delimiter = "\t", low_memory=False)
 df_quant_clean=df_quant.dropna(subset=["GN"])
