@@ -10,7 +10,7 @@ mzxml_path = sys.argv[1]
 
 #comet = "/home/spoudel1/JUMP_CometParams/JUMPparams/comet"
 #path = os.getcwd()
-subprocess.call(["comet","-p"])
+out = subprocess.check_output(["comet","-p"])
 
 def find_replace(line_replace, pat1_list, pat2_list):
     for index, value in enumerate(pat1_list):
@@ -104,7 +104,7 @@ if len(mzXMLs) >= 1:
 else:
   input_mzXMLs_line = "test1_Comet:/home/spoudel1/PengProteomics/TestComet/FTLD_f42.1"
 
-print (input_mzXMLs_line)
+#print (input_mzXMLs_line)
 fj_z1 = "one_hit_wonders_min_XCorr_z1 = 100"# one_hit_wonders for jump
 fj_z2 = "one_hit_wonders_min_XCorr_z2 = 40"
 fj_z3 = "one_hit_wonders_min_XCorr_z3 = 40"
