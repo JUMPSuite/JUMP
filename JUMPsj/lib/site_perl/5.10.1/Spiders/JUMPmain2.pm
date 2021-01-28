@@ -371,7 +371,7 @@ sub main
 		    unlink($input_file);
 		}
 	}
-	print "  Search finished\n\n";
+	#print "  Search finished\n\n";
 }
 			
 sub Create_Sort_BashFile
