@@ -37,7 +37,7 @@ mzXML_path = os.getcwd()
 #mzXMLs = glob.glob(mzXML_path+"/*.mzXML")
 jump_params = args.jump_parameterfile
 
-out = subprocess.check_output(["comet","-p"])
+subprocess.call(["comet","-p"])
 
 comet_params = "comet.params.new"
 #required for ppi matching
@@ -514,12 +514,6 @@ def mzXMLtoMS2(mzXML):
 
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
 os.system(cmd)
-
-# print ("################################################################\n")
-# print ("#       ****  Starting COMET search                 ****       #\n")
-# print ("################################################################\n\n")
-print ("        ****  Starting COMET search                 ****        \n\n")
-
 #cometParams = "comet_HH_tmt10_mouse.params"
 if (mzXMLs == ["*.mzXML"]) or (glob.glob(mzXML_path+"/*.mzXML")==[]):
     mzXMLs = glob.glob(mzXML_path+"/*/*.mzXML")
