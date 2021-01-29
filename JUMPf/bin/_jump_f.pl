@@ -27,7 +27,7 @@ use idsum2::pepXML_parser;
 ## added by tim
 use Sys::Hostname;
 use Socket;
-
+use POSIX;
 #################
 #use File::Sync qw(fsync sync);
 
@@ -1267,8 +1267,8 @@ close (DTAFILES);
         my $peptidefpr=sprintf("%.2f",$bad/($good)*100);
 	my $total_protein = scalar(keys %proteinhash);
 	my $total_peptide = scalar keys (%peptidehash);
-    printf "  Unique peptides: $good targets and $bad decoys (FDR = %.2f%%)\n", $peptidefpr;
-    printf LOGFILE "  Unique peptides: $good targets and $bad decoys (FDR = %.2f%%)\n", $peptidefpr;
+    printf "  Unique peptides: ",floor($good)," targets and ",floor($bad)," decoys (FDR = %.2f%%)\n", $peptidefpr;
+    printf LOGFILE "  Unique peptides: ",floor($good)," targets and ",floor($bad)," decoys (FDR = %.2f%%)\n", $peptidefpr;
     #print "Total peptide FDR after deleting one hit wonder: $peptidefpr% ($bad decoy(s); $good target(s))\n";
     #print LOGFILE "Total peptide PDR after deleting one hit wonder: $peptidefpr% ($bad decoy(s); $good target(s))\n";
  # }
