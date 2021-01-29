@@ -38,7 +38,7 @@ my $queue = ${$options{'--queue'}};
 
 #$mem = 4096;
 unless(defined(${$options{'--mem'}})) {
-    ${$options{'--mem'}} = 12288;
+    ${$options{'--mem'}} = 20480;
 }
 $mem = ${$options{'--mem'}};
 
