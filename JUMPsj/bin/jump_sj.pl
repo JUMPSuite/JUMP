@@ -37,8 +37,15 @@ unless(defined(${$options{'--queue'}})) {
 my $queue = ${$options{'--queue'}};
 
 #$mem = 4096;
+my $max_mzXMLsize = get_max_mzXMLsize(@ARGV);
 unless(defined(${$options{'--mem'}})) {
-    ${$options{'--mem'}} = 30720;
+	if ($max_mzXMLsize<500) { # in most case, max_mzXMLsize<500 MB
+		${$options{'--mem'}} = 12288; # 12 GB
+	} elsif ($max_mzXMLsize<900) { # 500 MB<=max_mzXMLsize<900 MB
+		${$options{'--mem'}} = 20480; # 20 GB
+	} else { # max_mzXMLsize>900 MB
+		${$options{'--mem'}} = 30720; # 30 GB
+	}
 }
 $mem = ${$options{'--mem'}};
 
@@ -158,4 +165,28 @@ print <<EOF;
 
 
 EOF
+}
+
+sub get_max_mzXMLsize {
+	# get the max mzXML size from the list of files
+	my (@rawfile_array) = @_; # input params
+	my $max_mzXMLsize = 0; # initial 0 MB
+	my $cur_dir = getcwd;
+	foreach $filename (@rawfile_array){
+		my ($cur_file,$cur_mzXMLsize);
+		my $idx = index($filename,"/");# Linux OS
+		if ($idx==-1) {# no path
+			$cur_file = $cur_dir."/$filename";
+		} else {
+			$cur_file = $filename;
+		}
+		if (-f $cur_file) {
+			$cur_mzXMLsize = (stat $cur_file)[7]/(1024*1024);
+			if ($max_mzXMLsize<$cur_mzXMLsize){
+				$max_mzXMLsize = $cur_mzXMLsize;
+			}
+		}
+	}
+	
+	return $max_mzXMLsize;
 }
