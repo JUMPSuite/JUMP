@@ -43,7 +43,7 @@ unless(defined(${$options{'--mem'}})) {
 		${$options{'--mem'}} = 12288; # 12 GB
 	} elsif ($max_mzXMLsize<900) { # 500 MB<=max_mzXMLsize<900 MB
 		${$options{'--mem'}} = 20480; # 20 GB
-	} else { # max_mzXMLsize>900 MB
+	} else { # max_mzXMLsize>=900 MB
 		${$options{'--mem'}} = 30720; # 30 GB
 	}
 }
