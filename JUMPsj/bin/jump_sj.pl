@@ -37,8 +37,8 @@ unless(defined(${$options{'--queue'}})) {
 my $queue = ${$options{'--queue'}};
 
 #$mem = 4096;
-my $max_mzXMLsize = get_max_mzXMLsize(@ARGV);
 unless(defined(${$options{'--mem'}})) {
+	my $max_mzXMLsize = get_max_mzXMLsize(@ARGV); # get the max mzXML size from the list of files
 	if ($max_mzXMLsize<500) { # in most case, max_mzXMLsize<500 MB
 		${$options{'--mem'}} = 12288; # 12 GB
 	} elsif ($max_mzXMLsize<900) { # 500 MB<=max_mzXMLsize<900 MB
