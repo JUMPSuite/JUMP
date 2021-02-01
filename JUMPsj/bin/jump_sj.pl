@@ -49,7 +49,6 @@ unless(defined(${$options{'--mem'}})) {
 }
 $mem = ${$options{'--mem'}};
 
-
 if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
     ${$options{'--dtafile-location'}} = File::Spec->rel2abs(${$options{'--dtafile-location'}});
 }
@@ -76,6 +75,12 @@ for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
 	$options_str .= $k . "=" . ${$options{$k}} . " ";
     }
+}
+
+if( $dispatch eq "batch-interactive" or $dispatch eq "batch" ) {
+	my $nMEM1 = int($mem/1024);
+	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
+	print $hint1;
 }
 
 if( $dispatch eq "batch-interactive" ) {
