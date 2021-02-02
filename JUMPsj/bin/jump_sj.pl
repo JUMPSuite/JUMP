@@ -40,11 +40,11 @@ my $queue = ${$options{'--queue'}};
 unless(defined(${$options{'--mem'}})) {
 	my $max_mzXMLsize = get_max_mzXMLsize(@ARGV); # get the max mzXML size from the list of files
 	if ($max_mzXMLsize<500) { # in most case, max_mzXMLsize<500 MB
-		${$options{'--mem'}} = 12288; # 12 GB
+		${$options{'--mem'}} = 12*1024; # 12 GB
 	} elsif ($max_mzXMLsize<900) { # 500 MB<=max_mzXMLsize<900 MB
-		${$options{'--mem'}} = 20480; # 20 GB
+		${$options{'--mem'}} = 20*1024; # 20 GB
 	} else { # max_mzXMLsize>=900 MB
-		${$options{'--mem'}} = 30720; # 30 GB
+		${$options{'--mem'}} = 30*1024; # 30 GB
 	}
 }
 $mem = ${$options{'--mem'}};
@@ -78,7 +78,7 @@ for my $k (keys(%options)) {
 }
 
 if( $dispatch eq "batch-interactive" or $dispatch eq "batch" ) {
-	my $nMEM1 = int($mem/1024);
+	my $nMEM1 = int($mem/1024+0.5);
 	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
 	print $hint1;
 }
