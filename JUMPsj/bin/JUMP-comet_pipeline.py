@@ -401,7 +401,7 @@ def dta_to_ms2(dtas, new_ms2):
                 for index, val in enumerate(all_mass_list):
                     new_ms2.write(val+"\t"+all_int_list[index]+"\n")
               
-    print ("\nTotal dta keys = ",count_key)
+    #print ("\nTotal dta keys = ",count_key)
 #jump -deisotope jump_ss_HH_tmt10_mouse.params mix_ratio.mzXML
 
 def dtaIonDictMap(dtas):
@@ -571,7 +571,7 @@ for mzFol2 in new_folders:
 
 
 
-print ("CONGRATULATIONS !!! All searches have been completed.\n\n")
+print ("All searches have been completed.\n\n")
 #cmdCp = "cp "+comet_params+" "+mzXML_path+"/comet.params"
 #os.system(cmdCp)
 
