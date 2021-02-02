@@ -1092,8 +1092,8 @@ if (!-e $batchDir) {
 $paramsName = $batchDir."/jump_batchID.params";
 open (PARAMS, ">", $paramsName) or die "Cannot generate $paramsName\n";
 print PARAMS "# Inputs: absolute path of publication tables from JUMP -f results (IDwDecoy.txt)\n";
-print PARAMS "input_path_batch1 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/SampleData/batch_test/b1/sum_HH_tmt/IDwDecoy.txt\n";
-print PARAMS "input_path_batch2 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/SampleData/batch_test/b2/sum_HH_tmt/IDwDecoy.txt\n";
+print PARAMS "input_path_batch1 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/TestData/batch_test/b1/sum_HH_tmt/IDwDecoy.txt\n";
+print PARAMS "input_path_batch2 = /hpcf/authorized_apps/proteomics_apps/pipeline/release/TestData/batch_test/b2/sum_HH_tmt/IDwDecoy.txt\n";
 print PARAMS "\n";
 print PARAMS "# thresholds:\n";
 print PARAMS "min_Jscore = 10			# minimum Jscore cutoff to be considered (10 for JUMP; 1 for Comet)\n";
