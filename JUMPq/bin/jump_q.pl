@@ -32,34 +32,34 @@ my $mem;
 my $dispatch;
 GetOptions('--queue=s'=>\$queue, '--mem=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
-if(!defined($queue) && !defined($mem)) {
-    $queue = 'standard';
-    $mem = 8192;
-}
-elsif(!defined($queue) && defined($mem)) { 
-    print "\t--mem cannot be used without --queue\n";
-    exit(1);
-}
-elsif(!defined($mem)) {
-    $mem = 8192;
+unless(defined($dispatch)) {
+    $dispatch = "batch-interactive";
 }
 
-if (!defined($dispatch)) {
-    $dispatch = "automem";
-}
-my $require_file = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin/batch/BatchLib.pl";
-require $require_file;
-if (defined($dispatch) && $dispatch eq 'automem') {
+#$mem = 8192;
+unless(defined($mem)) {
+	my $require_file = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin/batch/BatchLib.pl";
+	require $require_file;
     my $jump_qj_fullfile = $ARGV[0];
     my $txtsize = get_txtsize_from_jump_qj($jump_qj_fullfile);
     my $nMEM1 = calculate_mem($txtsize,2); # choice: 2,q
+    $mem = $nMEM1*1024;
+	unless(defined($queue)) {
+		$queue = "standard";
+		if ($nMEM1>=200) {
+			$queue = "large_mem";
+		}
+	}
+}
+
+unless(defined($queue)) {
     $queue = "standard";
-    if ($nMEM1>=200) {
-        $queue = "large_mem";
-    }
-    $mem = $nMEM1*1000;
-    my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
-    print $hint1;
+}
+
+if( $dispatch eq "batch-interactive" ) {
+	my $nMEM1 = int($mem/1024+0.5);
+	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
+	print $hint1;
 }
 
 my $cmd;
@@ -91,7 +91,7 @@ my $input_file = $publicationDir."/id_uni_prot_quan.txt";
 if (-e $input_file) {
     my @cmd = ("python $Bin/protmat2genemat.py $input_file");
     system(@cmd);}
-else {    
-     print "NOTE: The protein to gene matrix conversion program cannot operate. This could be because the quantification was done at the peptide level. Thus, protein quantification file is absent.\n\n";}
+else {
+    print "NOTE: The protein to gene matrix conversion program cannot operate. This could be because the quantification was done at the peptide level. Thus, protein quantification file is absent.\n\n";}    
     
 

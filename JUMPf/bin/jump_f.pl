@@ -30,37 +30,37 @@ my $mem;
 my $dispatch;
 GetOptions('--queue=s'=>\$queue, '--mem=s'=>\$mem, '--dispatch=s'=>\$dispatch);
 
-if(!defined($queue) && !defined($mem)) {
-    $queue = 'standard';
-    $mem = 8192;
-}
-elsif(!defined($queue) && defined($mem)) { 
-    print "\t--mem cannot be used without --queue\n";
-    exit(1);
-}
-elsif(!defined($mem)) {
-    $mem = 8192;
+unless(defined($dispatch)) {
+    $dispatch = "batch-interactive";
 }
 
-unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
-
-if (!defined($dispatch)) {
-    $dispatch = "automem";
-}
-my $require_file = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin/batch/BatchLib.pl";
-require $require_file;
-if (defined($dispatch) && $dispatch eq 'automem') {
+#$mem = 8192;
+unless(defined($mem)) {
+	my $require_file = "/hpcf/authorized_apps/proteomics_apps/pipeline/release/version1.13.003/JUMP/bin/batch/BatchLib.pl";
+	require $require_file;
     my $jump_fj_fullfile = $ARGV[0];
     my $engine = get_engine_from_jump_fj($jump_fj_fullfile);
     my $pepXMLsize = get_pepXMLsize_from_jump_fj($jump_fj_fullfile,$engine);
     my $nMEM1 = calculate_mem($pepXMLsize,1); # choice: 1,f
+    $mem = $nMEM1*1024;
+	unless(defined($queue)) {
+		$queue = "standard";
+		if ($nMEM1>=200) {
+			$queue = "large_mem";
+		}
+	}
+}
+
+unless(defined($queue)) {
     $queue = "standard";
-    if ($nMEM1>=200) {
-        $queue = "large_mem";
-    }
-    $mem = $nMEM1*1000;
-    my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
-    print $hint1;
+}
+
+unless( scalar(@ARGV) > 0 ) { print "\tusage: jump_f.pl <parameter file>\n"; exit(1); }
+
+if( $dispatch eq "batch-interactive" ) {
+	my $nMEM1 = int($mem/1024+0.5);
+	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
+	print $hint1;
 }
 
 my $cmd;

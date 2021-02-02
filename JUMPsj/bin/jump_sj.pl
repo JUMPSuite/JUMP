@@ -38,10 +38,16 @@ my $queue = ${$options{'--queue'}};
 
 #$mem = 4096;
 unless(defined(${$options{'--mem'}})) {
-    ${$options{'--mem'}} = 12288;
+	my $max_mzXMLsize = get_max_mzXMLsize(@ARGV); # get the max mzXML size from the list of files
+	if ($max_mzXMLsize<500) { # in most case, max_mzXMLsize<500 MB
+		${$options{'--mem'}} = 12*1024; # 12 GB
+	} elsif ($max_mzXMLsize<900) { # 500 MB<=max_mzXMLsize<900 MB
+		${$options{'--mem'}} = 20*1024; # 20 GB
+	} else { # max_mzXMLsize>=900 MB
+		${$options{'--mem'}} = 30*1024; # 30 GB
+	}
 }
 $mem = ${$options{'--mem'}};
-
 
 if(defined(${$options{'--dtafile-location'}}) && !File::Spec->file_name_is_absolute(${$options{'--dtafile-location'}})) {
     ${$options{'--dtafile-location'}} = File::Spec->rel2abs(${$options{'--dtafile-location'}});
@@ -69,6 +75,12 @@ for my $k (keys(%options)) {
     if(defined(${$options{$k}})) {
 	$options_str .= $k . "=" . ${$options{$k}} . " ";
     }
+}
+
+if( $dispatch eq "batch-interactive" or $dispatch eq "batch" ) {
+	my $nMEM1 = int($mem/1024+0.5);
+	my $hint1 = "Applying ".$nMEM1." GB RAM in queue <".$queue."> (please be patient)\n";
+	print $hint1;
 }
 
 if( $dispatch eq "batch-interactive" ) {
@@ -158,4 +170,28 @@ print <<EOF;
 
 
 EOF
+}
+
+sub get_max_mzXMLsize {
+	# get the max mzXML size from the list of files
+	my (@rawfile_array) = @_; # input params
+	my $max_mzXMLsize = 0; # initial 0 MB
+	my $cur_dir = getcwd;
+	foreach $filename (@rawfile_array){
+		my ($cur_file,$cur_mzXMLsize);
+		my $idx = index($filename,"/");# Linux OS
+		if ($idx==-1) {# no path
+			$cur_file = $cur_dir."/$filename";
+		} else {
+			$cur_file = $filename;
+		}
+		if (-f $cur_file) {
+			$cur_mzXMLsize = (stat $cur_file)[7]/(1024*1024);
+			if ($max_mzXMLsize<$cur_mzXMLsize){
+				$max_mzXMLsize = $cur_mzXMLsize;
+			}
+		}
+	}
+	
+	return $max_mzXMLsize;
 }
