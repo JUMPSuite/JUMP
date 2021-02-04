@@ -32,6 +32,8 @@ mzXMLs = args.mzXML
 queue = args.queue.split("=")[-1]
 mem = args.mem.split("=")[-1]
 
+#print ("mzXMLs = ",mzXMLs)
+
 mzXML_path = os.getcwd()
 #comet = "/home/spoudel1/PengProteomics/comet"
 #mzXMLs = glob.glob(mzXML_path+"/*.mzXML")
@@ -198,13 +200,13 @@ cometParamsDict["num_threads"] = "4"
 
 # In[248]:
 
-rmparam = "rm "+comet_params
-try:
-    os.system(rmparam)
-except:
-    print ("No comet.params.new file generated")
+#rmparam = "rm "+comet_params
+#try:
+#    os.system(rmparam)
+#except:
+#    print ("No comet.params.new file generated")
 
-cometFlyParams = "comet.params"
+cometFlyParams = data+"_comet.params"
 with open(cometFlyParams, "w") as paramC:
     for line in cometParamLines:
         if line.startswith("#"):
@@ -271,7 +273,7 @@ def pepXMLOutFileConversionOld(pepxmlFile, basefile, outFileDict):
             else:
                 print (line.rstrip())
 
-def mvLogsParams(mzFol2, basefile):
+def mvLogsParams(mzFol2, basefile, cometFlyParams):
     pepxml_new = glob.glob(mzFol2+"/"+basefile+".pep.xml")
     # print (pepxml_new)
     # dtas = glob.glob(mzFol2+"/*.dtas")
@@ -299,7 +301,7 @@ def mvLogsParams(mzFol2, basefile):
     #cmd2 = "mv "+log_folder+" "+createFolder
 
     #os.system(cmd2)
-    cmd3 = "cp "+paramsFile+" "+createFolder
+    cmd3 = "cp "+cometFlyParams+" "+createFolder
     # os.system(cmd3)
 
     cmd4 = "mv "+pepxml_new[0]+" "+pepxlm_moved
@@ -321,14 +323,14 @@ def mvLogsParams(mzFol2, basefile):
 
 
 
-def fromListToFolder(filelist):
+def fromListToFolder(filelist, cometFlyParams):
     folder = []
     for mzFile in filelist:
         dirToMake = mzXML_path+"/"+os.path.basename(mzFile).split(".")[0]
         folder.append(dirToMake)
         #os.system("mkdir "+dirToMake)
         #os.system("mv "+mzFile+" "+dirToMake)
-        os.system("cp comet.params "+dirToMake+"/comet.params")
+        os.system("cp "+cometFlyParams+" " +dirToMake+"/comet.params")
     return folder
 
 
@@ -495,7 +497,7 @@ def pepXMLOutFileConversion(pepxmlFile,basefile, outFileDict, outFileDictPrec):
             else:
                 print (line.rstrip())
 
-def mzXMLtoMS2(mzXML):
+def mzXMLtoMS2(mzXML, cometFlyParams):
     sample = mzXML.split("/")[-1].split(".mzXML")[0]
     dtas = glob.glob(mzXML_path+"/"+sample+"/"+sample+".*dtas")
     pattern =  mzXML_path+"/"+sample+"/"+sample
@@ -515,13 +517,21 @@ def mzXMLtoMS2(mzXML):
 cmd = "jump -deisotope "+jump_params+" "+" ".join(mzXMLs)
 os.system(cmd)
 #cometParams = "comet_HH_tmt10_mouse.params"
-if (mzXMLs == ["*.mzXML"]) or (glob.glob(mzXML_path+"/*.mzXML")==[]):
+if mzXMLs == ["*.mzXML"]:
     mzXMLs = glob.glob(mzXML_path+"/*/*.mzXML")
+else:
+    mzXMLs_new =[]
+    for mz_F in mzXMLs:
+        mz_base = mz_F.split(".mzXML")[0] 
+        mzXMLs_new.append(mz_base+"/"+mz_F)
+
+    mzXMLs = mzXMLs_new
+
 
 if len(mzXMLs) < 40:
     for mzXML in mzXMLs:
         
-        mzXMLtoMS2(mzXML)
+        mzXMLtoMS2(mzXML, cometFlyParams)
 
 
         print ("\n\nJob is submitted for COMET search on "+mzXML+"\n\nPLEASE WAIT PATIENTLY\n\n")
@@ -532,7 +542,7 @@ else:
         total_work = total_jobs*40
         if total_work < len(mzXMLs):
             for mzXML in mzXMLs[a:total_work]:
-                mzXMLtoMS2(mzXML)
+                mzXMLtoMS2(mzXML, cometFlyParams)
  
 
                 print ("\n\nJob is submitted for COMET search on "+mzXML+"\n\nPLEASE WAIT PATIENTLY\n\n")
@@ -553,21 +563,26 @@ else:
                     hold = 1
         else:
             for mzXML in mzXMLs[a:len(mzXMLs)]:
-                mzXMLtoMS2(mzXML)
+                mzXMLtoMS2(mzXML, cometFlyParams)
  
-new_folders = fromListToFolder(mzXMLs)
-# print (new_folders)
+new_folders = fromListToFolder(mzXMLs,cometFlyParams)
+#print (new_folders)
 #print ("Total log files = ",new_log)
 
-finish_log = glob.glob(mzXML_path+"/*/log/log.out")
+
+#finish_log = glob.glob(mzXML_path+"/*/log/log.out")
+finish_log  = []
 while len(finish_log) != len(mzXMLs):
-    finish_log = glob.glob(mzXML_path+"/*/log/log.out")
+    for folder in new_folders:
+        log = glob.glob(folder+"/log/log.out")
+    if len(log) == 1:
+        finish_log.append(log[0])
     time.sleep(30)
 
 
 for mzFol2 in new_folders:
   filenameMS2 = mzFol2.split("/")[-1]
-  mvLogsParams(mzFol2, filenameMS2)
+  mvLogsParams(mzFol2, filenameMS2, cometFlyParams)
 
 
 
