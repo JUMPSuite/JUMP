@@ -35,8 +35,6 @@ sub write_step1_fbatch {
 	$lno++;
 	$mystrs[$lno] = "cd ".$in_DataDir."\n";
 	$lno++;
-	$mystrs[$lno] = "module load jump/1.13.004\n"; # include Comet
-	$lno++;
 	$mystrs[$lno] = "module load perl/5.10.1\n";
 	$lno++;
 	$mystrs[$lno] = "export PERL5LIB=\"\$PERL5LIB:/home/yli4/lib/perl5/\"\n";
@@ -270,8 +268,6 @@ sub write_step2_q {
 	$lno++;
 	$mystrs[$lno] = "cd ".$in_QuanDir."\n";
 	$lno++;
-	$mystrs[$lno] = "module load jump/1.13.004\n";
-	$lno++;
 	for (my $i=0; $i<$#in_bs+1; $i++) {
 		$mystrs[$lno] = "cd ".$in_bs[$i]."\n";
 		$lno++;
@@ -299,8 +295,6 @@ sub write_step2_l {
 	$lno++;
 	$mystrs[$lno] = "cd ".$in_QuanDir."\n";
 	$lno++;
-	$mystrs[$lno] = "module load jump/1.13.004\n";
-	$lno++;
 	for (my $i=0; $i<$#in_bs+1; $i++) {
 		$mystrs[$lno] = "cd ".$in_bs[$i]."\n";
 		$lno++;
@@ -322,8 +316,6 @@ sub write_step3_qbatch {
 	$mystrs[$lno] = "#!/bin/bash\n";
 	$lno++;
 	$mystrs[$lno] = "cd ".$in_DataDir."\n";
-	$lno++;
-	$mystrs[$lno] = "module load jump/1.13.004\n"; # include Comet
 	$lno++;
 	$mystrs[$lno] = "module load perl/5.10.1\n";
 	$lno++;
