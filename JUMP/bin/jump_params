@@ -1185,3 +1185,5 @@ close (PARAMS);
 # copy $Bin/batch/user_manual to Batch path
 my $cmd = "cp ".$Bin."/batch/*User_manual* ".$batchDir;
 system($cmd);
+
+print "./ParameterFiles has been generated.\n";
