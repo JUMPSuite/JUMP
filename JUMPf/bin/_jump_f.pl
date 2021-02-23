@@ -2094,7 +2094,7 @@ sub coverage{
 		my $num = $Seq =~ s/([a-z])/$1/g;
   	##printf "$num vs %d\n", length($Seq);exit;
   	if ($Seq eq '') {print LOGFILE "Zero length protein:$pro\n$Seq\n";}
-  	$$prohash{'coverage'} = $num/length($Seq+0.01)*100;
+  	$$prohash{'coverage'} = $num/(length($Seq)+0.01)*100;# $$prohash{'coverage'} = $num/length($Seq+0.01)*100;
 	}
 }
 
