@@ -194,7 +194,7 @@ if (!defined($parahash{bypass_database_search}) or $parahash{bypass_database_sea
 			system(qq(ln -s $currentdir/$rawFile $output_dir)); 
 		}
 		#system(qq(cd $output_dir && $parahash{'programs'}{s} $parahash{'params'}{s} @ARGV));
-		system(qq(cd $output_dir &&  $parahash{'programs'}{s} $parahash{'params'}{s} @ARGV));
+		system(qq(cd $output_dir && $parahash{'programs'}{s} -p $parahash{'params'}{s} @ARGV));
 	} else {
 		system(qq(cp $ARGV[0] $output_dir));
 		system(qq(cd $output_dir &&  $parahash{'programs'}{rundtas} $parahash{'params'}{s} $ARGV[0]));
