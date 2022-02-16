@@ -924,6 +924,14 @@ sub generateDbName {
 		print $log "  N-terminal and Lysine modifications for TMT\n";
 		print $log "  N-terminal peptide modification: $$params{'add_Nterm_peptide'}\n";
 		print $log "  K_Lysine modification: $$params{'add_K_Lysine'}\n";
+	}  elsif (int($$params{'add_Nterm_peptide'}) == 304 && int($$params{'add_K_Lysine'}) == 304) {
+                push (@dbSuffix, "TMTpro");
+                print "  N-terminal and Lysine modifications for TMTpro\n";
+                print "  N-terminal peptide modification: $$params{'add_Nterm_peptide'}\n";
+                print "  K_Lysine modification: $$params{'add_K_Lysine'}\n";
+                print $log "  N-terminal and Lysine modifications for TMTpro\n";
+                print $log "  N-terminal peptide modification: $$params{'add_Nterm_peptide'}\n";
+                print $log "  K_Lysine modification: $$params{'add_K_Lysine'}\n";
 	} elsif (int($$params{'add_Nterm_peptide'}) == 0 && int($$params{'add_K_Lysine'}) == 0) {
 		print "  No TMT modification\n";
 		print $log "  No TMT modification\n";
