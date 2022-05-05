@@ -2,7 +2,7 @@ source config.sh
 
 case $1 in 
 -s)
-	perl $(which jump_sj.pl) -p "${@:2}" ;;
+	perl $(which jump_sj.pl) "${@:2}" ;;
 -f)
 	perl $(which jump_f.pl) "${@:2}" ;;
 -q)
