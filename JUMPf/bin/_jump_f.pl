@@ -3804,7 +3804,6 @@ sub build_grouphash
 		}
 
 		my ($group,$subgroup)=split(/\./,$fmGroup);
-		$subgroup =~ s/^0*//;
 		#SJPG18913
 		$group =~ m/^[A-Za-z]+(\d+)$/;
 		$group = $1;
@@ -3818,6 +3817,7 @@ sub build_grouphash
 		}
 
 		my $full_group="$group\.$subgroup";#print "$protein $full_group;";
+		$subgroup =~ s/^0*//;
 
 		#my $fullgroup=$fmGroup;
 		#$fullgroup =~ s///;
