@@ -21,7 +21,6 @@ use Storable;
 use Clone qw(clone);
 use Carp;
 use File::Basename;
-use File::Path;
 use File::Spec;
 use File::Copy;
 use Spiders::Params;
@@ -310,14 +309,14 @@ sub main
 		{
 			print "  Please specify a right second_search parameter!!\n";
 		}
-		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",${$options->{'--max-jobs'}});
+		my $temp_file_array=runjobs(\@file_array,$dta_path,"sch_${random}",$params->{'processors_used'},${$options->{'--max-jobs'}});
 		my $rerunN=0;
 		my $orig_cluster=$params->{'cluster'};
 		while(scalar(@{$temp_file_array})>0 and $rerunN<3)
 		{
 			$rerunN++;
 			print "\n",scalar(@$temp_file_array)," .dta files not finished! Doing re-search (rerunN = $rerunN)\n";
-			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",${$options->{'--max-jobs'}});
+			my $remaining=runjobs($temp_file_array,$dta_path,"rescue_$rerunN",$params->{'processors_used'},${$options->{'--max-jobs'}});
 
 			$temp_file_array=$remaining;
 		}
@@ -416,9 +415,10 @@ sub Create_Sort_BashFile
 
 sub runjobs
 {
-	my ($file_array,$dta_path,$job_name,$max_jobs) = @_;
+	my ($file_array,$dta_path,$job_name,$MAX_PROCESSES,$max_jobs) = @_;
 	my $curr_dir = getcwd;
 	#my $MAX_PROCESSES = 32;	
+	$MAX_PROCESSES = defined($MAX_PROCESSES)?$MAX_PROCESSES:scalar($#$file_array);
 
 	my $dta_num_per_file = 10;
 	my $job_num = int($#$file_array / $dta_num_per_file) + 1;
@@ -430,7 +430,7 @@ sub runjobs
 
 	if(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 	{
-		$job_num = scalar($#$file_array);;
+		$job_num = $MAX_PROCESSES;
 		$dta_num_per_file = int($#$file_array / $job_num) + 1;
 	}
 	#my $dta_num_per_file = int($#$file_array / $job_num) + 1;
@@ -564,9 +564,9 @@ sub runjobs
 # 	}
 # 	elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP)
 # 	{
-# 		print "  Only use single server to run jobs (MAX_PROCESSES = scalar($#$file_array);). Please be patient!\n";
-#         my $pm = new Parallel::ForkManager(scalar($#$file_array););
-#         for my $i ( 0 .. scalar($#$file_array); )
+# 		print "  Only use single server to run jobs (MAX_PROCESSES = $MAX_PROCESSES). Please be patient!\n";
+#         my $pm = new Parallel::ForkManager($MAX_PROCESSES);
+#         for my $i ( 0 .. $MAX_PROCESSES )
 #         {
 #             $pm->start and next;
 # 			my $job_name = "${job_name}_${i}.sh";			
@@ -969,7 +969,6 @@ sub database_creation
 		    {
 			$k++;
 			print "\r  Generating $k temporary files";
-			close(FASTATEMP);
 			open(FASTATEMP,">$tmp_database_path/temp_${k}_${database_basename}");
 		    }
 		    print FASTATEMP "$_";
@@ -980,7 +979,6 @@ sub database_creation
 		    print FASTATEMP "$_";		
 		}
 	    }
-	    close(FASTATEMP);
 	    close(FASTA);
 	    print "\n";
 	    
@@ -1003,14 +1001,14 @@ sub database_creation
 #		open(JOB,">$tmp_database_path/job_db_$i.sh") || die "can not open the job db files\n";
 		#		print JOB "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e\n";
 		push( @cmdArr, {'cmd' => 
-				    "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e && rm -rf $tmp_database_path/temp_${i}_${database_basename}",
+				    "perl $tmp_database_path/create_db.pl $tmp_database_path/temp_${i}_${database_basename} >$tmp_database_path/$i.o 2>$tmp_database_path/$i.e ; rm -rf $tmp_database_path/temp_${i}_${database_basename}",
 				    'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
 		 # print JOB "\n";
 		# close(JOB);
 	    }
 	    
 
-# my (scalar($#$file_array););
+# my ($MAX_PROCESSES);
 
 
 # 		# submit jobs
@@ -1047,8 +1045,8 @@ sub database_creation
 # 			    Check_Job_stat("job_db_",$job_num);
 # 			}
 # 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
-# 			scalar($#$file_array);=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
-# 			my $pm = new Parallel::ForkManager(scalar($#$file_array););
+# 			$MAX_PROCESSES=defined($params->{'processors_used'})?$params->{'processors_used'}:4;
+# 			my $pm = new Parallel::ForkManager($MAX_PROCESSES);
 # 			for my $i ( 1 .. $job_num ) {
 # 				$pm->start and next;
 # 				system(qq(sh $tmp_database_path/job_db_$i.sh >/dev/null 2>&1));
@@ -1068,7 +1066,7 @@ sub database_creation
 
 	    $job->make_partialidx_script($tmp_database_path);
 	    
-	    my $prot_job_num = 0;#int($num_mass_region/2);
+	    my $prot_job_num = int($num_mass_region/2);
 
 	    #		my $inclusion_decoy = $params->{'inclusion_decoy'};
 
@@ -1101,7 +1099,7 @@ sub database_creation
 #		my $FileName = "$dta_path/sort_db_".$Params->{"range"}.".sh"; #print "$FileName\n";
 			
 		my $outputName="sort_db_".$Params->{"range"};
-		my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"}," 2>&1 > $dta_path/$outputName");
+		my $cmd = join(" ","perl $dta_path/Create_Partial_Idx.pl -m",$Params->{"range"},"-job_num",$Params->{"JobNum"},"-dta_path",$dta_path,"-database_path",$dta_path,"-mass_index",$Params->{"mass_index"},"-peptide_index", $Params->{"peptide_index"},"-protein_index",$Params->{"protein_index"},"-databasename",$Params->{"databasename"},"-num_pro_per_job",$Params->{"num_pro_per_job"},"-prot_job_num",$Params->{"prot_job_num"},"-digestion",$Params->{"digestion"}," &> $dta_path/$outputName");
 
 		push( @cmdArr, {'cmd' => $cmd,
 				'toolType' => Spiders::BatchSystem->JUMP_DATABASE} );
@@ -1176,9 +1174,9 @@ sub database_creation
 # 		} elsif(Spiders::ClusterConfig::getClusterConfig($config,$params) eq Spiders::ClusterConfig::SMP) {
 # 			my $pm;
 # 			if (defined($params->{'digestion'}) and $params->{'digestion'} eq 'partial') {
-# 				my $k=int(scalar($#$file_array);/10)+1;
+# 				my $k=int($MAX_PROCESSES/10)+1;
 # 			} else {
-# 				my $k=int(scalar($#$file_array);/2)+1;
+# 				my $k=int($MAX_PROCESSES/2)+1;
 # 			}
 # 			$pm = new Parallel::ForkManager($k); # the sorting usually requires large memory
 # 			for($m=0;$m<$num_mass_region;$m++) {
@@ -1308,7 +1306,7 @@ sub database_creation
 	    #	system(qq(mv $tmp_database_path/$outfile $database_path/$outfile >/dev/null 2>&1));
 	    #	system(qq(rm -rf $tmp_database_path >/dev/null 2>&1));
 	    if (defined($params->{'temp_file_removal'}) and $params->{'temp_file_removal'}==1) {
-		File::Path::rmtree($tmp_database_path);
+#		system(qq(rm -rf $tmp_database_path >/dev/null 2>&1)); # deactivated for debug
 	    }
 	    
 	    print "  Database creation completed\n";
@@ -1466,7 +1464,7 @@ sub dispatch_batch_run {
 	print JOB "#BSUB -M 8192\n";
 	print JOB "#BSUB -oo $dir/jump.o\n";
 	print JOB "#BSUB -eo $dir/jump.e\n";
-	print JOB "yes | jump_sj.pl -p $parameter $args 2>&1 > $dir/jump.out\n";
+	print JOB "yes | jump_sj.pl -p $parameter $args &> $dir/jump.out\n";
 	close(JOB);
 	my $output = qx[bsub <"$dir/jump_dispatch.sh"];
 

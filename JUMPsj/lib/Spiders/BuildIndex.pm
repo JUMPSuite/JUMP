@@ -500,49 +500,11 @@ sub getAssociatedPeptides_bak{
 	return $peptidehash;
 }
 
-sub fmtStr {
-    my $self = shift;
-    my $arg = shift;
-    if( $arg eq "prdx" ) {
-	return "L A500 A200";
-    }
-    elsif( $arg eq "pdx" ) {
-	return "L A255";
-    }
-}
-
-sub entrySize {
-    my $self = shift;
-    my $arg = shift;
-    if( $arg eq "prdx" ) {
-	return length(pack("L",0))+length(pack("A500","x"))+length(pack("A200","x"));
-    }
-    elsif( $arg eq "pdx" ) {
-	return length(pack("L",0))+length(pack("A255","x"));
-    }
-}
-
-sub readPdx {
-    my $self = shift;
-    my $filename = shift;
-    my $idx = shift;
-
-    my $entrySize = $self->entrySize("pdx");
-    my $fileSize = -s $filename;
-    my ($input,$curIndex);
-    open($input,"<$filename") or die "Error opening file $fileSize. $!\n";
-    $curIndex = $idx;
-    my $val = $self->readEntry($input,$entrySize,$curIndex);
-    my @vals = unpack("L A255",$val);	
-    close($input);
-    return \@vals;
-}
-
 sub getProtein{
 	my ($self,$proteinId,$filename) = @_;
 	
 	#Here we do a direct access;
-	my $entrySize = $self->entrySize("prdx");
+	my $entrySize = length(pack("L",0))+length(pack("A500","x"))+length(pack("A200","x"));
 	my $fileSize = -s $filename;
 	
 	#Here we suppose that the Ids are ordered sequencly , there is no missing IDs in the middle
